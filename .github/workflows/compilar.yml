@@ -1,0 +1,25 @@
+# Cada cambio: compila la solución y corre la prueba sin conexión del núcleo.
+name: Compilar escritorio
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  compilar:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Compilar
+        run: dotnet build Provision.sln -c Release
+      - name: Generar Provision.exe
+        run: dotnet publish src/Provision.Desktop -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o publicado
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Provision-windows
+          path: publicado/

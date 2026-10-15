@@ -69,7 +69,7 @@ El retiro del dueño en Caja lo ven el super administrador y el administrador. E
 - **Caja**: abrir con fondo, totales por método, efectivo esperado, gastos, depósitos, retiro del dueño hacia una cuenta personal y cierre con arqueo.
 - **Laboratorio**: tablero de órdenes por estado y atrasadas; graduación, productos e instrucciones; botones solo para los pasos que tu rol puede hacer (enviar, listo, entregar, cancelar) e historial de cada orden.
 - **Clientes**: búsqueda, ficha con datos, saldo pendiente y compras; recetas OD/OI (esfera, cilindro, eje, adición, DNP) y registro de nuevas recetas.
-- **Inventario**: CRUD de productos (crear, editar, eliminar —o desactivar si tiene historial— y reactivar), marcas, filtros por tipo, estado y bajo stock, y entrada de mercadería.
+- **Inventario**: CRUD de productos (crear, editar, eliminar —o desactivar si tiene historial— y reactivar) con **foto** (se sube a Cloudinary), **descripción**, **características** (para quién, medidas de montura `52□18 140`, material, forma, color; índice y tratamiento en lentes) y si se **muestra en la tienda web**; marcas, filtros por tipo, estado y bajo stock, y entrada de mercadería.
 - **Usuarios**: crear usuarios con su rol y sucursal (muestra qué puede hacer cada rol), cambiar rol, sucursal o contraseña, y activar/desactivar. Nadie puede quitarse su propio rol ni desactivarse.
 - **Mis finanzas**: ingresos, gastos, ahorro y patrimonio del mes; cuentas; ingresos, gastos y transferencias; presupuesto por categoría.
 
@@ -95,3 +95,7 @@ Montos: la API trabaja en **centavos** (Bs 150,50 = 15050). `Dinero.Formatear` l
 ```powershell
 .\scripts\probar-api.ps1 -Email admin@provision.local -Password CambiaEsto123
 ```
+
+## Compilación automática
+
+Cada cambio en `main` se compila en GitHub Actions (Windows) y deja `Provision.exe` como artefacto descargable en la pestaña *Actions* del repo.

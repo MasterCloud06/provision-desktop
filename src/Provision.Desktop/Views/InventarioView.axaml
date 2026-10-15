@@ -109,6 +109,49 @@
             <TextBox Text="{Binding FormCodigoBarras}" Watermark="Código de barras (opcional)" />
             <TextBlock Classes="etiqueta" Text="Precio de venta Bs" />
             <TextBox Text="{Binding FormPrecio}" Watermark="0,00" />
+
+            <!-- Foto -->
+            <TextBlock Classes="etiqueta" Text="Foto (se ve en la tienda web)" Margin="0,8,0,0" />
+            <Border Height="180" CornerRadius="8" Background="#EEF2F2" ClipToBounds="True"
+                    IsVisible="{Binding FormFoto, Converter={x:Static ObjectConverters.IsNotNull}}">
+              <Image Source="{Binding FormFoto}" Stretch="Uniform" />
+            </Border>
+            <TextBlock Classes="etiqueta" Text="{Binding FormFotoTexto}" TextWrapping="Wrap" />
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <Button Content="Elegir foto…" Click="ElegirFoto_Click" />
+              <Button Content="Quitar foto" Command="{Binding QuitarFotoCommand}" IsVisible="{Binding FormTieneFoto}" />
+            </StackPanel>
+
+            <!-- Descripción -->
+            <TextBlock Classes="etiqueta" Text="Descripción (opcional)" Margin="0,8,0,0" />
+            <TextBox Text="{Binding FormDescripcion}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="70" MaxLength="2000"
+                     Watermark="Qué lo hace especial: material, comodidad, para qué uso…" />
+
+            <!-- Características según el tipo -->
+            <TextBlock Classes="subtitulo" Text="Características" Margin="0,8,0,0" FontSize="15" />
+            <StackPanel Spacing="8" IsVisible="{Binding FormEsMontura}">
+              <TextBlock Classes="etiqueta" Text="Para quién" />
+              <ComboBox ItemsSource="{Binding Generos}" SelectedItem="{Binding FormGenero}" HorizontalAlignment="Stretch" />
+              <TextBlock Classes="etiqueta" TextWrapping="Wrap"
+                         Text="Medidas en mm (vienen impresas en la varilla, p. ej. 52□18 140)" />
+              <Grid ColumnDefinitions="*,6,*,6,*">
+                <NumericUpDown Value="{Binding FormCalibre}" Minimum="0" Maximum="100" Increment="1" FormatString="0.#"
+                               Watermark="Lente" ToolTip.Tip="Ancho del lente (calibre)" />
+                <NumericUpDown Grid.Column="2" Value="{Binding FormPuente}" Minimum="0" Maximum="50" Increment="1" FormatString="0.#"
+                               Watermark="Puente" ToolTip.Tip="Puente" />
+                <NumericUpDown Grid.Column="4" Value="{Binding FormVarilla}" Minimum="0" Maximum="200" Increment="1" FormatString="0.#"
+                               Watermark="Varilla" ToolTip.Tip="Largo de la varilla" />
+              </Grid>
+              <TextBox Text="{Binding FormForma}" Watermark="Forma (aviador, redonda, cat-eye…)" />
+            </StackPanel>
+            <TextBox Text="{Binding FormMaterial}" Watermark="Material (acetato, metal, TR90, policarbonato…)" IsVisible="{Binding FormLlevaMaterial}" />
+            <TextBox Text="{Binding FormColor}" Watermark="Color" />
+            <StackPanel Spacing="8" IsVisible="{Binding FormEsLente}">
+              <NumericUpDown Value="{Binding FormIndice}" Minimum="0" Maximum="2" Increment="0.01" FormatString="0.00"
+                             Watermark="Índice (1.50, 1.56, 1.67…)" />
+              <TextBox Text="{Binding FormTratamiento}" Watermark="Tratamiento (antirreflejo, filtro azul, fotocromático…)" />
+            </StackPanel>
+            <CheckBox Content="Mostrar en la tienda web" IsChecked="{Binding FormVisibleTienda}" Margin="0,4,0,0" />
             <TextBlock Classes="etiqueta" Text="Stock mínimo (avisa cuando llegue a este número)" />
             <NumericUpDown Value="{Binding FormStockMinimo}" Minimum="0" Increment="1" FormatString="0" />
             <StackPanel Spacing="4" IsVisible="{Binding EsNuevo}">
@@ -134,8 +177,16 @@
                        Text="Selecciona un producto de la lista para verlo, editarlo o registrar unidades que llegaron." />
 
             <StackPanel Spacing="8" IsVisible="{Binding HaySeleccion}">
+              <Border Height="200" CornerRadius="8" Background="#EEF2F2" ClipToBounds="True" IsVisible="{Binding TieneFotoSeleccionado}">
+                <Image Source="{Binding FotoSeleccionado}" Stretch="Uniform" />
+              </Border>
               <TextBlock Classes="subtitulo" Text="{Binding Seleccionado.Nombre}" TextWrapping="Wrap" />
               <TextBlock Classes="etiqueta" Text="{Binding Seleccionado.Sku}" />
+              <TextBlock Classes="etiqueta" Text="{Binding Seleccionado.Medidas, StringFormat='Medidas: {0}'}"
+                         IsVisible="{Binding Seleccionado.Medidas, Converter={x:Static ObjectConverters.IsNotNull}}" />
+              <TextBlock Text="{Binding Seleccionado.Descripcion}" TextWrapping="Wrap"
+                         IsVisible="{Binding Seleccionado.Descripcion, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+              <TextBlock Classes="etiqueta" Text="No se muestra en la tienda web" IsVisible="{Binding SeleccionOculta}" />
               <TextBlock Classes="etiqueta" Text="{Binding Seleccionado.Stock, StringFormat='Stock en esta sucursal: {0}'}" />
 
               <!-- Acciones de catálogo -->

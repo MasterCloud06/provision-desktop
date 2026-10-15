@@ -85,10 +85,19 @@ public sealed class ApiClient : IDisposable
     public Task<T> EnviarDeleteAsync<T>(string ruta, CancellationToken ct = default) =>
         EnviarAsync<T>(HttpMethod.Delete, ruta, null, ct);
 
+    /// <summary>Envía un archivo tal cual (por ejemplo una foto) con su tipo, p. ej. image/jpeg.</summary>
+    public Task<T> PutArchivoAsync<T>(string ruta, byte[] contenido, string tipo, CancellationToken ct = default)
+    {
+        var cuerpo = new ByteArrayContent(contenido);
+        cuerpo.Headers.ContentType = new MediaTypeHeaderValue(tipo);
+        return EnviarAsync<T>(HttpMethod.Put, ruta, cuerpo, ct);
+    }
+
     private async Task<T> EnviarAsync<T>(HttpMethod metodo, string ruta, object? cuerpo, CancellationToken ct)
     {
         using var req = new HttpRequestMessage(metodo, ruta.TrimStart('/'));
-        if (cuerpo is not null) req.Content = JsonContent.Create(cuerpo, cuerpo.GetType(), options: Json);
+        if (cuerpo is HttpContent contenido) req.Content = contenido;
+        else if (cuerpo is not null) req.Content = JsonContent.Create(cuerpo, cuerpo.GetType(), options: Json);
 
         HttpResponseMessage resp;
         try

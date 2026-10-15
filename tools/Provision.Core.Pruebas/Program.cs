@@ -44,6 +44,31 @@ var producto = await api.CrearProductoAsync(new NuevoProducto
     MarcaId = marca.Id, PrecioVenta = 50000, StockMinimo = 1, StockInicial = new StockInicial(3, 20000),
 });
 Comprobar(producto.Tipo == TipoProducto.Montura, "crear producto con stock inicial (enum MONTURA)");
+
+// Descripción, características y visibilidad en la tienda: ida y vuelta.
+var conFicha = await api.ActualizarProductoAsync(producto.Id, new CambiosProducto
+{
+    Descripcion = "Liviana, acetato italiano",
+    Atributos = new AtributosProducto { Genero = "MUJER", Material = "Acetato", Calibre = 52, Puente = 18, Varilla = 140 },
+    VisibleTienda = false,
+});
+Comprobar(conFicha.Descripcion == "Liviana, acetato italiano" && conFicha.Medidas == "52□18 140" && !conFicha.VisibleTienda,
+    $"ficha del producto: {conFicha.Medidas}, {conFicha.Atributos.Genero}, oculto en la tienda");
+await api.ActualizarProductoAsync(producto.Id, new CambiosProducto { VisibleTienda = true });
+
+// Foto: un JPG mínimo. Sin Cloudinary configurado, el servidor responde FOTOS_NO_CONFIGURADAS.
+byte[] jpg = [0xFF, 0xD8, 0xFF, 0xE0, 0, 0x10, 0x4A, 0x46, 0x49, 0x46, 0, 1, .. new byte[200]];
+try
+{
+    var conFoto = await api.SubirFotoAsync(producto.Id, jpg, "image/jpeg");
+    Comprobar(conFoto.ImagenUrl is not null, $"foto subida: {conFoto.ImagenUrl}");
+    var sinFoto = await api.QuitarFotoAsync(producto.Id);
+    Comprobar(sinFoto.ImagenUrl is null, "foto quitada");
+}
+catch (ApiException ex) when (ex.Codigo == "FOTOS_NO_CONFIGURADAS")
+{
+    Comprobar(true, "foto: el servidor avisa que falta configurar Cloudinary");
+}
 var lente = await api.CrearProductoAsync(new NuevoProducto
 {
     Sku = "LEN-" + sufijo, Nombre = "Lente de prueba " + sufijo, Tipo = TipoProducto.LenteOftalmico,

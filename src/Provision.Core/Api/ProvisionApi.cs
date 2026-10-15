@@ -68,6 +68,29 @@ public sealed class ProvisionApi(ApiClient http)
     public Task<ResultadoEliminar> EliminarProductoAsync(Guid id, CancellationToken ct = default) =>
         Http.EnviarDeleteAsync<ResultadoEliminar>($"catalogo/productos/{id}", ct);
 
+    /// <summary>Sube (o reemplaza) la foto del producto. tipo: image/jpeg, image/png, image/webp o image/heic.</summary>
+    public Task<Producto> SubirFotoAsync(Guid id, byte[] imagen, string tipo, CancellationToken ct = default) =>
+        Http.PutArchivoAsync<Producto>($"catalogo/productos/{id}/foto", imagen, tipo, ct);
+
+    public Task<Producto> QuitarFotoAsync(Guid id, CancellationToken ct = default) =>
+        Http.EnviarDeleteAsync<Producto>($"catalogo/productos/{id}/foto", ct);
+
+    /// <summary>Tipo de imagen según la extensión del archivo, o null si no es un formato aceptado.</summary>
+    public static string? TipoDeFoto(string nombreArchivo) => Path.GetExtension(nombreArchivo).ToLowerInvariant() switch
+    {
+        ".jpg" or ".jpeg" => "image/jpeg",
+        ".png" => "image/png",
+        ".webp" => "image/webp",
+        ".heic" or ".heif" => "image/heic",
+        _ => null,
+    };
+
+    /// <summary>URL de una versión reducida de la foto (Cloudinary la genera al vuelo).</summary>
+    public static string? Miniatura(string? url, int ancho = 600) =>
+        url is not null && url.Contains("res.cloudinary.com") && url.Contains("/upload/")
+            ? url.Replace("/upload/", $"/upload/c_limit,w_{ancho},f_jpg,q_auto/")
+            : url;
+
     public Task<List<Marca>> MarcasAsync(CancellationToken ct = default) =>
         Http.GetAsync<List<Marca>>("catalogo/marcas", ct);
 

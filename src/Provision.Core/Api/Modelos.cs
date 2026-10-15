@@ -110,12 +110,37 @@ public sealed record Marca
     public bool Activa { get; init; }
 }
 
+/// <summary>
+/// Características ópticas del producto. Se envían completas: lo que queda en null se borra.
+/// Las medidas de montura van en milímetros (calibre = ancho del lente).
+/// </summary>
+public sealed record AtributosProducto
+{
+    /// <summary>HOMBRE, MUJER, NINO o UNISEX.</summary>
+    public string? Genero { get; init; }
+    public string? Material { get; init; }
+    public string? Forma { get; init; }
+    public string? Color { get; init; }
+    public decimal? Calibre { get; init; }
+    public decimal? Puente { get; init; }
+    public decimal? Varilla { get; init; }
+    /// <summary>Índice de refracción de un lente (1.50, 1.56, 1.67…).</summary>
+    public decimal? Indice { get; init; }
+    public string? Tratamiento { get; init; }
+}
+
 public sealed record Producto
 {
     public Guid Id { get; init; }
     public string Sku { get; init; } = "";
     public string? CodigoBarras { get; init; }
     public string Nombre { get; init; } = "";
+    public string? Descripcion { get; init; }
+    public AtributosProducto Atributos { get; init; } = new();
+    /// <summary>Foto pública (Cloudinary). Null = sin foto.</summary>
+    public string? ImagenUrl { get; init; }
+    /// <summary>Si aparece en la tienda web para los clientes.</summary>
+    public bool VisibleTienda { get; init; } = true;
     public TipoProducto Tipo { get; init; }
     public string? Modelo { get; init; }
     public Guid? MarcaId { get; init; }
@@ -129,6 +154,11 @@ public sealed record Producto
     public string? Ubicacion { get; init; }
 
     public bool BajoStock => ControlaStock && Stock <= StockMinimo;
+
+    /// <summary>Medidas de montura como se leen en las ópticas: 52□18 140.</summary>
+    public string? Medidas => Atributos is { Calibre: { } c, Puente: { } p }
+        ? $"{c:0.#}□{p:0.#}" + (Atributos.Varilla is { } v ? $" {v:0.#}" : "")
+        : null;
 }
 
 /// <summary>Edición de producto: solo se envían los campos que no son null.</summary>
@@ -143,6 +173,11 @@ public sealed record CambiosProducto
     public long? PrecioVenta { get; init; }
     public int? StockMinimo { get; init; }
     public bool? Activo { get; init; }
+    /// <summary>"" la deja vacía.</summary>
+    public string? Descripcion { get; init; }
+    /// <summary>Reemplaza todas las características.</summary>
+    public AtributosProducto? Atributos { get; init; }
+    public bool? VisibleTienda { get; init; }
 }
 
 public sealed record ResultadoEliminar
@@ -165,6 +200,9 @@ public sealed record NuevoProducto
     public long PrecioVenta { get; init; }
     public int StockMinimo { get; init; }
     public StockInicial? StockInicial { get; init; }
+    public string? Descripcion { get; init; }
+    public AtributosProducto Atributos { get; init; } = new();
+    public bool VisibleTienda { get; init; } = true;
 }
 
 public sealed record LineaEntrada(Guid ProductoId, int Cantidad, long CostoUnitario);

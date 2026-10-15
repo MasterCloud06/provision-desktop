@@ -1,3 +1,4 @@
+using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Provision.Core;
@@ -17,6 +18,7 @@ public sealed partial class InventarioViewModel : ViewModelBase, ISeccion
         _filtroTipo = TiposFiltro[0];
         _formTipo = Tipos[0];
         _filtroEstado = Estados[0];
+        _formGenero = Generos[0];
     }
 
     public bool PuedeGestionar => _sesion.Puede("catalogo.gestionar");
@@ -33,6 +35,13 @@ public sealed partial class InventarioViewModel : ViewModelBase, ISeccion
     public IReadOnlyList<Opcion<bool?>> Estados { get; } =
         [new(true, "Activos"), new(false, "Desactivados"), new(null, "Todos")];
 
+    public IReadOnlyList<Opcion<string?>> Generos { get; } =
+        [new(null, "Sin especificar"), new("UNISEX", "Unisex"), new("MUJER", "Mujer"), new("HOMBRE", "Hombre"), new("NINO", "Niños")];
+
+    /// <summary>Las fotos de un celular pesan 3 a 6 MB; el servidor acepta hasta 12.</summary>
+    private const int MaxFotoBytes = 12 * 1024 * 1024;
+    private static readonly HttpClient Descargas = new() { Timeout = TimeSpan.FromSeconds(30) };
+
     /* ─────────── Listado ─────────── */
 
     [ObservableProperty] private string _busqueda = "";
@@ -43,12 +52,20 @@ public sealed partial class InventarioViewModel : ViewModelBase, ISeccion
     [ObservableProperty] private string _resumen = "";
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HaySeleccion), nameof(PuedeRecibirSeleccion), nameof(SeleccionInactiva))]
+    [NotifyPropertyChangedFor(nameof(HaySeleccion), nameof(PuedeRecibirSeleccion), nameof(SeleccionInactiva), nameof(SeleccionOculta))]
     private Producto? _seleccionado;
 
     public bool HaySeleccion => Seleccionado is not null;
     public bool PuedeRecibirSeleccion => PuedeRecibir && Seleccionado is { ControlaStock: true, Activo: true };
     public bool SeleccionInactiva => Seleccionado is { Activo: false };
+    public bool SeleccionOculta => Seleccionado is { VisibleTienda: false };
+
+    /// <summary>Foto del producto seleccionado (miniatura descargada de Cloudinary).</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(TieneFotoSeleccionado))]
+    private Bitmap? _fotoSeleccionado;
+
+    public bool TieneFotoSeleccionado => FotoSeleccionado is not null;
 
     public Task ActivarAsync() => BuscarAsync();
 
@@ -60,6 +77,34 @@ public sealed partial class InventarioViewModel : ViewModelBase, ISeccion
     {
         ConfirmandoEliminar = false;
         EntradaCosto = value is { CostoPromedio: > 0 } ? Dinero.ParaEditar(value.CostoPromedio) : "";
+        _ = CargarFotoSeleccionadoAsync(value);
+    }
+
+    private string? _fotoCargada;
+
+    private async Task CargarFotoSeleccionadoAsync(Producto? p)
+    {
+        var url = ProvisionApi.Miniatura(p?.ImagenUrl);
+        if (url == _fotoCargada) return;
+        _fotoCargada = url;
+        FotoSeleccionado = null;
+        var bitmap = await DescargarAsync(url);
+        if (url == _fotoCargada) FotoSeleccionado = bitmap;
+    }
+
+    /// <summary>Baja una imagen para mostrarla; si no se puede, simplemente no hay vista previa.</summary>
+    private static async Task<Bitmap?> DescargarAsync(string? url)
+    {
+        if (url is null) return null;
+        try
+        {
+            var bytes = await Descargas.GetByteArrayAsync(url);
+            return new Bitmap(new MemoryStream(bytes));
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     [RelayCommand]
@@ -97,6 +142,71 @@ public sealed partial class InventarioViewModel : ViewModelBase, ISeccion
     [ObservableProperty] private decimal? _formStockMinimo = 0;
     [ObservableProperty] private decimal? _formStockInicial = 0;
     [ObservableProperty] private string _formCosto = "";
+    [ObservableProperty] private string _formDescripcion = "";
+    [ObservableProperty] private bool _formVisibleTienda = true;
+
+    /* Características */
+    [ObservableProperty] private Opcion<string?> _formGenero = null!;
+    [ObservableProperty] private string _formMaterial = "";
+    [ObservableProperty] private string _formForma = "";
+    [ObservableProperty] private string _formColor = "";
+    [ObservableProperty] private decimal? _formCalibre;
+    [ObservableProperty] private decimal? _formPuente;
+    [ObservableProperty] private decimal? _formVarilla;
+    [ObservableProperty] private decimal? _formIndice;
+    [ObservableProperty] private string _formTratamiento = "";
+
+    /// <summary>Monturas y gafas de sol llevan medidas y "para quién".</summary>
+    public bool FormEsMontura => FormTipo.Valor is TipoProducto.Montura or TipoProducto.GafasSol;
+    public bool FormEsLente => FormTipo.Valor is TipoProducto.LenteOftalmico;
+    public bool FormLlevaMaterial => FormTipo.Valor is TipoProducto.Montura or TipoProducto.GafasSol or TipoProducto.Accesorio or TipoProducto.LenteOftalmico;
+
+    partial void OnFormTipoChanged(Opcion<TipoProducto> value)
+    {
+        OnPropertyChanged(nameof(FormEsMontura));
+        OnPropertyChanged(nameof(FormEsLente));
+        OnPropertyChanged(nameof(FormLlevaMaterial));
+    }
+
+    /* Foto del formulario: la que ya tiene el producto o una nueva elegida del disco */
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(FormTieneFoto))]
+    private Bitmap? _formFoto;
+
+    [ObservableProperty] private string _formFotoTexto = "Sin foto";
+    private byte[]? _fotoNueva;
+    private string? _fotoNuevaTipo;
+    private bool _quitarFoto;
+    private bool _teniaFoto;
+
+    public bool FormTieneFoto => FormFoto is not null || _fotoNueva is not null || (_teniaFoto && !_quitarFoto);
+
+    /// <summary>La vista llama esto después de que el usuario elige un archivo.</summary>
+    public void UsarFoto(byte[] contenido, string nombreArchivo)
+    {
+        var tipo = ProvisionApi.TipoDeFoto(nombreArchivo);
+        if (tipo is null) { Falla("La foto debe ser JPG, PNG, WEBP o HEIC"); return; }
+        if (contenido.Length > MaxFotoBytes) { Falla("La foto pesa más de 12 MB: elige una más liviana"); return; }
+        _fotoNueva = contenido;
+        _fotoNuevaTipo = tipo;
+        _quitarFoto = false;
+        try { FormFoto = new Bitmap(new MemoryStream(contenido)); }
+        catch { FormFoto = null; } // HEIC: Windows no siempre la puede mostrar, pero se sube igual
+        FormFotoTexto = $"Nueva: {nombreArchivo} ({contenido.Length / 1024} KB). Se sube al guardar.";
+        OnPropertyChanged(nameof(FormTieneFoto));
+        Error = null;
+    }
+
+    [RelayCommand]
+    private void QuitarFoto()
+    {
+        _fotoNueva = null;
+        _fotoNuevaTipo = null;
+        _quitarFoto = _teniaFoto;
+        FormFoto = null;
+        FormFotoTexto = _teniaFoto ? "La foto se quitará al guardar." : "Sin foto";
+        OnPropertyChanged(nameof(FormTieneFoto));
+    }
 
     [RelayCommand]
     private void Nuevo()
@@ -118,6 +228,25 @@ public sealed partial class InventarioViewModel : ViewModelBase, ISeccion
         FormCodigoBarras = p.CodigoBarras ?? "";
         FormPrecio = Dinero.ParaEditar(p.PrecioVenta);
         FormStockMinimo = p.StockMinimo;
+        FormDescripcion = p.Descripcion ?? "";
+        FormVisibleTienda = p.VisibleTienda;
+        var a = p.Atributos;
+        FormGenero = Generos.FirstOrDefault(g => g.Valor == a.Genero) ?? Generos[0];
+        FormMaterial = a.Material ?? "";
+        FormForma = a.Forma ?? "";
+        FormColor = a.Color ?? "";
+        FormCalibre = a.Calibre;
+        FormPuente = a.Puente;
+        FormVarilla = a.Varilla;
+        FormIndice = a.Indice;
+        FormTratamiento = a.Tratamiento ?? "";
+        _fotoNueva = null;
+        _fotoNuevaTipo = null;
+        _quitarFoto = false;
+        _teniaFoto = p.ImagenUrl is not null;
+        FormFoto = FotoSeleccionado;
+        FormFotoTexto = _teniaFoto ? "Foto actual" : "Sin foto";
+        OnPropertyChanged(nameof(FormTieneFoto));
         MostrandoFormulario = true;
         Error = Aviso = null;
     }
@@ -137,7 +266,34 @@ public sealed partial class InventarioViewModel : ViewModelBase, ISeccion
         FormMarca = null;
         FormStockMinimo = 0;
         FormStockInicial = 0;
+        FormDescripcion = FormMaterial = FormForma = FormColor = FormTratamiento = "";
+        FormVisibleTienda = true;
+        FormGenero = Generos[0];
+        FormCalibre = FormPuente = FormVarilla = FormIndice = null;
+        _fotoNueva = null;
+        _fotoNuevaTipo = null;
+        _quitarFoto = false;
+        _teniaFoto = false;
+        FormFoto = null;
+        FormFotoTexto = "Sin foto";
+        OnPropertyChanged(nameof(FormTieneFoto));
     }
+
+    private static string? Texto(string s) => string.IsNullOrWhiteSpace(s) ? null : s.Trim();
+
+    /// <summary>Solo se guardan las características que corresponden al tipo de producto.</summary>
+    private AtributosProducto ArmarAtributos() => new()
+    {
+        Genero = FormEsMontura ? FormGenero.Valor : null,
+        Material = FormLlevaMaterial ? Texto(FormMaterial) : null,
+        Forma = FormEsMontura ? Texto(FormForma) : null,
+        Color = Texto(FormColor),
+        Calibre = FormEsMontura && FormCalibre > 0 ? FormCalibre : null,
+        Puente = FormEsMontura && FormPuente > 0 ? FormPuente : null,
+        Varilla = FormEsMontura && FormVarilla > 0 ? FormVarilla : null,
+        Indice = FormEsLente && FormIndice > 0 ? FormIndice : null,
+        Tratamiento = FormEsLente ? Texto(FormTratamiento) : null,
+    };
 
     [RelayCommand]
     private async Task CrearMarcaAsync()
@@ -158,8 +314,11 @@ public sealed partial class InventarioViewModel : ViewModelBase, ISeccion
     {
         if (FormSku.Trim().Length == 0 || FormNombre.Trim().Length < 2) { Falla("Completa el código (SKU) y el nombre"); return; }
         if (!Dinero.TryLeer(FormPrecio, out var precio) || precio < 0) { Falla("Precio de venta inválido"); return; }
+        if (FormEsLente && FormIndice is { } ind && ind > 0 && (ind < 1.4m || ind > 2m)) { Falla("El índice del lente va entre 1.40 y 2.00 (por ejemplo 1.56)"); return; }
         var nombre = FormNombre.Trim();
+        var atributos = ArmarAtributos();
         string mensaje;
+        Guid productoId;
 
         if (EditandoId is Guid id)
         {
@@ -173,9 +332,13 @@ public sealed partial class InventarioViewModel : ViewModelBase, ISeccion
                 CodigoBarras = string.IsNullOrWhiteSpace(FormCodigoBarras) ? null : FormCodigoBarras.Trim(),
                 PrecioVenta = precio,
                 StockMinimo = (int)(FormStockMinimo ?? 0),
+                Descripcion = FormDescripcion.Trim(),
+                Atributos = atributos,
+                VisibleTienda = FormVisibleTienda,
             };
             if (!await IntentarAsync(() => _sesion.Api.ActualizarProductoAsync(id, cambios))) return;
             mensaje = $"\"{nombre}\" actualizado.";
+            productoId = id;
         }
         else
         {
@@ -198,9 +361,35 @@ public sealed partial class InventarioViewModel : ViewModelBase, ISeccion
                 PrecioVenta = precio,
                 StockMinimo = (int)(FormStockMinimo ?? 0),
                 StockInicial = inicial,
+                Descripcion = Texto(FormDescripcion),
+                Atributos = atributos,
+                VisibleTienda = FormVisibleTienda,
             };
-            if (!await IntentarAsync(() => _sesion.Api.CrearProductoAsync(nuevo))) return;
+            Producto? creado = null;
+            if (!await IntentarAsync(async () => creado = await _sesion.Api.CrearProductoAsync(nuevo))) return;
             mensaje = $"Producto \"{nombre}\" creado.";
+            productoId = creado!.Id;
+            // Desde aquí el producto existe: si la foto falla, se reintenta editándolo.
+            EditandoId = productoId;
+        }
+
+        // La foto va aparte, después de guardar los datos.
+        if (_fotoNueva is not null)
+        {
+            var bytes = _fotoNueva;
+            var tipo = _fotoNuevaTipo!;
+            if (!await IntentarAsync(() => _sesion.Api.SubirFotoAsync(productoId, bytes, tipo), mensajeEspera: "Subiendo la foto…"))
+            {
+                Error = $"Los datos se guardaron, pero la foto no: {Error}";
+                await BuscarAsync();
+                return;
+            }
+            mensaje += " Foto subida.";
+        }
+        else if (_quitarFoto)
+        {
+            if (!await IntentarAsync(() => _sesion.Api.QuitarFotoAsync(productoId))) return;
+            mensaje += " Foto quitada.";
         }
 
         LimpiarFormulario();
