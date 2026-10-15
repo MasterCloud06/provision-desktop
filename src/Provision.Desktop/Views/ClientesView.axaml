@@ -1,0 +1,178 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Provision.Desktop.ViewModels"
+             xmlns:api="using:Provision.Core.Api"
+             x:Class="Provision.Desktop.Views.ClientesView"
+             x:DataType="vm:ClientesViewModel">
+  <Grid Margin="24" RowDefinitions="Auto,Auto,*" ColumnDefinitions="340,16,*">
+
+    <Grid Grid.ColumnSpan="3" ColumnDefinitions="*,Auto" Margin="0,0,0,12">
+      <TextBlock Classes="titulo" Text="Clientes" />
+      <Button Grid.Column="1" Classes="primario" Content="+ Nuevo cliente" VerticalAlignment="Center"
+              IsVisible="{Binding PuedeGestionar}" Command="{Binding AlternarNuevoCommand}" />
+    </Grid>
+
+    <StackPanel Grid.Row="1" Grid.ColumnSpan="3" Spacing="6" Margin="0,0,0,12">
+      <ProgressBar IsIndeterminate="True" IsVisible="{Binding Ocupado}" />
+      <Border Classes="aviso-error" IsVisible="{Binding Error, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+        <TextBlock Classes="error" Text="{Binding Error}" />
+      </Border>
+      <Border Classes="aviso-ok" IsVisible="{Binding Aviso, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+        <TextBlock Classes="ok" Text="{Binding Aviso}" />
+      </Border>
+    </StackPanel>
+
+    <!-- Búsqueda y lista -->
+    <Border Grid.Row="2" Classes="tarjeta">
+      <DockPanel>
+        <StackPanel DockPanel.Dock="Top" Spacing="8" Margin="0,0,0,8">
+          <TextBox Text="{Binding Busqueda}" Watermark="Nombre, CI, NIT o teléfono + Enter">
+            <TextBox.KeyBindings>
+              <KeyBinding Gesture="Enter" Command="{Binding BuscarCommand}" />
+            </TextBox.KeyBindings>
+          </TextBox>
+          <StackPanel Spacing="6" IsVisible="{Binding Creando}">
+            <TextBox Text="{Binding NuevoNombre}" Watermark="Nombre completo" />
+            <TextBox Text="{Binding NuevoCi}" Watermark="CI (opcional)" />
+            <TextBox Text="{Binding NuevoTelefono}" Watermark="Teléfono (opcional)" />
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <Button Classes="primario" Content="Registrar" Command="{Binding CrearCommand}" />
+              <Button Content="Cancelar" Command="{Binding AlternarNuevoCommand}" />
+            </StackPanel>
+          </StackPanel>
+        </StackPanel>
+        <ListBox Classes="tabla" ItemsSource="{Binding Clientes}" SelectedItem="{Binding Seleccionado}">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="api:Cliente">
+              <StackPanel>
+                <TextBlock Text="{Binding Nombre}" FontWeight="SemiBold" />
+                <TextBlock Classes="etiqueta">
+                  <Run Text="{Binding Ci, TargetNullValue='sin CI'}" />
+                  <Run Text=" · " />
+                  <Run Text="{Binding Telefono, TargetNullValue='sin teléfono'}" />
+                </TextBlock>
+              </StackPanel>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </DockPanel>
+    </Border>
+
+    <!-- Ficha -->
+    <ScrollViewer Grid.Row="2" Grid.Column="2">
+      <StackPanel Spacing="16">
+        <Border Classes="tarjeta" IsVisible="{Binding !HayFicha}">
+          <TextBlock Classes="etiqueta" Text="Busca y selecciona un cliente para ver su ficha, recetas y compras." />
+        </Border>
+
+        <StackPanel Spacing="16" IsVisible="{Binding HayFicha}">
+          <Grid ColumnDefinitions="*,16,220">
+            <Border Classes="tarjeta">
+              <StackPanel Spacing="8">
+                <TextBlock Classes="subtitulo" Text="Datos" />
+                <TextBox Text="{Binding EditNombre}" Watermark="Nombre" IsReadOnly="{Binding !PuedeGestionar}" />
+                <Grid ColumnDefinitions="*,8,*">
+                  <TextBox Text="{Binding EditCi}" Watermark="CI" IsReadOnly="{Binding !PuedeGestionar}" />
+                  <TextBox Grid.Column="2" Text="{Binding EditTelefono}" Watermark="Teléfono" IsReadOnly="{Binding !PuedeGestionar}" />
+                </Grid>
+                <Button Content="Guardar datos" Command="{Binding GuardarClienteCommand}" IsVisible="{Binding PuedeGestionar}" />
+              </StackPanel>
+            </Border>
+            <Border Grid.Column="2" Classes="tarjeta">
+              <StackPanel Spacing="4">
+                <TextBlock Classes="etiqueta" Text="Saldo pendiente" />
+                <TextBlock Classes="cifra" Text="{Binding Ficha.SaldoPendiente, Converter={StaticResource Bs}}" />
+              </StackPanel>
+            </Border>
+          </Grid>
+
+          <!-- Recetas -->
+          <Border Classes="tarjeta">
+            <StackPanel Spacing="10">
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Classes="subtitulo" Text="Recetas" />
+                <Button Grid.Column="1" Content="+ Nueva receta" IsVisible="{Binding PuedeRecetar}"
+                        Command="{Binding AlternarRecetaCommand}" />
+              </Grid>
+
+              <!-- Formulario de receta -->
+              <Border Background="{StaticResource PrimarioSuave}" CornerRadius="8" Padding="12" IsVisible="{Binding CreandoReceta}">
+                <StackPanel Spacing="8">
+                  <Grid ColumnDefinitions="*,8,*">
+                    <CalendarDatePicker SelectedDate="{Binding RecetaFecha}" HorizontalAlignment="Stretch" />
+                    <TextBox Grid.Column="2" Text="{Binding RecetaProfesional}" Watermark="Profesional" />
+                  </Grid>
+                  <Grid ColumnDefinitions="40,*,6,*,6,70,6,*" RowDefinitions="Auto,Auto,Auto">
+                    <TextBlock Grid.Column="1" Classes="etiqueta" Text="Esfera" />
+                    <TextBlock Grid.Column="3" Classes="etiqueta" Text="Cilindro" />
+                    <TextBlock Grid.Column="5" Classes="etiqueta" Text="Eje" />
+                    <TextBlock Grid.Column="7" Classes="etiqueta" Text="Adición" />
+
+                    <TextBlock Grid.Row="1" Text="OD" FontWeight="SemiBold" VerticalAlignment="Center" />
+                    <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding OdEsfera}" Watermark="-1,25" Margin="0,2" />
+                    <TextBox Grid.Row="1" Grid.Column="3" Text="{Binding OdCilindro}" Watermark="-0,50" Margin="0,2" />
+                    <TextBox Grid.Row="1" Grid.Column="5" Text="{Binding OdEje}" Watermark="180" Margin="0,2" />
+                    <TextBox Grid.Row="1" Grid.Column="7" Text="{Binding OdAdicion}" Watermark="+2,00" Margin="0,2" />
+
+                    <TextBlock Grid.Row="2" Text="OI" FontWeight="SemiBold" VerticalAlignment="Center" />
+                    <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding OiEsfera}" Margin="0,2" />
+                    <TextBox Grid.Row="2" Grid.Column="3" Text="{Binding OiCilindro}" Margin="0,2" />
+                    <TextBox Grid.Row="2" Grid.Column="5" Text="{Binding OiEje}" Margin="0,2" />
+                    <TextBox Grid.Row="2" Grid.Column="7" Text="{Binding OiAdicion}" Margin="0,2" />
+                  </Grid>
+                  <Grid ColumnDefinitions="*,8,*,8,2*">
+                    <TextBox Text="{Binding DnpOd}" Watermark="DNP OD mm" />
+                    <TextBox Grid.Column="2" Text="{Binding DnpOi}" Watermark="DNP OI mm" />
+                    <TextBox Grid.Column="4" Text="{Binding UsoRecomendado}" Watermark="Uso: lejos, cerca, multifocal…" />
+                  </Grid>
+                  <TextBox Text="{Binding Observaciones}" Watermark="Observaciones" />
+                  <TextBlock Classes="etiqueta" TextWrapping="Wrap"
+                             Text="Esfera, cilindro y adición en pasos de 0,25. Si hay cilindro, el eje es obligatorio." />
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Button Classes="primario" Content="Guardar receta" Command="{Binding GuardarRecetaCommand}" />
+                    <Button Content="Cancelar" Command="{Binding AlternarRecetaCommand}" />
+                  </StackPanel>
+                </StackPanel>
+              </Border>
+
+              <ItemsControl ItemsSource="{Binding Ficha.Recetas}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="api:Receta">
+                    <Border BorderBrush="{StaticResource Borde}" BorderThickness="0,0,0,1" Padding="0,8">
+                      <StackPanel Spacing="2">
+                        <TextBlock Text="{Binding Resumen}" FontWeight="SemiBold" />
+                        <TextBlock FontFamily="Consolas, Menlo, monospace" Text="{Binding TextoOd, StringFormat='OD  {0}'}" />
+                        <TextBlock FontFamily="Consolas, Menlo, monospace" Text="{Binding TextoOi, StringFormat='OI  {0}'}" />
+                        <TextBlock Classes="etiqueta" Text="{Binding Observaciones}" TextWrapping="Wrap" />
+                      </StackPanel>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </Border>
+
+          <!-- Compras -->
+          <Border Classes="tarjeta">
+            <StackPanel Spacing="8">
+              <TextBlock Classes="subtitulo" Text="Compras" />
+              <ItemsControl ItemsSource="{Binding Ficha.Compras}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="api:CompraCliente">
+                    <Grid ColumnDefinitions="140,*,120,120" Margin="0,4">
+                      <TextBlock Text="{Binding Numero}" FontWeight="SemiBold" />
+                      <TextBlock Grid.Column="1" Classes="etiqueta" Text="{Binding CreadoLocal, StringFormat='{}{0:dd/MM/yyyy}'}" />
+                      <TextBlock Grid.Column="2" Text="{Binding Total, Converter={StaticResource Bs}}" TextAlignment="Right" />
+                      <TextBlock Grid.Column="3" Text="{Binding Saldo, Converter={StaticResource Bs}, StringFormat='saldo {0}'}"
+                                 TextAlignment="Right" Classes="etiqueta" />
+                    </Grid>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </StackPanel>
+    </ScrollViewer>
+  </Grid>
+</UserControl>

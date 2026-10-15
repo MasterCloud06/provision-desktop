@@ -82,6 +82,9 @@ public sealed class ApiClient : IDisposable
     public Task DeleteAsync(string ruta, CancellationToken ct = default) =>
         EnviarAsync<JsonElement?>(HttpMethod.Delete, ruta, null, ct);
 
+    public Task<T> EnviarDeleteAsync<T>(string ruta, CancellationToken ct = default) =>
+        EnviarAsync<T>(HttpMethod.Delete, ruta, null, ct);
+
     private async Task<T> EnviarAsync<T>(HttpMethod metodo, string ruta, object? cuerpo, CancellationToken ct)
     {
         using var req = new HttpRequestMessage(metodo, ruta.TrimStart('/'));

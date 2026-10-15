@@ -39,16 +39,35 @@ Cuando estás en Desarrollo, el menú lateral lo muestra con una etiqueta amaril
 
 Si tu backend local usa otro puerto, edita `UrlLocal` en `%APPDATA%\Provision\preferencias.json`. Ese archivo también recuerda el último entorno y correo; nunca guarda contraseñas.
 
+## Roles y pantallas
+
+Cada usuario ve solo las pantallas que su rol permite. Los permisos los define el backend (`src/lib/permisos.ts` en `provision-backend`) y los vuelve a validar en cada operación, así que ocultar un botón aquí es comodidad, no seguridad.
+
+| Pantalla | Administrador | Encargado | Cajero | Ejecutivo de ventas | Optometrista | Laboratorio |
+|---|:-:|:-:|:-:|:-:|:-:|:-:|
+| Inicio (indicadores) | ✓ | ✓ | | | | |
+| Vender | ✓ | ✓ | ✓ cobra | ✓ sin cobrar | | |
+| Ventas | ✓ | ✓ | ✓ cobra saldos | ✓ consulta | ✓ consulta | |
+| Caja | ✓ | ✓ | ✓ | | | |
+| Laboratorio | ✓ | ✓ | ✓ entrega | ✓ entrega | ✓ consulta | ✓ arma |
+| Clientes y recetas | ✓ | ✓ | ✓ | ✓ | ✓ recetas | ✓ consulta |
+| Inventario | ✓ CRUD | ✓ CRUD | consulta | consulta | consulta | consulta |
+| Usuarios | ✓ | | | | | |
+| Mis finanzas | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+
+El retiro del dueño en Caja solo lo ve el administrador.
+
 ## Pantallas
 
 - **Inicio**: ventas del día y del mes, margen bruto, cuentas por cobrar, productos bajo stock, más vendidos y estado del laboratorio.
-- **Vender**: buscar productos (nombre, SKU o código de barras), carrito con cantidades y descuento, cliente (buscar o registrar al vuelo), pagos mixtos (efectivo, QR, tarjeta, transferencia) con cálculo del cambio, y anticipo con saldo. Si la venta lleva lentes, pide fecha de entrega e instrucciones para la orden de laboratorio. El carrito se conserva al cambiar de pantalla.
-- **Ventas**: historial por día, semana o mes, filtro de saldos pendientes y registro de abonos.
-- **Caja**: abrir con fondo inicial, totales por método de pago, efectivo esperado, gastos, depósitos y retiro del dueño (que puede entrar directo a una cuenta personal), y cierre con arqueo que muestra el faltante o sobrante.
-- **Inventario**: productos con stock, costo promedio y precio; filtros por tipo y bajo stock; alta de productos y marcas (administrador) y entrada de mercadería.
-- **Mis finanzas**: ingresos, gastos, ahorro y patrimonio del mes; cuentas con saldo; registro de ingresos, gastos y transferencias; presupuesto por categoría con barra de avance.
-
-Lo que no puede hacer tu rol, no aparece (por ejemplo, un vendedor no ve "Nuevo producto" ni "Retiro del dueño"), y la API lo vuelve a validar.
+- **Vender**: buscar productos, carrito con cantidades y descuento, cliente (buscar o registrar al vuelo), pagos mixtos con cálculo del cambio, anticipo con saldo y orden de laboratorio si lleva lentes. Quien no opera caja (ejecutivo de ventas) registra la venta sin cobrar y el cliente pasa a caja.
+- **Ventas**: historial por día, semana o mes, saldos pendientes y cobro de abonos (caja).
+- **Caja**: abrir con fondo, totales por método, efectivo esperado, gastos, depósitos, retiro del dueño hacia una cuenta personal y cierre con arqueo.
+- **Laboratorio**: tablero de órdenes por estado y atrasadas; graduación, productos e instrucciones; botones solo para los pasos que tu rol puede hacer (enviar, listo, entregar, cancelar) e historial de cada orden.
+- **Clientes**: búsqueda, ficha con datos, saldo pendiente y compras; recetas OD/OI (esfera, cilindro, eje, adición, DNP) y registro de nuevas recetas.
+- **Inventario**: CRUD de productos (crear, editar, eliminar —o desactivar si tiene historial— y reactivar), marcas, filtros por tipo, estado y bajo stock, y entrada de mercadería.
+- **Usuarios**: crear usuarios con su rol y sucursal (muestra qué puede hacer cada rol), cambiar rol, sucursal o contraseña, y activar/desactivar. Nadie puede quitarse su propio rol ni desactivarse.
+- **Mis finanzas**: ingresos, gastos, ahorro y patrimonio del mes; cuentas; ingresos, gastos y transferencias; presupuesto por categoría.
 
 ## Estructura
 

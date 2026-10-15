@@ -9,6 +9,17 @@ public static class Enumeraciones
     public static string ApiValor<T>(T valor) where T : struct, Enum =>
         JsonNamingPolicy.SnakeCaseUpper.ConvertName(valor.ToString());
 
+    public static string Etiqueta(Rol r) => r switch
+    {
+        Rol.Admin => "Administrador",
+        Rol.Encargado => "Encargado de sucursal",
+        Rol.Cajero => "Cajero",
+        Rol.Vendedor => "Ejecutivo de ventas",
+        Rol.Optometrista => "Optometrista",
+        Rol.Laboratorio => "Laboratorio",
+        _ => r.ToString(),
+    };
+
     public static string Etiqueta(TipoProducto t) => t switch
     {
         TipoProducto.Montura => "Montura",

@@ -41,7 +41,10 @@ public sealed partial class VentasViewModel : ViewModelBase, ISeccion
     [ObservableProperty] private string _montoAbono = "";
     [ObservableProperty] private string _referencia = "";
 
-    public bool PuedeAbonar => Seleccionada is { Saldo: > 0, Estado: EstadoVenta.Activa };
+    /// <summary>Solo quien opera caja cobra saldos.</summary>
+    public bool OperaCaja => _sesion.Puede("caja.operar");
+
+    public bool PuedeAbonar => OperaCaja && Seleccionada is { Saldo: > 0, Estado: EstadoVenta.Activa };
 
     public Task ActivarAsync() => CargarAsync();
 

@@ -1,0 +1,154 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Provision.Desktop.ViewModels"
+             xmlns:api="using:Provision.Core.Api"
+             x:Class="Provision.Desktop.Views.LaboratorioView"
+             x:DataType="vm:LaboratorioViewModel">
+  <Grid Margin="24" RowDefinitions="Auto,Auto,*" ColumnDefinitions="*,16,400">
+
+    <Grid Grid.ColumnSpan="3" ColumnDefinitions="*,Auto,Auto" Margin="0,0,0,12">
+      <StackPanel>
+        <TextBlock Classes="titulo" Text="Laboratorio" />
+        <TextBlock Classes="etiqueta" FontSize="14" Text="Órdenes de trabajo: del pedido a la entrega de los lentes." />
+      </StackPanel>
+      <ComboBox Grid.Column="1" Width="300" ItemsSource="{Binding Filtros}" SelectedItem="{Binding Filtro}"
+                VerticalAlignment="Center" Margin="0,0,8,0" />
+      <Button Grid.Column="2" Content="Actualizar" Command="{Binding CargarCommand}" VerticalAlignment="Center" />
+    </Grid>
+
+    <StackPanel Grid.Row="1" Grid.ColumnSpan="3" Spacing="6" Margin="0,0,0,12">
+      <ProgressBar IsIndeterminate="True" IsVisible="{Binding Ocupado}" />
+      <Border Classes="aviso-error" IsVisible="{Binding Error, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+        <TextBlock Classes="error" Text="{Binding Error}" />
+      </Border>
+      <Border Classes="aviso-ok" IsVisible="{Binding Aviso, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+        <TextBlock Classes="ok" Text="{Binding Aviso}" />
+      </Border>
+    </StackPanel>
+
+    <!-- Lista -->
+    <Border Grid.Row="2" Classes="tarjeta" Padding="8">
+      <DockPanel>
+        <Grid DockPanel.Dock="Top" ColumnDefinitions="140,*,160,110,110" Margin="8,4,8,8">
+          <TextBlock Classes="etiqueta" Text="Orden" />
+          <TextBlock Grid.Column="1" Classes="etiqueta" Text="Cliente" />
+          <TextBlock Grid.Column="2" Classes="etiqueta" Text="Estado" />
+          <TextBlock Grid.Column="3" Classes="etiqueta" Text="Prometida" />
+          <TextBlock Grid.Column="4" Classes="etiqueta" Text="Saldo" TextAlignment="Right" />
+        </Grid>
+        <ListBox Classes="tabla" ItemsSource="{Binding Ordenes}" SelectedItem="{Binding Seleccionada}">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="api:OrdenTrabajoFila">
+              <Grid ColumnDefinitions="140,*,160,110,110">
+                <StackPanel>
+                  <TextBlock Text="{Binding Numero}" FontWeight="SemiBold" />
+                  <TextBlock Classes="etiqueta" Text="{Binding VentaNumero}" />
+                </StackPanel>
+                <StackPanel Grid.Column="1">
+                  <TextBlock Text="{Binding Cliente, TargetNullValue='Sin cliente'}" TextTrimming="CharacterEllipsis" />
+                  <TextBlock Classes="etiqueta" Text="{Binding Telefono}" />
+                </StackPanel>
+                <TextBlock Grid.Column="2" Text="{Binding EstadoTexto}" VerticalAlignment="Center" />
+                <StackPanel Grid.Column="3" VerticalAlignment="Center">
+                  <TextBlock Text="{Binding FechaPrometida, StringFormat='{}{0:dd/MM}', TargetNullValue='—'}" />
+                  <TextBlock Classes="error" Text="Atrasada" FontSize="11" IsVisible="{Binding Atrasada}" />
+                </StackPanel>
+                <TextBlock Grid.Column="4" Text="{Binding Saldo, Converter={StaticResource Bs}}" TextAlignment="Right"
+                           VerticalAlignment="Center" />
+              </Grid>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </DockPanel>
+    </Border>
+
+    <!-- Detalle -->
+    <ScrollViewer Grid.Row="2" Grid.Column="2">
+      <Border Classes="tarjeta">
+        <StackPanel Spacing="10">
+          <TextBlock Classes="etiqueta" TextWrapping="Wrap" IsVisible="{Binding !HaySeleccion}"
+                     Text="Selecciona una orden para ver la graduación, los productos y avanzar su estado." />
+
+          <StackPanel Spacing="10" IsVisible="{Binding HaySeleccion}">
+            <TextBlock Classes="subtitulo" Text="{Binding Detalle.Numero}" />
+            <TextBlock Text="{Binding Seleccionada.EstadoTexto}" FontWeight="SemiBold" Foreground="{StaticResource Primario}" />
+
+            <!-- Graduación -->
+            <StackPanel Spacing="2" IsVisible="{Binding Detalle.Receta, Converter={x:Static ObjectConverters.IsNotNull}}">
+              <TextBlock Classes="etiqueta" Text="Graduación" />
+              <TextBlock FontFamily="Consolas, Menlo, monospace" Text="{Binding Detalle.Receta.TextoOd, StringFormat='OD  {0}'}" />
+              <TextBlock FontFamily="Consolas, Menlo, monospace" Text="{Binding Detalle.Receta.TextoOi, StringFormat='OI  {0}'}" />
+              <TextBlock Classes="etiqueta">
+                <Run Text="DNP " />
+                <Run Text="{Binding Detalle.Receta.DnpOd}" />
+                <Run Text=" / " />
+                <Run Text="{Binding Detalle.Receta.DnpOi}" />
+                <Run Text=" mm" />
+              </TextBlock>
+            </StackPanel>
+
+            <!-- Productos -->
+            <StackPanel Spacing="2">
+              <TextBlock Classes="etiqueta" Text="Productos" />
+              <ItemsControl ItemsSource="{Binding Detalle.Items}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="api:ItemVenta">
+                    <TextBlock>
+                      <Run Text="{Binding Cantidad}" />
+                      <Run Text=" × " />
+                      <Run Text="{Binding Descripcion}" />
+                    </TextBlock>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+
+            <StackPanel Spacing="2" IsVisible="{Binding Detalle.Instrucciones, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+              <TextBlock Classes="etiqueta" Text="Instrucciones" />
+              <TextBlock Text="{Binding Detalle.Instrucciones}" TextWrapping="Wrap" />
+            </StackPanel>
+
+            <!-- Acciones permitidas -->
+            <TextBox Text="{Binding Nota}" Watermark="Nota (opcional)" />
+            <ItemsControl ItemsSource="{Binding Acciones}">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <StackPanel Spacing="6" />
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:AccionTrabajo">
+                  <Button Content="{Binding Texto}" Command="{Binding Comando}" Classes.primario="{Binding Principal}"
+                          HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <TextBlock Classes="etiqueta" TextWrapping="Wrap"
+                       Text="Los lentes se entregan solo si el saldo está en cero." />
+
+            <!-- Historial -->
+            <StackPanel Spacing="2">
+              <TextBlock Classes="etiqueta" Text="Historial" />
+              <ItemsControl ItemsSource="{Binding Detalle.Historial}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="api:HistorialTrabajo">
+                    <StackPanel Margin="0,3">
+                      <TextBlock>
+                        <Run Text="{Binding CreadoLocal, StringFormat='{}{0:dd/MM HH:mm}'}" Foreground="{StaticResource TextoSuave}" />
+                        <Run Text="  " />
+                        <Run Text="{Binding Texto}" FontWeight="SemiBold" />
+                        <Run Text="  " />
+                        <Run Text="{Binding Usuario}" Foreground="{StaticResource TextoSuave}" />
+                      </TextBlock>
+                      <TextBlock Classes="etiqueta" Text="{Binding Nota}" TextWrapping="Wrap" />
+                    </StackPanel>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </StackPanel>
+        </StackPanel>
+      </Border>
+    </ScrollViewer>
+  </Grid>
+</UserControl>

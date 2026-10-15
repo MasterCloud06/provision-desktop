@@ -12,11 +12,11 @@
         <TextBlock Classes="etiqueta" Text="{Binding Resumen}" FontSize="14" />
       </StackPanel>
       <Button Grid.Column="1" Classes="primario" Content="+ Nuevo producto" VerticalAlignment="Center"
-              IsVisible="{Binding EsAdmin}" Command="{Binding AlternarNuevoCommand}" />
+              IsVisible="{Binding PuedeGestionar}" Command="{Binding NuevoCommand}" />
     </Grid>
 
     <!-- Filtros -->
-    <Grid Grid.Row="1" Grid.ColumnSpan="3" ColumnDefinitions="*,8,200,8,Auto,8,Auto" Margin="0,0,0,12">
+    <Grid Grid.Row="1" Grid.ColumnSpan="3" ColumnDefinitions="*,8,190,8,150,8,Auto,8,Auto" Margin="0,0,0,12">
       <TextBox Text="{Binding Busqueda}" Watermark="Buscar por nombre, SKU, modelo o código de barras + Enter">
         <TextBox.KeyBindings>
           <KeyBinding Gesture="Enter" Command="{Binding BuscarCommand}" />
@@ -24,8 +24,10 @@
       </TextBox>
       <ComboBox Grid.Column="2" ItemsSource="{Binding TiposFiltro}" SelectedItem="{Binding FiltroTipo}"
                 HorizontalAlignment="Stretch" />
-      <CheckBox Grid.Column="4" Content="Solo bajo stock" IsChecked="{Binding SoloBajoStock}" />
-      <Button Grid.Column="6" Content="Buscar" Command="{Binding BuscarCommand}" />
+      <ComboBox Grid.Column="4" ItemsSource="{Binding Estados}" SelectedItem="{Binding FiltroEstado}"
+                HorizontalAlignment="Stretch" />
+      <CheckBox Grid.Column="6" Content="Solo bajo stock" IsChecked="{Binding SoloBajoStock}" />
+      <Button Grid.Column="8" Content="Buscar" Command="{Binding BuscarCommand}" />
     </Grid>
 
     <StackPanel Grid.Row="2" Grid.ColumnSpan="3" Spacing="6" Margin="0,0,0,12">
@@ -55,7 +57,12 @@
               <Grid ColumnDefinitions="140,*,130,80,110,110">
                 <TextBlock Text="{Binding Sku}" Classes="etiqueta" VerticalAlignment="Center" />
                 <StackPanel Grid.Column="1">
-                  <TextBlock Text="{Binding Nombre}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <TextBlock Text="{Binding Nombre}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                    <Border Classes="chip" IsVisible="{Binding !Activo}">
+                      <TextBlock Text="Desactivado" FontSize="10" Foreground="{StaticResource Aviso}" />
+                    </Border>
+                  </StackPanel>
                   <TextBlock Classes="etiqueta" Text="{Binding Modelo}" />
                 </StackPanel>
                 <TextBlock Grid.Column="2" Text="{Binding Marca}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
@@ -79,14 +86,14 @@
     <ScrollViewer Grid.Row="3" Grid.Column="2">
       <StackPanel Spacing="16">
 
-        <!-- Nuevo producto -->
-        <Border Classes="tarjeta" IsVisible="{Binding MostrandoNuevo}">
+        <!-- Formulario nuevo / editar -->
+        <Border Classes="tarjeta" IsVisible="{Binding MostrandoFormulario}">
           <StackPanel Spacing="8">
-            <TextBlock Classes="subtitulo" Text="Nuevo producto" />
-            <TextBox Text="{Binding NuevoSku}" Watermark="Código interno (SKU), ej. MON-RB-001" />
-            <TextBox Text="{Binding NuevoNombre}" Watermark="Nombre" />
-            <ComboBox ItemsSource="{Binding Tipos}" SelectedItem="{Binding NuevoTipo}" HorizontalAlignment="Stretch" />
-            <ComboBox ItemsSource="{Binding Marcas}" SelectedItem="{Binding NuevaMarca}"
+            <TextBlock Classes="subtitulo" Text="{Binding TituloFormulario}" />
+            <TextBox Text="{Binding FormSku}" Watermark="Código interno (SKU), ej. MON-RB-001" />
+            <TextBox Text="{Binding FormNombre}" Watermark="Nombre" />
+            <ComboBox ItemsSource="{Binding Tipos}" SelectedItem="{Binding FormTipo}" HorizontalAlignment="Stretch" />
+            <ComboBox ItemsSource="{Binding Marcas}" SelectedItem="{Binding FormMarca}"
                       PlaceholderText="Marca (opcional)" HorizontalAlignment="Stretch">
               <ComboBox.ItemTemplate>
                 <DataTemplate x:DataType="api:Marca">
@@ -98,47 +105,75 @@
               <TextBox Text="{Binding NombreMarcaNueva}" Watermark="¿Marca nueva? Escríbela" />
               <Button Grid.Column="2" Content="Crear" Command="{Binding CrearMarcaCommand}" />
             </Grid>
-            <TextBox Text="{Binding NuevoModelo}" Watermark="Modelo (opcional)" />
-            <TextBox Text="{Binding NuevoCodigoBarras}" Watermark="Código de barras (opcional)" />
-            <TextBox Text="{Binding NuevoPrecio}" Watermark="Precio de venta Bs" />
+            <TextBox Text="{Binding FormModelo}" Watermark="Modelo (opcional)" />
+            <TextBox Text="{Binding FormCodigoBarras}" Watermark="Código de barras (opcional)" />
+            <TextBlock Classes="etiqueta" Text="Precio de venta Bs" />
+            <TextBox Text="{Binding FormPrecio}" Watermark="0,00" />
             <TextBlock Classes="etiqueta" Text="Stock mínimo (avisa cuando llegue a este número)" />
-            <NumericUpDown Value="{Binding NuevoStockMinimo}" Minimum="0" Increment="1" FormatString="0" />
-            <TextBlock Classes="etiqueta" Text="Stock inicial (opcional)" />
-            <Grid ColumnDefinitions="*,8,*">
-              <NumericUpDown Value="{Binding NuevoStockInicial}" Minimum="0" Increment="1" FormatString="0" />
-              <TextBox Grid.Column="2" Text="{Binding NuevoCosto}" Watermark="Costo unit. Bs" />
-            </Grid>
+            <NumericUpDown Value="{Binding FormStockMinimo}" Minimum="0" Increment="1" FormatString="0" />
+            <StackPanel Spacing="4" IsVisible="{Binding EsNuevo}">
+              <TextBlock Classes="etiqueta" Text="Stock inicial (opcional) y su costo unitario" />
+              <Grid ColumnDefinitions="*,8,*">
+                <NumericUpDown Value="{Binding FormStockInicial}" Minimum="0" Increment="1" FormatString="0" />
+                <TextBox Grid.Column="2" Text="{Binding FormCosto}" Watermark="Costo unit. Bs" />
+              </Grid>
+            </StackPanel>
+            <TextBlock Classes="etiqueta" TextWrapping="Wrap" IsVisible="{Binding !EsNuevo}"
+                       Text="El stock no se edita aquí: usa Entrada de mercadería o un ajuste de inventario." />
             <StackPanel Orientation="Horizontal" Spacing="8">
-              <Button Classes="primario" Content="Guardar producto" Command="{Binding GuardarProductoCommand}" />
-              <Button Content="Cancelar" Command="{Binding AlternarNuevoCommand}" />
+              <Button Classes="primario" Content="Guardar" Command="{Binding GuardarProductoCommand}" />
+              <Button Content="Cancelar" Command="{Binding CancelarFormularioCommand}" />
             </StackPanel>
           </StackPanel>
         </Border>
 
-        <!-- Entrada de mercadería -->
+        <!-- Producto seleccionado -->
         <Border Classes="tarjeta">
           <StackPanel Spacing="8">
-            <TextBlock Classes="subtitulo" Text="Entrada de mercadería" />
             <TextBlock Classes="etiqueta" TextWrapping="Wrap" IsVisible="{Binding !HaySeleccion}"
-                       Text="Selecciona un producto de la lista para registrar unidades que llegaron." />
+                       Text="Selecciona un producto de la lista para verlo, editarlo o registrar unidades que llegaron." />
+
             <StackPanel Spacing="8" IsVisible="{Binding HaySeleccion}">
-              <TextBlock FontWeight="SemiBold" Text="{Binding Seleccionado.Nombre}" TextWrapping="Wrap" />
-              <TextBlock Classes="etiqueta" Text="{Binding Seleccionado.Stock, StringFormat='Stock actual: {0}'}" />
-              <Grid ColumnDefinitions="*,8,*">
-                <StackPanel Spacing="4">
-                  <TextBlock Classes="etiqueta" Text="Cantidad" />
-                  <NumericUpDown Value="{Binding EntradaCantidad}" Minimum="1" Increment="1" FormatString="0" />
+              <TextBlock Classes="subtitulo" Text="{Binding Seleccionado.Nombre}" TextWrapping="Wrap" />
+              <TextBlock Classes="etiqueta" Text="{Binding Seleccionado.Sku}" />
+              <TextBlock Classes="etiqueta" Text="{Binding Seleccionado.Stock, StringFormat='Stock en esta sucursal: {0}'}" />
+
+              <!-- Acciones de catálogo -->
+              <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding PuedeGestionar}">
+                <Button Content="Editar" Command="{Binding EditarCommand}" />
+                <Button Content="Eliminar" Command="{Binding PedirEliminarCommand}" IsVisible="{Binding !SeleccionInactiva}" />
+                <Button Content="Reactivar" Command="{Binding ReactivarCommand}" IsVisible="{Binding SeleccionInactiva}" />
+              </StackPanel>
+              <Border Classes="aviso-error" IsVisible="{Binding ConfirmandoEliminar}">
+                <StackPanel Spacing="8">
+                  <TextBlock Classes="error" TextWrapping="Wrap"
+                             Text="¿Eliminar este producto? Si ya tuvo movimientos o ventas, se desactivará en lugar de borrarse." />
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Button Classes="peligro" Content="Sí, eliminar" Command="{Binding EliminarCommand}" />
+                    <Button Content="No" Command="{Binding CancelarEliminarCommand}" />
+                  </StackPanel>
                 </StackPanel>
-                <StackPanel Grid.Column="2" Spacing="4">
-                  <TextBlock Classes="etiqueta" Text="Costo unitario Bs" />
-                  <TextBox Text="{Binding EntradaCosto}" />
-                </StackPanel>
-              </Grid>
-              <TextBox Text="{Binding EntradaDocumento}" Watermark="Nro. de factura o remito (opcional)" />
-              <Button Classes="primario" Content="Registrar entrada" HorizontalAlignment="Stretch"
-                      HorizontalContentAlignment="Center" Command="{Binding RegistrarEntradaCommand}" />
-              <TextBlock Classes="etiqueta" TextWrapping="Wrap"
-                         Text="El costo promedio se recalcula solo con cada entrada." />
+              </Border>
+
+              <!-- Entrada de mercadería -->
+              <StackPanel Spacing="8" IsVisible="{Binding PuedeRecibirSeleccion}" Margin="0,8,0,0">
+                <TextBlock Classes="subtitulo" Text="Entrada de mercadería" />
+                <Grid ColumnDefinitions="*,8,*">
+                  <StackPanel Spacing="4">
+                    <TextBlock Classes="etiqueta" Text="Cantidad" />
+                    <NumericUpDown Value="{Binding EntradaCantidad}" Minimum="1" Increment="1" FormatString="0" />
+                  </StackPanel>
+                  <StackPanel Grid.Column="2" Spacing="4">
+                    <TextBlock Classes="etiqueta" Text="Costo unitario Bs" />
+                    <TextBox Text="{Binding EntradaCosto}" />
+                  </StackPanel>
+                </Grid>
+                <TextBox Text="{Binding EntradaDocumento}" Watermark="Nro. de factura o remito (opcional)" />
+                <Button Classes="primario" Content="Registrar entrada" HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Center" Command="{Binding RegistrarEntradaCommand}" />
+                <TextBlock Classes="etiqueta" TextWrapping="Wrap"
+                           Text="El costo promedio se recalcula solo con cada entrada." />
+              </StackPanel>
             </StackPanel>
           </StackPanel>
         </Border>

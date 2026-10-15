@@ -73,6 +73,10 @@ public sealed partial class VenderViewModel : ViewModelBase, ISeccion
         _metodoSeleccionado = Metodos[0];
     }
 
+    /// <summary>El ejecutivo de ventas no cobra: registra la venta con saldo y la cobra caja.</summary>
+    public bool OperaCaja => _sesion.Puede("caja.operar");
+    public bool NoOperaCaja => !OperaCaja;
+
     /* Búsqueda de productos */
 
     [ObservableProperty] private string _busqueda = "";
@@ -136,7 +140,7 @@ public sealed partial class VenderViewModel : ViewModelBase, ISeccion
         Pagado = Pagos.Sum(p => p.Monto);
         Saldo = Total - Pagado;
         LlevaLentes = Carrito.Any(l => l.Producto.Tipo == TipoProducto.LenteOftalmico);
-        if (string.IsNullOrWhiteSpace(MontoPagoTexto) || Saldo > 0) MontoPagoTexto = Saldo > 0 ? Dinero.ParaEditar(Saldo) : "";
+        if (OperaCaja && (string.IsNullOrWhiteSpace(MontoPagoTexto) || Saldo > 0)) MontoPagoTexto = Saldo > 0 ? Dinero.ParaEditar(Saldo) : "";
         CobrarCommand.NotifyCanExecuteChanged();
     }
 
@@ -259,7 +263,7 @@ public sealed partial class VenderViewModel : ViewModelBase, ISeccion
 
         UltimaVenta = r;
         var resumen = $"Venta {r.Numero} registrada por {Dinero.Formatear(r.Total)}.";
-        if (r.Saldo > 0) resumen += $" Saldo pendiente: {Dinero.Formatear(r.Saldo)}.";
+        if (r.Saldo > 0) resumen += OperaCaja ? $" Saldo pendiente: {Dinero.Formatear(r.Saldo)}." : $" Pasa a caja para cobrar {Dinero.Formatear(r.Saldo)}.";
         if (r.OrdenTrabajo is not null) resumen += $" Orden de laboratorio {r.OrdenTrabajo.Numero}.";
         Limpiar();
         Aviso = resumen;

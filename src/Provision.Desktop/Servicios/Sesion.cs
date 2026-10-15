@@ -10,4 +10,7 @@ public sealed class Sesion(Entorno entorno, ProvisionApi api, Usuario usuario)
     public ProvisionApi Api { get; } = api;
     public Usuario Usuario { get; } = usuario;
     public bool EsAdmin => Usuario.Rol == Rol.Admin;
+
+    /// <summary>Los permisos vienen del backend; la app solo los usa para mostrar u ocultar cosas.</summary>
+    public bool Puede(string permiso) => Usuario.Puede(permiso);
 }

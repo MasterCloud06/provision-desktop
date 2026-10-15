@@ -61,8 +61,10 @@
     <Border Grid.Row="2" Grid.Column="2" Classes="tarjeta" VerticalAlignment="Top">
       <StackPanel Spacing="8">
         <TextBlock Classes="subtitulo" Text="Cobrar saldo" />
-        <TextBlock Classes="etiqueta" TextWrapping="Wrap" IsVisible="{Binding !PuedeAbonar}"
-                   Text="Elige una venta con saldo pendiente. Tip: usa el filtro “Con saldo pendiente”." />
+        <TextBlock Classes="etiqueta" TextWrapping="Wrap" IsVisible="{Binding !OperaCaja}"
+                   Text="Los saldos los cobra caja. Aquí puedes revisar las ventas y lo que queda pendiente." />
+        <TextBlock Classes="etiqueta" TextWrapping="Wrap" IsVisible="{Binding OperaCaja}"
+                   Text="Elige una venta con saldo pendiente para cobrarla. Tip: usa el filtro “Con saldo pendiente”." />
         <StackPanel Spacing="8" IsVisible="{Binding PuedeAbonar}">
           <TextBlock FontWeight="SemiBold" Text="{Binding Seleccionada.Numero}" />
           <TextBlock Text="{Binding Seleccionada.Cliente}" />

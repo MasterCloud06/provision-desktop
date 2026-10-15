@@ -1,0 +1,115 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Provision.Desktop.ViewModels"
+             xmlns:api="using:Provision.Core.Api"
+             x:Class="Provision.Desktop.Views.UsuariosView"
+             x:DataType="vm:UsuariosViewModel">
+  <Grid Margin="24" RowDefinitions="Auto,Auto,*" ColumnDefinitions="*,16,380">
+
+    <Grid Grid.ColumnSpan="3" ColumnDefinitions="*,Auto" Margin="0,0,0,12">
+      <StackPanel>
+        <TextBlock Classes="titulo" Text="Usuarios" />
+        <TextBlock Classes="etiqueta" FontSize="14" Text="Quién entra al sistema y qué puede hacer cada uno." />
+      </StackPanel>
+      <Button Grid.Column="1" Classes="primario" Content="+ Nuevo usuario" VerticalAlignment="Center"
+              Command="{Binding AlternarNuevoCommand}" />
+    </Grid>
+
+    <StackPanel Grid.Row="1" Grid.ColumnSpan="3" Spacing="6" Margin="0,0,0,12">
+      <ProgressBar IsIndeterminate="True" IsVisible="{Binding Ocupado}" />
+      <Border Classes="aviso-error" IsVisible="{Binding Error, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+        <TextBlock Classes="error" Text="{Binding Error}" />
+      </Border>
+      <Border Classes="aviso-ok" IsVisible="{Binding Aviso, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+        <TextBlock Classes="ok" Text="{Binding Aviso}" />
+      </Border>
+    </StackPanel>
+
+    <!-- Lista -->
+    <Border Grid.Row="2" Classes="tarjeta" Padding="8">
+      <DockPanel>
+        <Grid DockPanel.Dock="Top" ColumnDefinitions="*,*,180,150,90" Margin="8,4,8,8">
+          <TextBlock Classes="etiqueta" Text="Nombre" />
+          <TextBlock Grid.Column="1" Classes="etiqueta" Text="Correo" />
+          <TextBlock Grid.Column="2" Classes="etiqueta" Text="Rol" />
+          <TextBlock Grid.Column="3" Classes="etiqueta" Text="Sucursal" />
+          <TextBlock Grid.Column="4" Classes="etiqueta" Text="Estado" />
+        </Grid>
+        <ListBox Classes="tabla" ItemsSource="{Binding Usuarios}" SelectedItem="{Binding Seleccionado}">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="vm:FilaUsuario">
+              <Grid ColumnDefinitions="*,*,180,150,90">
+                <TextBlock Text="{Binding Nombre}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                <TextBlock Grid.Column="1" Text="{Binding Email}" TextTrimming="CharacterEllipsis" />
+                <TextBlock Grid.Column="2" Text="{Binding Rol}" />
+                <TextBlock Grid.Column="3" Text="{Binding Sucursal}" TextTrimming="CharacterEllipsis" />
+                <TextBlock Grid.Column="4" Text="Activo" Classes="ok" IsVisible="{Binding Activo}" />
+                <TextBlock Grid.Column="4" Text="Inactivo" Classes="error" IsVisible="{Binding !Activo}" />
+              </Grid>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </DockPanel>
+    </Border>
+
+    <ScrollViewer Grid.Row="2" Grid.Column="2">
+      <StackPanel Spacing="16">
+
+        <!-- Nuevo usuario -->
+        <Border Classes="tarjeta" IsVisible="{Binding Creando}">
+          <StackPanel Spacing="8">
+            <TextBlock Classes="subtitulo" Text="Nuevo usuario" />
+            <TextBox Text="{Binding NuevoNombre}" Watermark="Nombre completo" />
+            <TextBox Text="{Binding NuevoEmail}" Watermark="Correo (con el que ingresará)" />
+            <TextBox Text="{Binding NuevoPassword}" PasswordChar="●" Watermark="Contraseña inicial (mín. 8)" />
+            <TextBlock Classes="etiqueta" Text="Rol" />
+            <ComboBox ItemsSource="{Binding Roles}" SelectedItem="{Binding NuevoRol}" HorizontalAlignment="Stretch" />
+            <TextBlock Classes="etiqueta" Text="{Binding PermisosNuevo}" TextWrapping="Wrap" />
+            <TextBlock Classes="etiqueta" Text="Sucursal" />
+            <ComboBox ItemsSource="{Binding Sucursales}" SelectedItem="{Binding NuevaSucursal}" HorizontalAlignment="Stretch">
+              <ComboBox.ItemTemplate>
+                <DataTemplate x:DataType="api:Sucursal">
+                  <TextBlock Text="{Binding Nombre}" />
+                </DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <Button Classes="primario" Content="Crear usuario" Command="{Binding CrearCommand}" />
+              <Button Content="Cancelar" Command="{Binding AlternarNuevoCommand}" />
+            </StackPanel>
+          </StackPanel>
+        </Border>
+
+        <!-- Editar seleccionado -->
+        <Border Classes="tarjeta">
+          <StackPanel Spacing="8">
+            <TextBlock Classes="etiqueta" TextWrapping="Wrap" IsVisible="{Binding !HaySeleccion}"
+                       Text="Selecciona un usuario para cambiar su rol, sucursal o contraseña, o para desactivarlo." />
+            <StackPanel Spacing="8" IsVisible="{Binding HaySeleccion}">
+              <TextBlock Classes="subtitulo" Text="{Binding Seleccionado.Email}" TextWrapping="Wrap" />
+              <TextBox Text="{Binding EditNombre}" Watermark="Nombre" />
+              <TextBlock Classes="etiqueta" Text="Rol" />
+              <ComboBox ItemsSource="{Binding Roles}" SelectedItem="{Binding EditRol}" HorizontalAlignment="Stretch"
+                        IsEnabled="{Binding !EsUnoMismo}" />
+              <TextBlock Classes="etiqueta" Text="{Binding PermisosEdit}" TextWrapping="Wrap" />
+              <TextBlock Classes="etiqueta" Text="Sucursal" />
+              <ComboBox ItemsSource="{Binding Sucursales}" SelectedItem="{Binding EditSucursal}" HorizontalAlignment="Stretch">
+                <ComboBox.ItemTemplate>
+                  <DataTemplate x:DataType="api:Sucursal">
+                    <TextBlock Text="{Binding Nombre}" />
+                  </DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
+              <CheckBox Content="Activo (puede ingresar)" IsChecked="{Binding EditActivo}" IsEnabled="{Binding !EsUnoMismo}" />
+              <TextBox Text="{Binding EditPassword}" PasswordChar="●" Watermark="Nueva contraseña (opcional)" />
+              <TextBlock Classes="etiqueta" TextWrapping="Wrap" IsVisible="{Binding EsUnoMismo}"
+                         Text="No puedes cambiar tu propio rol ni desactivarte." />
+              <Button Classes="primario" Content="Guardar cambios" HorizontalAlignment="Stretch"
+                      HorizontalContentAlignment="Center" Command="{Binding GuardarCambiosCommand}" />
+            </StackPanel>
+          </StackPanel>
+        </Border>
+      </StackPanel>
+    </ScrollViewer>
+  </Grid>
+</UserControl>

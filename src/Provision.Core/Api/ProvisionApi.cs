@@ -37,6 +37,18 @@ public sealed class ProvisionApi(ApiClient http)
     public Task<List<Sucursal>> SucursalesAsync(CancellationToken ct = default) =>
         Http.GetAsync<List<Sucursal>>("sucursales", ct);
 
+    public Task<List<RolInfo>> RolesAsync(CancellationToken ct = default) => Http.GetAsync<List<RolInfo>>("auth/roles", ct);
+
+    /* Usuarios (administrador) */
+
+    public Task<List<Usuario>> UsuariosAsync(CancellationToken ct = default) => Http.GetAsync<List<Usuario>>("usuarios", ct);
+
+    public Task<Usuario> CrearUsuarioAsync(NuevoUsuario u, CancellationToken ct = default) =>
+        Http.PostAsync<Usuario>("usuarios", u, ct);
+
+    public Task<Usuario> ActualizarUsuarioAsync(Guid id, CambiosUsuario c, CancellationToken ct = default) =>
+        Http.PatchAsync<Usuario>($"usuarios/{id}", c, ct);
+
     /* Catálogo e inventario */
 
     public Task<Pagina<Producto>> ProductosAsync(
@@ -48,6 +60,13 @@ public sealed class ProvisionApi(ApiClient http)
 
     public Task<Producto> CrearProductoAsync(NuevoProducto p, CancellationToken ct = default) =>
         Http.PostAsync<Producto>("catalogo/productos", p, ct);
+
+    public Task<Producto> ActualizarProductoAsync(Guid id, CambiosProducto c, CancellationToken ct = default) =>
+        Http.PatchAsync<Producto>($"catalogo/productos/{id}", c, ct);
+
+    /// <summary>Borra el producto, o lo desactiva si ya tiene movimientos o ventas.</summary>
+    public Task<ResultadoEliminar> EliminarProductoAsync(Guid id, CancellationToken ct = default) =>
+        Http.EnviarDeleteAsync<ResultadoEliminar>($"catalogo/productos/{id}", ct);
 
     public Task<List<Marca>> MarcasAsync(CancellationToken ct = default) =>
         Http.GetAsync<List<Marca>>("catalogo/marcas", ct);
@@ -68,6 +87,29 @@ public sealed class ProvisionApi(ApiClient http)
 
     public Task<Cliente> CrearClienteAsync(NuevoCliente c, CancellationToken ct = default) =>
         Http.PostAsync<Cliente>("clientes", c, ct);
+
+    public Task<ClienteDetalle> ClienteAsync(Guid id, CancellationToken ct = default) =>
+        Http.GetAsync<ClienteDetalle>($"clientes/{id}", ct);
+
+    public Task<Cliente> ActualizarClienteAsync(Guid id, NuevoCliente c, CancellationToken ct = default) =>
+        Http.PatchAsync<Cliente>($"clientes/{id}", c, ct);
+
+    public Task<Receta> CrearRecetaAsync(Guid clienteId, NuevaReceta r, CancellationToken ct = default) =>
+        Http.PostAsync<Receta>($"clientes/{clienteId}/recetas", r, ct);
+
+    /* Laboratorio */
+
+    public Task<List<OrdenTrabajoFila>> OrdenesTrabajoAsync(EstadoTrabajo? estado = null, bool? atrasadas = null,
+        CancellationToken ct = default) =>
+        Http.GetAsync<List<OrdenTrabajoFila>>("ordenes-trabajo" + Q(
+            ("estado", estado is null ? null : Enumeraciones.ApiValor(estado.Value)), ("atrasadas", atrasadas),
+            ("porPagina", 200)), ct);
+
+    public Task<OrdenTrabajoDetalle> OrdenTrabajoAsync(Guid id, CancellationToken ct = default) =>
+        Http.GetAsync<OrdenTrabajoDetalle>($"ordenes-trabajo/{id}", ct);
+
+    public Task CambiarEstadoTrabajoAsync(Guid id, EstadoTrabajo estado, string? nota = null, CancellationToken ct = default) =>
+        Http.PostAsync<object>($"ordenes-trabajo/{id}/estado", new { estado, nota }, ct);
 
     /* Caja */
 

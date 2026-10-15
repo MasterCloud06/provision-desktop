@@ -154,7 +154,12 @@
           </StackPanel>
         </Border>
 
-        <Border Classes="tarjeta">
+        <Border Classes="tarjeta" IsVisible="{Binding NoOperaCaja}" Background="{StaticResource AvisoSuave}" BorderThickness="0">
+          <TextBlock TextWrapping="Wrap" Foreground="{StaticResource Aviso}"
+                     Text="El cobro lo hace caja. Registra la venta con el cliente asignado y pídele que pase a caja." />
+        </Border>
+
+        <Border Classes="tarjeta" IsVisible="{Binding OperaCaja}">
           <StackPanel Spacing="8">
             <TextBlock Classes="subtitulo" Text="Pagos" />
             <Grid ColumnDefinitions="*,8,*">
@@ -193,7 +198,7 @@
         <Button Classes="primario" Content="Registrar venta" FontSize="16" Padding="16,12"
                 HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
                 Command="{Binding CobrarCommand}" />
-        <TextBlock Classes="etiqueta" TextWrapping="Wrap"
+        <TextBlock Classes="etiqueta" TextWrapping="Wrap" IsVisible="{Binding OperaCaja}"
                    Text="Si hay saldo pendiente, la venta queda a cuenta del cliente y se cobra después desde Ventas." />
       </StackPanel>
     </ScrollViewer>

@@ -5,7 +5,8 @@ namespace Provision.Core.Api;
 
 /* ─────────────────────────── Enumeraciones ─────────────────────────── */
 
-public enum Rol { Admin, Vendedor, Laboratorio }
+/// <summary>Vendedor = ejecutivo de ventas. Los permisos de cada rol los define el backend.</summary>
+public enum Rol { Admin, Encargado, Cajero, Vendedor, Optometrista, Laboratorio }
 
 public enum TipoProducto { Montura, LenteOftalmico, LenteContacto, GafasSol, Accesorio, Liquido, Servicio }
 
@@ -45,7 +46,40 @@ public sealed record Usuario
     public string Nombre { get; init; } = "";
     public string Email { get; init; } = "";
     public Rol Rol { get; init; }
+    public string NombreRol { get; init; } = "";
     public Guid? SucursalId { get; init; }
+    public bool Activo { get; init; } = true;
+    public List<string> Permisos { get; init; } = [];
+
+    public bool Puede(string permiso) => Permisos.Contains(permiso);
+}
+
+public sealed record RolInfo
+{
+    public Rol Rol { get; init; }
+    public string Nombre { get; init; } = "";
+    public List<string> Permisos { get; init; } = [];
+
+    public override string ToString() => Nombre;
+}
+
+public sealed record NuevoUsuario
+{
+    public string Nombre { get; init; } = "";
+    public string Email { get; init; } = "";
+    public string Password { get; init; } = "";
+    public Rol Rol { get; init; }
+    public Guid? SucursalId { get; init; }
+}
+
+/// <summary>Solo se envían los campos que no son null.</summary>
+public sealed record CambiosUsuario
+{
+    public string? Nombre { get; init; }
+    public string? Password { get; init; }
+    public Rol? Rol { get; init; }
+    public Guid? SucursalId { get; init; }
+    public bool? Activo { get; init; }
 }
 
 public sealed record RespuestaLogin
@@ -90,6 +124,27 @@ public sealed record Producto
     public string? Ubicacion { get; init; }
 
     public bool BajoStock => ControlaStock && Stock <= StockMinimo;
+}
+
+/// <summary>Edición de producto: solo se envían los campos que no son null.</summary>
+public sealed record CambiosProducto
+{
+    public string? Sku { get; init; }
+    public string? CodigoBarras { get; init; }
+    public string? Nombre { get; init; }
+    public TipoProducto? Tipo { get; init; }
+    public Guid? MarcaId { get; init; }
+    public string? Modelo { get; init; }
+    public long? PrecioVenta { get; init; }
+    public int? StockMinimo { get; init; }
+    public bool? Activo { get; init; }
+}
+
+public sealed record ResultadoEliminar
+{
+    public bool Eliminado { get; init; }
+    public bool Desactivado { get; init; }
+    public string Mensaje { get; init; } = "";
 }
 
 public sealed record StockInicial(int Cantidad, long CostoUnitario);
@@ -139,6 +194,82 @@ public sealed record Cliente
     public string? Email { get; init; }
 
     public string Descripcion => string.IsNullOrEmpty(Ci) ? Nombre : $"{Nombre} · CI {Ci}";
+}
+
+public sealed record Receta
+{
+    public Guid Id { get; init; }
+    public DateOnly Fecha { get; init; }
+    public string? Profesional { get; init; }
+    public double? OdEsfera { get; init; }
+    public double? OdCilindro { get; init; }
+    public int? OdEje { get; init; }
+    public double? OdAdicion { get; init; }
+    public double? OiEsfera { get; init; }
+    public double? OiCilindro { get; init; }
+    public int? OiEje { get; init; }
+    public double? OiAdicion { get; init; }
+    public double? DnpOd { get; init; }
+    public double? DnpOi { get; init; }
+    public string? UsoRecomendado { get; init; }
+    public string? Observaciones { get; init; }
+
+    private static string Ojo(double? esf, double? cil, int? eje, double? add)
+    {
+        static string D(double? v) => v is null ? "—" : (v > 0 ? "+" : "") + v.Value.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture);
+        var t = $"Esf {D(esf)}";
+        if (cil is not null && cil != 0) t += $"  Cil {D(cil)}  Eje {eje}°";
+        if (add is not null && add != 0) t += $"  Add {D(add)}";
+        return t;
+    }
+
+    public string TextoOd => Ojo(OdEsfera, OdCilindro, OdEje, OdAdicion);
+    public string TextoOi => Ojo(OiEsfera, OiCilindro, OiEje, OiAdicion);
+    public string Resumen => $"{Fecha:dd/MM/yyyy} · {Profesional ?? "sin profesional"}";
+}
+
+public sealed record NuevaReceta
+{
+    public DateOnly Fecha { get; init; }
+    public string? Profesional { get; init; }
+    public double? OdEsfera { get; init; }
+    public double? OdCilindro { get; init; }
+    public int? OdEje { get; init; }
+    public double? OdAdicion { get; init; }
+    public double? OiEsfera { get; init; }
+    public double? OiCilindro { get; init; }
+    public int? OiEje { get; init; }
+    public double? OiAdicion { get; init; }
+    public double? DnpOd { get; init; }
+    public double? DnpOi { get; init; }
+    public string? UsoRecomendado { get; init; }
+    public string? Observaciones { get; init; }
+}
+
+public sealed record CompraCliente
+{
+    public Guid Id { get; init; }
+    public string Numero { get; init; } = "";
+    public long Total { get; init; }
+    public long Saldo { get; init; }
+    public EstadoVenta Estado { get; init; }
+    public EstadoPago EstadoPago { get; init; }
+    public DateTimeOffset CreadoEn { get; init; }
+    public DateTime CreadoLocal => CreadoEn.LocalDateTime;
+}
+
+public sealed record ClienteDetalle
+{
+    public Guid Id { get; init; }
+    public string Nombre { get; init; } = "";
+    public string? Ci { get; init; }
+    public string? Nit { get; init; }
+    public string? Telefono { get; init; }
+    public string? Email { get; init; }
+    public string? Notas { get; init; }
+    public List<Receta> Recetas { get; init; } = [];
+    public List<CompraCliente> Compras { get; init; } = [];
+    public long SaldoPendiente { get; init; }
 }
 
 public sealed record NuevoCliente
@@ -286,6 +417,58 @@ public sealed record ListaVentas
     public List<VentaResumen> Datos { get; init; } = [];
     public int Total { get; init; }
     public long MontoTotal { get; init; }
+}
+
+/* ─────────────────────────── Laboratorio ─────────────────────────── */
+
+public sealed record OrdenTrabajoFila
+{
+    public Guid Id { get; init; }
+    public string Numero { get; init; } = "";
+    public EstadoTrabajo Estado { get; init; }
+    public DateOnly? FechaPrometida { get; init; }
+    public string? LaboratorioExterno { get; init; }
+    public Guid VentaId { get; init; }
+    public string VentaNumero { get; init; } = "";
+    public long Saldo { get; init; }
+    public string? Cliente { get; init; }
+    public string? Telefono { get; init; }
+    public DateTimeOffset CreadoEn { get; init; }
+
+    public bool Atrasada => FechaPrometida is DateOnly f && f < DateOnly.FromDateTime(DateTime.Today)
+                            && Estado is EstadoTrabajo.Pendiente or EstadoTrabajo.EnLaboratorio;
+    public string EstadoTexto => Enumeraciones.Etiqueta(Estado);
+}
+
+public sealed record ItemVenta
+{
+    public Guid ProductoId { get; init; }
+    public string Descripcion { get; init; } = "";
+    public int Cantidad { get; init; }
+}
+
+public sealed record HistorialTrabajo
+{
+    public EstadoTrabajo? EstadoAnterior { get; init; }
+    public EstadoTrabajo EstadoNuevo { get; init; }
+    public string? Nota { get; init; }
+    public string? Usuario { get; init; }
+    public DateTimeOffset CreadoEn { get; init; }
+    public DateTime CreadoLocal => CreadoEn.LocalDateTime;
+    public string Texto => Enumeraciones.Etiqueta(EstadoNuevo);
+}
+
+public sealed record OrdenTrabajoDetalle
+{
+    public Guid Id { get; init; }
+    public string Numero { get; init; } = "";
+    public EstadoTrabajo Estado { get; init; }
+    public DateOnly? FechaPrometida { get; init; }
+    public string? Instrucciones { get; init; }
+    public string? LaboratorioExterno { get; init; }
+    public Receta? Receta { get; init; }
+    public List<ItemVenta> Items { get; init; } = [];
+    public List<HistorialTrabajo> Historial { get; init; } = [];
 }
 
 /* ─────────────────────────── Reportes ─────────────────────────── */

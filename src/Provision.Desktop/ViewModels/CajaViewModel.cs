@@ -16,7 +16,7 @@ public sealed partial class CajaViewModel : ViewModelBase, ISeccion
     public CajaViewModel(Sesion sesion)
     {
         _sesion = sesion;
-        Conceptos = sesion.EsAdmin
+        Conceptos = sesion.Puede("caja.retiro_dueno")
             ? [Gasto, Deposito, Retiro]
             : [Gasto, Deposito];
         _concepto = Conceptos[0];
@@ -74,7 +74,7 @@ public sealed partial class CajaViewModel : ViewModelBase, ISeccion
             .Select(x => new TotalMetodo(Enumeraciones.Etiqueta(x.m), x.t.Ingresos, x.t.Egresos, x.t.Neto))
             .ToList();
         Movimientos = (await _sesion.Api.DetalleSesionAsync(Resumen.Sesion.Id)).Movimientos;
-        if (_sesion.EsAdmin && CuentasPersonales.Count == 0)
+        if (_sesion.Puede("caja.retiro_dueno") && CuentasPersonales.Count == 0)
             CuentasPersonales = (await _sesion.Api.CuentasAsync()).Lista.Where(c => !c.Archivada).ToList();
     });
 

@@ -34,15 +34,23 @@ public sealed partial class ShellViewModel : ViewModelBase
     {
         Sesion = sesion;
         _alSalir = alSalir;
-        Menu =
-        [
-            new("Inicio", "◧", () => new InicioViewModel(sesion)),
-            new("Vender", "＋", () => new VenderViewModel(sesion)),
-            new("Ventas", "≡", () => new VentasViewModel(sesion)),
-            new("Caja", "▣", () => new CajaViewModel(sesion)),
-            new("Inventario", "▤", () => new InventarioViewModel(sesion)),
-            new("Mis finanzas", "◔", () => new FinanzasViewModel(sesion)),
-        ];
+        // Cada pantalla aparece solo si el rol tiene el permiso que la habilita (null = todos).
+        var opciones = new (string titulo, string icono, string? permiso, Func<ViewModelBase> crear)[]
+        {
+            ("Inicio", "◧", "reportes.ver", () => new InicioViewModel(sesion)),
+            ("Vender", "＋", "ventas.crear", () => new VenderViewModel(sesion)),
+            ("Ventas", "≡", "ventas.ver", () => new VentasViewModel(sesion)),
+            ("Caja", "▣", "caja.operar", () => new CajaViewModel(sesion)),
+            ("Laboratorio", "◎", "laboratorio.ver", () => new LaboratorioViewModel(sesion)),
+            ("Clientes", "☺", "clientes.ver", () => new ClientesViewModel(sesion)),
+            ("Inventario", "▤", "catalogo.ver", () => new InventarioViewModel(sesion)),
+            ("Usuarios", "⚿", "usuarios.gestionar", () => new UsuariosViewModel(sesion)),
+            ("Mis finanzas", "◔", null, () => new FinanzasViewModel(sesion)),
+        };
+        Menu = opciones
+            .Where(o => o.permiso is null || sesion.Puede(o.permiso))
+            .Select(o => new OpcionMenu(o.titulo, o.icono, o.crear))
+            .ToList();
         foreach (var opcion in Menu)
         {
             var o = opcion;
@@ -55,7 +63,9 @@ public sealed partial class ShellViewModel : ViewModelBase
     public IReadOnlyList<OpcionMenu> Menu { get; }
 
     public string NombreUsuario => Sesion.Usuario.Nombre;
-    public string RolUsuario => Sesion.Usuario.Rol.ToString().ToUpperInvariant();
+    public string RolUsuario => string.IsNullOrEmpty(Sesion.Usuario.NombreRol)
+        ? Core.Api.Enumeraciones.Etiqueta(Sesion.Usuario.Rol)
+        : Sesion.Usuario.NombreRol;
     public string NombreEntorno => Sesion.Entorno.Nombre.ToUpperInvariant();
     public bool EsDesarrollo => Sesion.Entorno.Clave == Entorno.Desarrollo.Clave;
 

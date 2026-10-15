@@ -120,6 +120,52 @@ Comprobar((await api.CuentasAsync()).Lista.Any(c => c.Id == billetera.Id), "list
 var dash = await api.DashboardAsync();
 Comprobar(dash.Ventas.Monto >= 75000 && dash.TopProductos.Count > 0, $"dashboard: {dash.Ventas.Ventas} ventas, {Dinero.Formatear(dash.Ventas.Monto)}");
 
+Console.WriteLine("Roles, productos, clientes y laboratorio");
+Comprobar(sesion.Usuario.Puede("usuarios.gestionar") && sesion.Usuario.NombreRol == "Administrador", "login trae nombre de rol y permisos");
+var roles = await api.RolesAsync();
+Comprobar(roles.Count == 6 && roles.Any(r => r.Rol == Rol.Cajero && r.Nombre == "Cajero"), "lista de roles (enum CAJERO)");
+var cajeroEmail = $"cajero{sufijo}@prueba.bo";
+var cajero = await api.CrearUsuarioAsync(new NuevoUsuario
+{
+    Nombre = "Cajero prueba", Email = cajeroEmail, Password = "clave12345", Rol = Rol.Cajero, SucursalId = sesion.Usuario.SucursalId,
+});
+Comprobar(cajero.Rol == Rol.Cajero, "crear usuario cajero");
+using (var httpCajero = new ApiClient(url))
+{
+    var apiCajero = new ProvisionApi(httpCajero);
+    var sc = await apiCajero.LoginAsync(cajeroEmail, "clave12345");
+    Comprobar(sc.Usuario.Puede("caja.operar") && !sc.Usuario.Puede("ventas.anular"), "permisos del cajero");
+    try { await apiCajero.DashboardAsync(); Comprobar(false, "cajero sin acceso a reportes"); }
+    catch (ApiException ex) { Comprobar(ex.Status == 403, "cajero sin acceso a reportes (403)"); }
+}
+var cambiado = await api.ActualizarUsuarioAsync(cajero.Id, new CambiosUsuario { Rol = Rol.Vendedor, Activo = false });
+Comprobar(cambiado.Rol == Rol.Vendedor && !cambiado.Activo, "cambiar rol y desactivar (solo campos enviados)");
+Comprobar((await api.UsuariosAsync()).Any(x => x.Id == cajero.Id && x.NombreRol == "Ejecutivo de ventas"), "lista de usuarios con nombre de rol");
+
+var editado = await api.ActualizarProductoAsync(producto.Id, new CambiosProducto { PrecioVenta = 55000 });
+Comprobar(editado.PrecioVenta == 55000 && editado.Nombre == producto.Nombre, "editar solo el precio de un producto");
+var temporal = await api.CrearProductoAsync(new NuevoProducto { Sku = "TMP-" + sufijo, Nombre = "Temporal " + sufijo, Tipo = TipoProducto.Accesorio, PrecioVenta = 100 });
+Comprobar((await api.EliminarProductoAsync(temporal.Id)).Eliminado, "eliminar producto sin historial");
+var desactivado = await api.EliminarProductoAsync(producto.Id);
+Comprobar(!desactivado.Eliminado && desactivado.Desactivado, "producto con historial se desactiva: " + desactivado.Mensaje);
+
+var receta = await api.CrearRecetaAsync(cliente.Id, new NuevaReceta
+{
+    Fecha = DateOnly.FromDateTime(DateTime.Today), Profesional = "Lic. Prueba", OdEsfera = -1.25, OdCilindro = -0.5, OdEje = 90, OiEsfera = -1,
+});
+var ficha = await api.ClienteAsync(cliente.Id);
+Comprobar(ficha.Recetas.Count == 1 && ficha.Compras.Count == 1 && ficha.Recetas[0].TextoOd.Contains("Eje 90"), $"ficha del cliente: receta OD {ficha.Recetas[0].TextoOd}");
+
+var ordenes = await api.OrdenesTrabajoAsync();
+var orden = ordenes.Single(o => o.Id == venta.OrdenTrabajo!.Id);
+Comprobar(orden.Estado == EstadoTrabajo.Pendiente && orden.VentaNumero == venta.Numero, "tablero de laboratorio");
+await api.CambiarEstadoTrabajoAsync(orden.Id, EstadoTrabajo.EnLaboratorio, "Enviado");
+await api.CambiarEstadoTrabajoAsync(orden.Id, EstadoTrabajo.Listo);
+await api.CambiarEstadoTrabajoAsync(orden.Id, EstadoTrabajo.Entregado);
+var detalleOt = await api.OrdenTrabajoAsync(orden.Id);
+Comprobar(detalleOt.Estado == EstadoTrabajo.Entregado && detalleOt.Historial.Count == 4 && detalleOt.Items.Count == 2,
+    "orden: EN_LABORATORIO → LISTO → ENTREGADO con historial");
+
 var cierre = await api.CerrarCajaAsync(resumen.EfectivoEsperado - 100);
 Comprobar(cierre.Sesion.Diferencia == -100, "cierre de caja con faltante de Bs 1");
 
