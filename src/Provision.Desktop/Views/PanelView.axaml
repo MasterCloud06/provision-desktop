@@ -1,0 +1,110 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Provision.Desktop.ViewModels"
+             xmlns:api="using:Provision.Core.Api"
+             xmlns:sys="using:System"
+             x:Class="Provision.Desktop.Views.PanelView"
+             x:DataType="vm:PanelViewModel">
+  <ScrollViewer>
+    <StackPanel Margin="32" Spacing="20" MaxWidth="1200" HorizontalAlignment="Left">
+
+      <!-- Saludo -->
+      <Grid ColumnDefinitions="*,Auto">
+        <StackPanel Spacing="2">
+          <TextBlock Classes="titulo" Text="{Binding Saludo}" />
+          <TextBlock Classes="etiqueta" Text="{Binding Fecha}" FontSize="14" />
+        </StackPanel>
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+          <TextBlock Classes="etiqueta" Text="{Binding Actualizado}" VerticalAlignment="Center" />
+          <Button Content="Actualizar" Command="{Binding ActualizarCommand}" />
+        </StackPanel>
+      </Grid>
+
+      <ProgressBar IsIndeterminate="True" IsVisible="{Binding Ocupado}" />
+      <Border Classes="aviso-error" IsVisible="{Binding Error, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+        <TextBlock Classes="error" Text="{Binding Error}" />
+      </Border>
+
+      <!-- Tu rol -->
+      <Border Classes="tarjeta" Background="{StaticResource Barra}" BorderThickness="0" Padding="24">
+        <Grid ColumnDefinitions="*,32,*">
+          <StackPanel Spacing="8">
+            <TextBlock Text="TU ROL" FontSize="11" FontWeight="SemiBold" Foreground="#94A3B8" />
+            <TextBlock Text="{Binding NombreRol}" FontSize="24" FontWeight="Bold" Foreground="White" />
+            <TextBlock Text="{Binding Proposito}" TextWrapping="Wrap" Foreground="#CBD5E1" FontSize="14" LineHeight="21" />
+          </StackPanel>
+          <StackPanel Grid.Column="2" Spacing="8">
+            <TextBlock Text="TUS RESPONSABILIDADES" FontSize="11" FontWeight="SemiBold" Foreground="#94A3B8" />
+            <ItemsControl ItemsSource="{Binding Responsabilidades}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="sys:String">
+                  <Grid ColumnDefinitions="20,*" Margin="0,3">
+                    <TextBlock Text="✓" Foreground="#5EEAD4" FontWeight="Bold" />
+                    <TextBlock Grid.Column="1" Text="{Binding}" TextWrapping="Wrap" Foreground="White" />
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </Grid>
+      </Border>
+
+      <!-- Qué hacer ahora -->
+      <StackPanel Spacing="10">
+        <TextBlock Classes="subtitulo" Text="Qué hacer ahora" FontSize="18" />
+        <ItemsControl ItemsSource="{Binding Tareas}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <StackPanel Spacing="8" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:TareaItem">
+              <Border Classes="tarea" Classes.alta="{Binding EsAlta}" Classes.media="{Binding EsMedia}"
+                      Classes.info="{Binding EsInfo}" Classes.ok="{Binding EsOk}">
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                  <!-- Cantidad grande -->
+                  <Border Width="56" Height="56" CornerRadius="28" Margin="0,0,16,0" Classes="cifra-tarea"
+                          IsVisible="{Binding TieneCantidad}" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding Cantidad}" FontSize="20" FontWeight="Bold"
+                               HorizontalAlignment="Center" VerticalAlignment="Center" />
+                  </Border>
+                  <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
+                    <TextBlock Classes="etiqueta-urgencia" Text="{Binding Etiqueta}" />
+                    <TextBlock Text="{Binding Titulo}" FontSize="16" FontWeight="SemiBold" TextWrapping="Wrap" />
+                    <TextBlock Classes="etiqueta" Text="{Binding Detalle}" FontSize="13" TextWrapping="Wrap" />
+                  </StackPanel>
+                  <Button Grid.Column="2" Classes="primario" Content="{Binding TextoBoton}" Command="{Binding Ir}"
+                          IsVisible="{Binding TieneBoton}" VerticalAlignment="Center" Margin="16,0,0,0" />
+                </Grid>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
+
+      <!-- Tus números -->
+      <StackPanel Spacing="10">
+        <TextBlock Classes="subtitulo" Text="Tus números" FontSize="18" />
+        <ItemsControl ItemsSource="{Binding Indicadores}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <UniformGrid Columns="5" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="api:IndicadorPanel">
+              <Border Classes="tarjeta" Margin="0,0,12,12">
+                <StackPanel Spacing="6">
+                  <TextBlock Classes="etiqueta" Text="{Binding Titulo}" TextWrapping="Wrap" />
+                  <TextBlock Classes="cifra" Text="{Binding Valor}" />
+                  <TextBlock Classes="etiqueta" Text="{Binding Detalle}" TextWrapping="Wrap" />
+                </StackPanel>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

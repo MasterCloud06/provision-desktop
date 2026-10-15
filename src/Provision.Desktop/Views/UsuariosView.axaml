@@ -64,6 +64,7 @@
             <TextBox Text="{Binding NuevoPassword}" PasswordChar="●" Watermark="Contraseña inicial (mín. 8)" />
             <TextBlock Classes="etiqueta" Text="Rol" />
             <ComboBox ItemsSource="{Binding Roles}" SelectedItem="{Binding NuevoRol}" HorizontalAlignment="Stretch" />
+            <TextBlock Text="{Binding PropositoNuevo}" TextWrapping="Wrap" FontStyle="Italic" />
             <TextBlock Classes="etiqueta" Text="{Binding PermisosNuevo}" TextWrapping="Wrap" />
             <TextBlock Classes="etiqueta" Text="Sucursal" />
             <ComboBox ItemsSource="{Binding Sucursales}" SelectedItem="{Binding NuevaSucursal}" HorizontalAlignment="Stretch">
@@ -96,6 +97,7 @@
               <TextBlock Classes="etiqueta" Text="Rol" />
               <ComboBox ItemsSource="{Binding Roles}" SelectedItem="{Binding EditRol}" HorizontalAlignment="Stretch"
                         IsEnabled="{Binding !EsUnoMismo}" />
+              <TextBlock Text="{Binding PropositoEdit}" TextWrapping="Wrap" FontStyle="Italic" />
               <TextBlock Classes="etiqueta" Text="{Binding PermisosEdit}" TextWrapping="Wrap" />
               <TextBlock Classes="etiqueta" Text="Sucursal" />
               <ComboBox ItemsSource="{Binding Sucursales}" SelectedItem="{Binding EditSucursal}" HorizontalAlignment="Stretch">

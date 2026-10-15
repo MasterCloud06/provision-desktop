@@ -45,7 +45,8 @@ Cada usuario ve solo las pantallas que su rol permite. Los permisos los define e
 
 | Pantalla | Super admin | Administrador | Encargado | Cajero | Ejecutivo de ventas | Optometrista | Laboratorio |
 |---|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
-| Inicio (indicadores) | ✓ | ✓ | ✓ | | | | |
+| **Mi panel** | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Indicadores del negocio | ✓ | ✓ | ✓ | | | | |
 | **Auditoría** | ✓ | | | | | | |
 | Vender | ✓ | ✓ | ✓ | ✓ cobra | ✓ sin cobrar | | |
 | Ventas | ✓ | ✓ | ✓ | ✓ cobra saldos | ✓ consulta | ✓ consulta | |
@@ -60,8 +61,9 @@ El retiro del dueño en Caja lo ven el super administrador y el administrador. E
 
 ## Pantallas
 
+- **Mi panel** (todos, es la primera pantalla): para qué existe tu rol, tus responsabilidades, **qué hacer ahora** —tareas reales ordenadas por urgencia (urgente, pendiente, para hoy) con un botón que lleva a la pantalla donde se resuelven— y tus números. Ejemplos: el cajero ve "Abre la caja" o "2 ventas esperan cobro"; el ejecutivo, "3 clientes por avisar: sus lentes están listos"; el laboratorio, "1 orden atrasada".
 - **Auditoría** (solo super administrador): eventos, usuarios con actividad, intentos negados y rechazados; actividad por rol (clic para filtrar), por día, por módulo y por usuario; últimos intentos negados; y el registro completo filtrable por rol, resultado, módulo y texto. Las finanzas personales no se registran.
-- **Inicio**: ventas del día y del mes, margen bruto, cuentas por cobrar, productos bajo stock, más vendidos y estado del laboratorio.
+- **Indicadores**: ventas del día y del mes, margen bruto, cuentas por cobrar, productos bajo stock, más vendidos y estado del laboratorio.
 - **Vender**: buscar productos, carrito con cantidades y descuento, cliente (buscar o registrar al vuelo), pagos mixtos con cálculo del cambio, anticipo con saldo y orden de laboratorio si lleva lentes. Quien no opera caja (ejecutivo de ventas) registra la venta sin cobrar y el cliente pasa a caja.
 - **Ventas**: historial por día, semana o mes, saldos pendientes y cobro de abonos (caja).
 - **Caja**: abrir con fondo, totales por método, efectivo esperado, gastos, depósitos, retiro del dueño hacia una cuenta personal y cierre con arqueo.

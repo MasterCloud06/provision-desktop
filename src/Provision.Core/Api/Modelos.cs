@@ -59,6 +59,9 @@ public sealed record RolInfo
     public Rol Rol { get; init; }
     public string Nombre { get; init; } = "";
     public List<string> Permisos { get; init; } = [];
+    /// <summary>Para qué existe el rol.</summary>
+    public string Proposito { get; init; } = "";
+    public List<string> Responsabilidades { get; init; } = [];
     /// <summary>Si el usuario que consultó puede asignar este rol (los administradores solo los asigna el super administrador).</summary>
     public bool Asignable { get; init; } = true;
 
@@ -471,6 +474,39 @@ public sealed record OrdenTrabajoDetalle
     public Receta? Receta { get; init; }
     public List<ItemVenta> Items { get; init; } = [];
     public List<HistorialTrabajo> Historial { get; init; } = [];
+}
+
+/* ─────────────────────────── Mi panel ─────────────────────────── */
+
+public enum Urgencia { Alta, Media, Info, Ok }
+
+public sealed record TareaPanel
+{
+    public string Clave { get; init; } = "";
+    public string Titulo { get; init; } = "";
+    public string Detalle { get; init; } = "";
+    public long? Cantidad { get; init; }
+    public Urgencia Urgencia { get; init; }
+    /// <summary>Pantalla donde se resuelve: panel, indicadores, auditoria, vender, ventas, caja, laboratorio, clientes, inventario, usuarios.</summary>
+    public string? Pantalla { get; init; }
+}
+
+public sealed record IndicadorPanel
+{
+    public string Titulo { get; init; } = "";
+    public string Valor { get; init; } = "";
+    public string? Detalle { get; init; }
+}
+
+public sealed record PanelRol
+{
+    public Rol Rol { get; init; }
+    public string NombreRol { get; init; } = "";
+    public string Nombre { get; init; } = "";
+    public string Proposito { get; init; } = "";
+    public List<string> Responsabilidades { get; init; } = [];
+    public List<TareaPanel> Tareas { get; init; } = [];
+    public List<IndicadorPanel> Indicadores { get; init; } = [];
 }
 
 /* ─────────────────────────── Auditoría ─────────────────────────── */

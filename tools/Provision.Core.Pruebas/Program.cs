@@ -166,6 +166,14 @@ var detalleOt = await api.OrdenTrabajoAsync(orden.Id);
 Comprobar(detalleOt.Estado == EstadoTrabajo.Entregado && detalleOt.Historial.Count == 4 && detalleOt.Items.Count == 2,
     "orden: EN_LABORATORIO → LISTO → ENTREGADO con historial");
 
+Console.WriteLine("Mi panel");
+var miPanel = await api.PanelAsync();
+Comprobar(miPanel.Rol == Rol.Superadmin && miPanel.Proposito.Length > 40 && miPanel.Responsabilidades.Count >= 3,
+    $"panel del super administrador: {miPanel.Tareas.Count} tareas, {miPanel.Indicadores.Count} indicadores");
+Comprobar(miPanel.Tareas.All(t => Enum.IsDefined(t.Urgencia)) && miPanel.Tareas.Any(t => t.Pantalla is not null || t.Urgencia == Urgencia.Ok),
+    "tareas con urgencia (enum) y pantalla destino");
+Comprobar((await api.RolesAsync()).All(r => r.Proposito.Length > 20), "cada rol trae su propósito");
+
 Console.WriteLine("Auditoría");
 var hoy = DateOnly.FromDateTime(DateTime.Today);
 var aud = await api.ResumenAuditoriaAsync(new FiltrosAuditoria { Desde = hoy.AddDays(-6), Hasta = hoy });

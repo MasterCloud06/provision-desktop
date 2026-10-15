@@ -90,7 +90,7 @@ public sealed partial class UsuariosViewModel(Sesion sesion) : ViewModelBase, IS
     [ObservableProperty] private string _editNombre = "";
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(PermisosEdit))]
+    [NotifyPropertyChangedFor(nameof(PermisosEdit), nameof(PropositoEdit))]
     private RolInfo? _editRol;
 
     [ObservableProperty] private Sucursal? _editSucursal;
@@ -98,6 +98,7 @@ public sealed partial class UsuariosViewModel(Sesion sesion) : ViewModelBase, IS
     [ObservableProperty] private string _editPassword = "";
 
     public string PermisosEdit => Explicar(EditRol);
+    public string PropositoEdit => EditRol?.Proposito ?? "";
 
     partial void OnSeleccionadoChanged(FilaUsuario? value)
     {
@@ -139,12 +140,13 @@ public sealed partial class UsuariosViewModel(Sesion sesion) : ViewModelBase, IS
     [ObservableProperty] private string _nuevoPassword = "";
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(PermisosNuevo))]
+    [NotifyPropertyChangedFor(nameof(PermisosNuevo), nameof(PropositoNuevo))]
     private RolInfo? _nuevoRol;
 
     [ObservableProperty] private Sucursal? _nuevaSucursal;
 
     public string PermisosNuevo => Explicar(NuevoRol);
+    public string PropositoNuevo => NuevoRol?.Proposito ?? "";
 
     [RelayCommand]
     private void AlternarNuevo() => Creando = !Creando;

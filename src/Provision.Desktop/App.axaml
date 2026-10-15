@@ -132,6 +132,59 @@
       <Setter Property="Background" Value="{StaticResource Primario}" />
     </Style>
 
+    <!-- Tareas de Mi panel: borde izquierdo y cifra según la urgencia -->
+    <Style Selector="Border.tarea">
+      <Setter Property="Background" Value="{StaticResource Tarjeta}" />
+      <Setter Property="BorderBrush" Value="{StaticResource Borde}" />
+      <Setter Property="BorderThickness" Value="5,1,1,1" />
+      <Setter Property="CornerRadius" Value="10" />
+      <Setter Property="Padding" Value="16,14" />
+    </Style>
+    <Style Selector="TextBlock.etiqueta-urgencia">
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="Foreground" Value="{StaticResource TextoSuave}" />
+    </Style>
+    <Style Selector="Border.cifra-tarea">
+      <Setter Property="Background" Value="{StaticResource PrimarioSuave}" />
+    </Style>
+    <Style Selector="Border.tarea.alta">
+      <Setter Property="BorderBrush" Value="{StaticResource Peligro}" />
+    </Style>
+    <Style Selector="Border.tarea.alta TextBlock.etiqueta-urgencia">
+      <Setter Property="Foreground" Value="{StaticResource Peligro}" />
+    </Style>
+    <Style Selector="Border.tarea.alta Border.cifra-tarea">
+      <Setter Property="Background" Value="{StaticResource PeligroSuave}" />
+    </Style>
+    <Style Selector="Border.tarea.alta Border.cifra-tarea TextBlock">
+      <Setter Property="Foreground" Value="{StaticResource Peligro}" />
+    </Style>
+    <Style Selector="Border.tarea.media">
+      <Setter Property="BorderBrush" Value="{StaticResource Aviso}" />
+    </Style>
+    <Style Selector="Border.tarea.media TextBlock.etiqueta-urgencia">
+      <Setter Property="Foreground" Value="{StaticResource Aviso}" />
+    </Style>
+    <Style Selector="Border.tarea.media Border.cifra-tarea">
+      <Setter Property="Background" Value="{StaticResource AvisoSuave}" />
+    </Style>
+    <Style Selector="Border.tarea.media Border.cifra-tarea TextBlock">
+      <Setter Property="Foreground" Value="{StaticResource Aviso}" />
+    </Style>
+    <Style Selector="Border.tarea.info">
+      <Setter Property="BorderBrush" Value="{StaticResource Primario}" />
+    </Style>
+    <Style Selector="Border.tarea.info TextBlock.etiqueta-urgencia">
+      <Setter Property="Foreground" Value="{StaticResource Primario}" />
+    </Style>
+    <Style Selector="Border.tarea.ok">
+      <Setter Property="BorderBrush" Value="{StaticResource Exito}" />
+    </Style>
+    <Style Selector="Border.tarea.ok TextBlock.etiqueta-urgencia">
+      <Setter Property="Foreground" Value="{StaticResource Exito}" />
+    </Style>
+
     <!-- Resultado de un evento de auditoría -->
     <Style Selector="Border.chip.exito">
       <Setter Property="Background" Value="{StaticResource ExitoSuave}" />

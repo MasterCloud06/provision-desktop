@@ -11,10 +11,12 @@ public interface ISeccion
     Task ActivarAsync();
 }
 
-public sealed partial class OpcionMenu(string titulo, string icono, Func<ViewModelBase> crear) : ObservableObject
+public sealed partial class OpcionMenu(string clave, string titulo, string icono, Func<ViewModelBase> crear) : ObservableObject
 {
     private ViewModelBase? _vista;
 
+    /// <summary>Identificador de la pantalla (el mismo que usa el backend en las tareas del panel).</summary>
+    public string Clave { get; } = clave;
     public string Titulo { get; } = titulo;
     public string Icono { get; } = icono;
 
@@ -35,22 +37,23 @@ public sealed partial class ShellViewModel : ViewModelBase
         Sesion = sesion;
         _alSalir = alSalir;
         // Cada pantalla aparece solo si el rol tiene el permiso que la habilita (null = todos).
-        var opciones = new (string titulo, string icono, string? permiso, Func<ViewModelBase> crear)[]
+        var opciones = new (string clave, string titulo, string icono, string? permiso, Func<ViewModelBase> crear)[]
         {
-            ("Inicio", "◧", "reportes.ver", () => new InicioViewModel(sesion)),
-            ("Auditoría", "◉", "auditoria.ver", () => new AuditoriaViewModel(sesion)),
-            ("Vender", "＋", "ventas.crear", () => new VenderViewModel(sesion)),
-            ("Ventas", "≡", "ventas.ver", () => new VentasViewModel(sesion)),
-            ("Caja", "▣", "caja.operar", () => new CajaViewModel(sesion)),
-            ("Laboratorio", "◎", "laboratorio.ver", () => new LaboratorioViewModel(sesion)),
-            ("Clientes", "☺", "clientes.ver", () => new ClientesViewModel(sesion)),
-            ("Inventario", "▤", "catalogo.ver", () => new InventarioViewModel(sesion)),
-            ("Usuarios", "⚿", "usuarios.gestionar", () => new UsuariosViewModel(sesion)),
-            ("Mis finanzas", "◔", null, () => new FinanzasViewModel(sesion)),
+            ("panel", "Mi panel", "◈", null, () => new PanelViewModel(sesion, IrAAsync, TienePantalla)),
+            ("indicadores", "Indicadores", "◧", "reportes.ver", () => new InicioViewModel(sesion)),
+            ("auditoria", "Auditoría", "◉", "auditoria.ver", () => new AuditoriaViewModel(sesion)),
+            ("vender", "Vender", "＋", "ventas.crear", () => new VenderViewModel(sesion)),
+            ("ventas", "Ventas", "≡", "ventas.ver", () => new VentasViewModel(sesion)),
+            ("caja", "Caja", "▣", "caja.operar", () => new CajaViewModel(sesion)),
+            ("laboratorio", "Laboratorio", "◎", "laboratorio.ver", () => new LaboratorioViewModel(sesion)),
+            ("clientes", "Clientes", "☺", "clientes.ver", () => new ClientesViewModel(sesion)),
+            ("inventario", "Inventario", "▤", "catalogo.ver", () => new InventarioViewModel(sesion)),
+            ("usuarios", "Usuarios", "⚿", "usuarios.gestionar", () => new UsuariosViewModel(sesion)),
+            ("finanzas", "Mis finanzas", "◔", null, () => new FinanzasViewModel(sesion)),
         };
         Menu = opciones
             .Where(o => o.permiso is null || sesion.Puede(o.permiso))
-            .Select(o => new OpcionMenu(o.titulo, o.icono, o.crear))
+            .Select(o => new OpcionMenu(o.clave, o.titulo, o.icono, o.crear))
             .ToList();
         foreach (var opcion in Menu)
         {
@@ -71,6 +74,15 @@ public sealed partial class ShellViewModel : ViewModelBase
     public bool EsDesarrollo => Sesion.Entorno.Clave == Entorno.Desarrollo.Clave;
 
     [ObservableProperty] private ViewModelBase? _seccionActual;
+
+    /// <summary>Lleva a una pantalla por su clave. Devuelve false si el rol no tiene esa pantalla.</summary>
+    public bool TienePantalla(string clave) => Menu.Any(o => o.Clave == clave);
+
+    private Task IrAAsync(string clave)
+    {
+        var opcion = Menu.FirstOrDefault(o => o.Clave == clave);
+        return opcion is null ? Task.CompletedTask : IrAAsync(opcion);
+    }
 
     private async Task IrAAsync(OpcionMenu opcion)
     {

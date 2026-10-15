@@ -143,6 +143,11 @@ public sealed class ProvisionApi(ApiClient http)
     public Task RegistrarPagosAsync(Guid ventaId, IEnumerable<Pago> pagos, CancellationToken ct = default) =>
         Http.PostAsync<object>($"ventas/{ventaId}/pagos", new { pagos }, ct);
 
+    /* Mi panel */
+
+    /// <summary>Propósito del rol, responsabilidades, tareas del momento e indicadores del usuario.</summary>
+    public Task<PanelRol> PanelAsync(CancellationToken ct = default) => Http.GetAsync<PanelRol>("panel", ct);
+
     /* Auditoría (super administrador) */
 
     private static string QAuditoria(FiltrosAuditoria f, params (string, object?)[] extra) => Q(
