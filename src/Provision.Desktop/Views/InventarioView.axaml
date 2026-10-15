@@ -1,0 +1,148 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Provision.Desktop.ViewModels"
+             xmlns:api="using:Provision.Core.Api"
+             x:Class="Provision.Desktop.Views.InventarioView"
+             x:DataType="vm:InventarioViewModel">
+  <Grid Margin="24" RowDefinitions="Auto,Auto,Auto,*" ColumnDefinitions="*,16,360">
+
+    <Grid Grid.ColumnSpan="3" ColumnDefinitions="*,Auto" Margin="0,0,0,12">
+      <StackPanel>
+        <TextBlock Classes="titulo" Text="Inventario" />
+        <TextBlock Classes="etiqueta" Text="{Binding Resumen}" FontSize="14" />
+      </StackPanel>
+      <Button Grid.Column="1" Classes="primario" Content="+ Nuevo producto" VerticalAlignment="Center"
+              IsVisible="{Binding EsAdmin}" Command="{Binding AlternarNuevoCommand}" />
+    </Grid>
+
+    <!-- Filtros -->
+    <Grid Grid.Row="1" Grid.ColumnSpan="3" ColumnDefinitions="*,8,200,8,Auto,8,Auto" Margin="0,0,0,12">
+      <TextBox Text="{Binding Busqueda}" Watermark="Buscar por nombre, SKU, modelo o código de barras + Enter">
+        <TextBox.KeyBindings>
+          <KeyBinding Gesture="Enter" Command="{Binding BuscarCommand}" />
+        </TextBox.KeyBindings>
+      </TextBox>
+      <ComboBox Grid.Column="2" ItemsSource="{Binding TiposFiltro}" SelectedItem="{Binding FiltroTipo}"
+                HorizontalAlignment="Stretch" />
+      <CheckBox Grid.Column="4" Content="Solo bajo stock" IsChecked="{Binding SoloBajoStock}" />
+      <Button Grid.Column="6" Content="Buscar" Command="{Binding BuscarCommand}" />
+    </Grid>
+
+    <StackPanel Grid.Row="2" Grid.ColumnSpan="3" Spacing="6" Margin="0,0,0,12">
+      <ProgressBar IsIndeterminate="True" IsVisible="{Binding Ocupado}" />
+      <Border Classes="aviso-error" IsVisible="{Binding Error, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+        <TextBlock Classes="error" Text="{Binding Error}" />
+      </Border>
+      <Border Classes="aviso-ok" IsVisible="{Binding Aviso, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+        <TextBlock Classes="ok" Text="{Binding Aviso}" />
+      </Border>
+    </StackPanel>
+
+    <!-- Lista de productos -->
+    <Border Grid.Row="3" Classes="tarjeta" Padding="8">
+      <DockPanel>
+        <Grid DockPanel.Dock="Top" ColumnDefinitions="140,*,130,80,110,110" Margin="8,4,8,8">
+          <TextBlock Classes="etiqueta" Text="SKU" />
+          <TextBlock Grid.Column="1" Classes="etiqueta" Text="Producto" />
+          <TextBlock Grid.Column="2" Classes="etiqueta" Text="Marca" />
+          <TextBlock Grid.Column="3" Classes="etiqueta" Text="Stock" TextAlignment="Right" />
+          <TextBlock Grid.Column="4" Classes="etiqueta" Text="Costo prom." TextAlignment="Right" />
+          <TextBlock Grid.Column="5" Classes="etiqueta" Text="Precio" TextAlignment="Right" />
+        </Grid>
+        <ListBox Classes="tabla" ItemsSource="{Binding Productos}" SelectedItem="{Binding Seleccionado}">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="api:Producto">
+              <Grid ColumnDefinitions="140,*,130,80,110,110">
+                <TextBlock Text="{Binding Sku}" Classes="etiqueta" VerticalAlignment="Center" />
+                <StackPanel Grid.Column="1">
+                  <TextBlock Text="{Binding Nombre}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                  <TextBlock Classes="etiqueta" Text="{Binding Modelo}" />
+                </StackPanel>
+                <TextBlock Grid.Column="2" Text="{Binding Marca}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                <StackPanel Grid.Column="3" HorizontalAlignment="Right" VerticalAlignment="Center">
+                  <TextBlock Text="{Binding Stock}" TextAlignment="Right" FontWeight="SemiBold"
+                             Classes.error="{Binding BajoStock}" IsVisible="{Binding ControlaStock}" />
+                  <TextBlock Text="—" Classes="etiqueta" IsVisible="{Binding !ControlaStock}" />
+                </StackPanel>
+                <TextBlock Grid.Column="4" Text="{Binding CostoPromedio, Converter={StaticResource Bs}}"
+                           TextAlignment="Right" VerticalAlignment="Center" Classes="etiqueta" />
+                <TextBlock Grid.Column="5" Text="{Binding PrecioVenta, Converter={StaticResource Bs}}"
+                           TextAlignment="Right" VerticalAlignment="Center" />
+              </Grid>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </DockPanel>
+    </Border>
+
+    <!-- Panel derecho -->
+    <ScrollViewer Grid.Row="3" Grid.Column="2">
+      <StackPanel Spacing="16">
+
+        <!-- Nuevo producto -->
+        <Border Classes="tarjeta" IsVisible="{Binding MostrandoNuevo}">
+          <StackPanel Spacing="8">
+            <TextBlock Classes="subtitulo" Text="Nuevo producto" />
+            <TextBox Text="{Binding NuevoSku}" Watermark="Código interno (SKU), ej. MON-RB-001" />
+            <TextBox Text="{Binding NuevoNombre}" Watermark="Nombre" />
+            <ComboBox ItemsSource="{Binding Tipos}" SelectedItem="{Binding NuevoTipo}" HorizontalAlignment="Stretch" />
+            <ComboBox ItemsSource="{Binding Marcas}" SelectedItem="{Binding NuevaMarca}"
+                      PlaceholderText="Marca (opcional)" HorizontalAlignment="Stretch">
+              <ComboBox.ItemTemplate>
+                <DataTemplate x:DataType="api:Marca">
+                  <TextBlock Text="{Binding Nombre}" />
+                </DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
+            <Grid ColumnDefinitions="*,8,Auto">
+              <TextBox Text="{Binding NombreMarcaNueva}" Watermark="¿Marca nueva? Escríbela" />
+              <Button Grid.Column="2" Content="Crear" Command="{Binding CrearMarcaCommand}" />
+            </Grid>
+            <TextBox Text="{Binding NuevoModelo}" Watermark="Modelo (opcional)" />
+            <TextBox Text="{Binding NuevoCodigoBarras}" Watermark="Código de barras (opcional)" />
+            <TextBox Text="{Binding NuevoPrecio}" Watermark="Precio de venta Bs" />
+            <TextBlock Classes="etiqueta" Text="Stock mínimo (avisa cuando llegue a este número)" />
+            <NumericUpDown Value="{Binding NuevoStockMinimo}" Minimum="0" Increment="1" FormatString="0" />
+            <TextBlock Classes="etiqueta" Text="Stock inicial (opcional)" />
+            <Grid ColumnDefinitions="*,8,*">
+              <NumericUpDown Value="{Binding NuevoStockInicial}" Minimum="0" Increment="1" FormatString="0" />
+              <TextBox Grid.Column="2" Text="{Binding NuevoCosto}" Watermark="Costo unit. Bs" />
+            </Grid>
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <Button Classes="primario" Content="Guardar producto" Command="{Binding GuardarProductoCommand}" />
+              <Button Content="Cancelar" Command="{Binding AlternarNuevoCommand}" />
+            </StackPanel>
+          </StackPanel>
+        </Border>
+
+        <!-- Entrada de mercadería -->
+        <Border Classes="tarjeta">
+          <StackPanel Spacing="8">
+            <TextBlock Classes="subtitulo" Text="Entrada de mercadería" />
+            <TextBlock Classes="etiqueta" TextWrapping="Wrap" IsVisible="{Binding !HaySeleccion}"
+                       Text="Selecciona un producto de la lista para registrar unidades que llegaron." />
+            <StackPanel Spacing="8" IsVisible="{Binding HaySeleccion}">
+              <TextBlock FontWeight="SemiBold" Text="{Binding Seleccionado.Nombre}" TextWrapping="Wrap" />
+              <TextBlock Classes="etiqueta" Text="{Binding Seleccionado.Stock, StringFormat='Stock actual: {0}'}" />
+              <Grid ColumnDefinitions="*,8,*">
+                <StackPanel Spacing="4">
+                  <TextBlock Classes="etiqueta" Text="Cantidad" />
+                  <NumericUpDown Value="{Binding EntradaCantidad}" Minimum="1" Increment="1" FormatString="0" />
+                </StackPanel>
+                <StackPanel Grid.Column="2" Spacing="4">
+                  <TextBlock Classes="etiqueta" Text="Costo unitario Bs" />
+                  <TextBox Text="{Binding EntradaCosto}" />
+                </StackPanel>
+              </Grid>
+              <TextBox Text="{Binding EntradaDocumento}" Watermark="Nro. de factura o remito (opcional)" />
+              <Button Classes="primario" Content="Registrar entrada" HorizontalAlignment="Stretch"
+                      HorizontalContentAlignment="Center" Command="{Binding RegistrarEntradaCommand}" />
+              <TextBlock Classes="etiqueta" TextWrapping="Wrap"
+                         Text="El costo promedio se recalcula solo con cada entrada." />
+            </StackPanel>
+          </StackPanel>
+        </Border>
+      </StackPanel>
+    </ScrollViewer>
+  </Grid>
+</UserControl>

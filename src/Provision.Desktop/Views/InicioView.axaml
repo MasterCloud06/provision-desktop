@@ -1,0 +1,93 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Provision.Desktop.ViewModels"
+             xmlns:api="using:Provision.Core.Api"
+             x:Class="Provision.Desktop.Views.InicioView"
+             x:DataType="vm:InicioViewModel">
+  <ScrollViewer>
+    <StackPanel Margin="32" Spacing="20">
+
+      <Grid ColumnDefinitions="*,Auto">
+        <StackPanel Spacing="2">
+          <TextBlock Classes="titulo" Text="{Binding Saludo}" />
+          <TextBlock Classes="etiqueta" Text="{Binding Fecha}" FontSize="14" />
+        </StackPanel>
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+          <Border Classes="aviso-ok" IsVisible="{Binding CajaAbierta}">
+            <TextBlock Classes="ok" Text="{Binding EstadoCaja}" FontWeight="SemiBold" />
+          </Border>
+          <Border Classes="aviso-error" IsVisible="{Binding !CajaAbierta}">
+            <TextBlock Classes="error" Text="{Binding EstadoCaja}" FontWeight="SemiBold" />
+          </Border>
+          <Button Content="Actualizar" Command="{Binding ActualizarCommand}" />
+        </StackPanel>
+      </Grid>
+
+      <ProgressBar IsIndeterminate="True" IsVisible="{Binding Ocupado}" />
+      <Border Classes="aviso-error" IsVisible="{Binding Error, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+        <TextBlock Classes="error" Text="{Binding Error}" />
+      </Border>
+
+      <!-- Indicadores -->
+      <ItemsControl ItemsSource="{Binding Indicadores}">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <UniformGrid Columns="5" />
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:Indicador">
+            <Border Classes="tarjeta" Margin="0,0,12,0">
+              <StackPanel Spacing="6">
+                <TextBlock Classes="etiqueta" Text="{Binding Titulo}" />
+                <TextBlock Classes="cifra" Text="{Binding Valor}" />
+                <TextBlock Classes="etiqueta" Text="{Binding Detalle}" TextWrapping="Wrap" />
+              </StackPanel>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+
+      <Grid ColumnDefinitions="2*,16,*">
+        <!-- Más vendidos -->
+        <Border Classes="tarjeta">
+          <StackPanel Spacing="10">
+            <TextBlock Classes="subtitulo" Text="Más vendidos del mes" />
+            <TextBlock Classes="etiqueta" Text="Aún no hay ventas este mes."
+                       IsVisible="{Binding SinVentas}" />
+            <ItemsControl ItemsSource="{Binding TopProductos}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="api:ProductoTop">
+                  <Grid ColumnDefinitions="*,80,120" Margin="0,4">
+                    <TextBlock Text="{Binding Producto}" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Grid.Column="1" Classes="etiqueta" Text="{Binding Unidades, StringFormat='{}{0} u.'}"
+                               HorizontalAlignment="Right" />
+                    <TextBlock Grid.Column="2" Text="{Binding Monto, Converter={StaticResource Bs}}"
+                               HorizontalAlignment="Right" FontWeight="SemiBold" />
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </Border>
+
+        <!-- Laboratorio -->
+        <Border Grid.Column="2" Classes="tarjeta">
+          <StackPanel Spacing="10">
+            <TextBlock Classes="subtitulo" Text="Laboratorio" />
+            <ItemsControl ItemsSource="{Binding Laboratorio}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:Indicador">
+                  <Grid ColumnDefinitions="*,Auto" Margin="0,4">
+                    <TextBlock Text="{Binding Titulo}" />
+                    <TextBlock Grid.Column="1" Text="{Binding Valor}" FontWeight="SemiBold" />
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </Border>
+      </Grid>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

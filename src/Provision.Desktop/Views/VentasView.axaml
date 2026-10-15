@@ -1,0 +1,85 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Provision.Desktop.ViewModels"
+             xmlns:api="using:Provision.Core.Api"
+             x:Class="Provision.Desktop.Views.VentasView"
+             x:DataType="vm:VentasViewModel">
+  <Grid Margin="24" RowDefinitions="Auto,Auto,*" ColumnDefinitions="*,16,340">
+
+    <Grid Grid.ColumnSpan="3" ColumnDefinitions="*,Auto,Auto" Margin="0,0,0,12">
+      <StackPanel>
+        <TextBlock Classes="titulo" Text="Ventas" />
+        <TextBlock Classes="etiqueta" Text="{Binding Resumen}" FontSize="14" />
+      </StackPanel>
+      <ComboBox Grid.Column="1" Width="220" ItemsSource="{Binding Filtros}" SelectedItem="{Binding Filtro}"
+                VerticalAlignment="Center" Margin="0,0,8,0" />
+      <Button Grid.Column="2" Content="Actualizar" Command="{Binding CargarCommand}" VerticalAlignment="Center" />
+    </Grid>
+
+    <StackPanel Grid.Row="1" Grid.ColumnSpan="3" Spacing="6" Margin="0,0,0,12">
+      <ProgressBar IsIndeterminate="True" IsVisible="{Binding Ocupado}" />
+      <Border Classes="aviso-error" IsVisible="{Binding Error, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+        <TextBlock Classes="error" Text="{Binding Error}" />
+      </Border>
+      <Border Classes="aviso-ok" IsVisible="{Binding Aviso, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+        <TextBlock Classes="ok" Text="{Binding Aviso}" />
+      </Border>
+    </StackPanel>
+
+    <!-- Lista -->
+    <Border Grid.Row="2" Classes="tarjeta" Padding="8">
+      <DockPanel>
+        <Grid DockPanel.Dock="Top" ColumnDefinitions="130,*,110,110,110,120" Margin="8,4,8,8">
+          <TextBlock Classes="etiqueta" Text="Número" />
+          <TextBlock Grid.Column="1" Classes="etiqueta" Text="Cliente" />
+          <TextBlock Grid.Column="2" Classes="etiqueta" Text="Total" TextAlignment="Right" />
+          <TextBlock Grid.Column="3" Classes="etiqueta" Text="Pagado" TextAlignment="Right" />
+          <TextBlock Grid.Column="4" Classes="etiqueta" Text="Saldo" TextAlignment="Right" />
+          <TextBlock Grid.Column="5" Classes="etiqueta" Text="Fecha" TextAlignment="Right" />
+        </Grid>
+        <ListBox Classes="tabla" ItemsSource="{Binding Ventas}" SelectedItem="{Binding Seleccionada}">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="api:VentaResumen">
+              <Grid ColumnDefinitions="130,*,110,110,110,120">
+                <TextBlock Text="{Binding Numero}" FontWeight="SemiBold" />
+                <TextBlock Grid.Column="1" Text="{Binding Cliente, TargetNullValue='Sin cliente'}"
+                           TextTrimming="CharacterEllipsis" />
+                <TextBlock Grid.Column="2" Text="{Binding Total, Converter={StaticResource Bs}}" TextAlignment="Right" />
+                <TextBlock Grid.Column="3" Text="{Binding Pagado, Converter={StaticResource Bs}}" TextAlignment="Right" />
+                <TextBlock Grid.Column="4" Text="{Binding Saldo, Converter={StaticResource Bs}}" TextAlignment="Right"
+                           FontWeight="SemiBold" />
+                <TextBlock Grid.Column="5" Classes="etiqueta" TextAlignment="Right"
+                           Text="{Binding CreadoLocal, StringFormat='{}{0:dd/MM HH:mm}'}" />
+              </Grid>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </DockPanel>
+    </Border>
+
+    <!-- Abono -->
+    <Border Grid.Row="2" Grid.Column="2" Classes="tarjeta" VerticalAlignment="Top">
+      <StackPanel Spacing="8">
+        <TextBlock Classes="subtitulo" Text="Cobrar saldo" />
+        <TextBlock Classes="etiqueta" TextWrapping="Wrap" IsVisible="{Binding !PuedeAbonar}"
+                   Text="Elige una venta con saldo pendiente. Tip: usa el filtro “Con saldo pendiente”." />
+        <StackPanel Spacing="8" IsVisible="{Binding PuedeAbonar}">
+          <TextBlock FontWeight="SemiBold" Text="{Binding Seleccionada.Numero}" />
+          <TextBlock Text="{Binding Seleccionada.Cliente}" />
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Classes="etiqueta" Text="Saldo" />
+            <TextBlock Grid.Column="1" FontWeight="SemiBold"
+                       Text="{Binding Seleccionada.Saldo, Converter={StaticResource Bs}}" />
+          </Grid>
+          <ComboBox ItemsSource="{Binding Metodos}" SelectedItem="{Binding Metodo}" HorizontalAlignment="Stretch" />
+          <TextBox Text="{Binding MontoAbono}" Watermark="Monto Bs" />
+          <TextBox Text="{Binding Referencia}" Watermark="Referencia (opcional)" />
+          <Button Classes="primario" Content="Registrar abono" HorizontalAlignment="Stretch"
+                  HorizontalContentAlignment="Center" Command="{Binding AbonarCommand}" />
+          <TextBlock Classes="etiqueta" TextWrapping="Wrap"
+                     Text="Se necesita la caja abierta. Con el saldo en cero, la orden de laboratorio se puede entregar." />
+        </StackPanel>
+      </StackPanel>
+    </Border>
+  </Grid>
+</UserControl>

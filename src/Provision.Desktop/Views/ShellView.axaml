@@ -1,0 +1,54 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Provision.Desktop.ViewModels"
+             x:Class="Provision.Desktop.Views.ShellView"
+             x:DataType="vm:ShellViewModel">
+  <Grid ColumnDefinitions="232,*">
+
+    <!-- Menú lateral -->
+    <Border Grid.Column="0" Background="{StaticResource Barra}" Padding="14,20">
+      <DockPanel>
+        <StackPanel DockPanel.Dock="Top" Spacing="2" Margin="6,0,0,24">
+          <TextBlock Text="Provisión" FontSize="24" FontWeight="Bold" Foreground="White" />
+          <Border Classes="chip" HorizontalAlignment="Left" Margin="0,6,0,0"
+                  IsVisible="{Binding EsDesarrollo}">
+            <TextBlock Text="{Binding NombreEntorno}" FontSize="11" FontWeight="SemiBold"
+                       Foreground="{StaticResource Aviso}" />
+          </Border>
+          <TextBlock Text="{Binding NombreEntorno}" FontSize="11" Foreground="#64748B"
+                     IsVisible="{Binding !EsDesarrollo}" Margin="0,6,0,0" />
+        </StackPanel>
+
+        <StackPanel DockPanel.Dock="Bottom" Spacing="8" Margin="6,16,0,0">
+          <StackPanel Spacing="2">
+            <TextBlock Text="{Binding NombreUsuario}" Foreground="White" FontWeight="SemiBold"
+                       TextTrimming="CharacterEllipsis" />
+            <TextBlock Text="{Binding RolUsuario}" Foreground="#64748B" FontSize="11" />
+          </StackPanel>
+          <Button Classes="nav" Content="Cerrar sesión" Command="{Binding CerrarSesionCommand}" Margin="-6,0,0,0" />
+        </StackPanel>
+
+        <ItemsControl ItemsSource="{Binding Menu}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <StackPanel Spacing="4" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:OpcionMenu">
+              <Button Classes="nav" Classes.activo="{Binding Activo}" Command="{Binding Seleccionar}">
+                <StackPanel Orientation="Horizontal" Spacing="12">
+                  <TextBlock Text="{Binding Icono}" Width="18" TextAlignment="Center" />
+                  <TextBlock Text="{Binding Titulo}" />
+                </StackPanel>
+              </Button>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </DockPanel>
+    </Border>
+
+    <!-- Sección actual -->
+    <ContentControl Grid.Column="1" Content="{Binding SeccionActual}" />
+  </Grid>
+</UserControl>

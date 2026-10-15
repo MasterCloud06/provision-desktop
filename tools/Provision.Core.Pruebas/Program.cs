@@ -1,0 +1,127 @@
+// Prueba de humo de Provision.Core contra una API real (úsala en LOCAL, crea datos).
+//   dotnet run --project tools/Provision.Core.Pruebas -- <urlApi> <email> <password>
+using Provision.Core;
+using Provision.Core.Api;
+
+var url = args.ElementAtOrDefault(0) ?? "http://localhost:3000/api/v1";
+var email = args.ElementAtOrDefault(1) ?? "admin@provision.local";
+var password = args.ElementAtOrDefault(2) ?? "CambiaEsto123";
+
+var fallos = 0;
+void Comprobar(bool ok, string que)
+{
+    Console.WriteLine($"{(ok ? "  ✓" : "  ✗")} {que}");
+    if (!ok) fallos++;
+}
+
+Console.WriteLine("Dinero");
+Comprobar(Dinero.Formatear(15050) == "Bs 150,50", "15050 → Bs 150,50");
+Comprobar(Dinero.Formatear(123456789) == "Bs 1.234.567,89", "miles con punto");
+Comprobar(Dinero.Formatear(-500) == "-Bs 5,00", "negativos");
+foreach (var (texto, esperado) in new[] { ("150", 15000L), ("150,5", 15050L), ("150.50", 15050L), ("1.234,50", 123450L), ("1,234.50", 123450L), ("1.234", 123400L), ("Bs 20", 2000L) })
+    Comprobar(Dinero.TryLeer(texto, out var c) && c == esperado, $"leer \"{texto}\" → {esperado}");
+Comprobar(!Dinero.TryLeer("abc", out _), "rechaza texto no numérico");
+
+Console.WriteLine($"API {url}");
+using var http = new ApiClient(url);
+var api = new ProvisionApi(http);
+
+try
+{
+    await api.LoginAsync(email, "clave-equivocada");
+    Comprobar(false, "login con clave equivocada falla");
+}
+catch (ApiException ex) { Comprobar(ex.Status == 401, $"login con clave equivocada → 401 ({ex.Message})"); }
+
+var sesion = await api.LoginAsync(email, password);
+Comprobar(sesion.Usuario.Rol == Rol.Admin, $"login como {sesion.Usuario.Nombre} ({sesion.Usuario.Rol})");
+
+var sufijo = DateTime.Now.ToString("HHmmss");
+var marca = await api.CrearMarcaAsync("Marca prueba " + sufijo);
+var producto = await api.CrearProductoAsync(new NuevoProducto
+{
+    Sku = "PRB-" + sufijo, Nombre = "Montura de prueba " + sufijo, Tipo = TipoProducto.Montura,
+    MarcaId = marca.Id, PrecioVenta = 50000, StockMinimo = 1, StockInicial = new StockInicial(3, 20000),
+});
+Comprobar(producto.Tipo == TipoProducto.Montura, "crear producto con stock inicial (enum MONTURA)");
+var lente = await api.CrearProductoAsync(new NuevoProducto
+{
+    Sku = "LEN-" + sufijo, Nombre = "Lente de prueba " + sufijo, Tipo = TipoProducto.LenteOftalmico,
+    PrecioVenta = 30000, StockInicial = new StockInicial(5, 10000),
+});
+Comprobar(lente.Tipo == TipoProducto.LenteOftalmico, "enum LENTE_OFTALMICO ida y vuelta");
+
+var lista = await api.ProductosAsync(buscar: sufijo);
+Comprobar(lista.Total == 2 && lista.Datos.Any(p => p.Stock == 3), $"buscar productos ({lista.Total}) con stock");
+
+await api.RegistrarEntradaAsync(new EntradaInventario { Documento = "F-" + sufijo, Items = [new(producto.Id, 2, 26000)] });
+var tras = (await api.ProductosAsync(buscar: "PRB-" + sufijo)).Datos.Single();
+Comprobar(tras.Stock == 5 && tras.CostoPromedio == 22400, $"entrada: stock {tras.Stock}, costo prom. {Dinero.Formatear(tras.CostoPromedio)}");
+
+var caja = await api.CajaActualAsync();
+if (caja is not null) await api.CerrarCajaAsync(caja.EfectivoEsperado);
+Comprobar(await api.CajaActualAsync() is null, "caja cerrada devuelve null");
+await api.AbrirCajaAsync(10000);
+Comprobar((await api.CajaActualAsync())?.EfectivoEsperado == 10000, "abrir caja con Bs 100");
+
+var cliente = await api.CrearClienteAsync(new NuevoCliente { Nombre = "Cliente prueba " + sufijo, Ci = sufijo });
+Comprobar((await api.BuscarClientesAsync(sufijo)).Count == 1, "crear y buscar cliente");
+
+var venta = await api.CrearVentaAsync(new NuevaVenta
+{
+    ClienteId = cliente.Id,
+    Items = [new() { ProductoId = producto.Id, Cantidad = 1 }, new() { ProductoId = lente.Id, Cantidad = 1 }],
+    Descuento = 5000,
+    Pagos = [new() { Metodo = MetodoPago.Efectivo, Monto = 30000 }, new() { Metodo = MetodoPago.Qr, Monto = 10000, Referencia = "QR1" }],
+    OrdenTrabajo = new DatosOrdenTrabajo { FechaPrometida = DateOnly.FromDateTime(DateTime.Today.AddDays(3)) },
+});
+Comprobar(venta.Total == 75000 && venta.Saldo == 35000 && venta.EstadoPago == EstadoPago.Parcial,
+    $"venta {venta.Numero}: total {Dinero.Formatear(venta.Total)}, saldo {Dinero.Formatear(venta.Saldo)}");
+Comprobar(venta.OrdenTrabajo?.Estado == EstadoTrabajo.Pendiente, "orden de trabajo creada (DateOnly enviado)");
+
+try
+{
+    await api.CrearVentaAsync(new NuevaVenta { Items = [] });
+    Comprobar(false, "venta vacía rechazada");
+}
+catch (ApiException ex) { Comprobar(ex.Codigo == "VALIDACION" && ex.MensajeCompleto.Contains("items"), "error de validación legible: " + ex.MensajeCompleto.Replace(Environment.NewLine, " ")); }
+
+await api.RegistrarPagosAsync(venta.Id, [new Pago { Metodo = MetodoPago.Tarjeta, Monto = 35000 }]);
+var conSaldo = await api.VentasAsync(conSaldo: true);
+Comprobar(conSaldo.Datos.All(v => v.Id != venta.Id), "abono deja la venta sin saldo");
+
+var cuentas = await api.CuentasAsync();
+var billetera = cuentas.Lista.FirstOrDefault(c => c.Nombre == "Billetera prueba")
+    ?? await api.CrearCuentaAsync(new NuevaCuenta("Billetera prueba", TipoCuentaPersonal.Efectivo, 0));
+await api.RegistrarMovimientoCajaAsync(new NuevoMovimientoCaja
+{
+    Concepto = ConceptoCaja.RetiroDueno, Monto = 5000, Descripcion = "Retiro de prueba", CuentaPersonalId = billetera.Id,
+});
+var resumen = await api.CajaActualAsync();
+Comprobar(resumen!.EfectivoEsperado == 10000 + 30000 - 5000, $"efectivo esperado {Dinero.Formatear(resumen.EfectivoEsperado)}");
+Comprobar(resumen.PorMetodo["QR"].Ingresos == 10000, "totales por método (QR)");
+
+var detalle = await api.DetalleSesionAsync(resumen.Sesion.Id);
+Comprobar(detalle.Movimientos.Any(m => m.Concepto == ConceptoCaja.RetiroDueno), "movimientos de caja con concepto RETIRO_DUENO");
+
+var mes = DateTime.Today.ToString("yyyy-MM");
+var categorias = await api.CategoriasAsync();
+var comida = categorias.First(c => c.Tipo == TipoCategoria.Gasto && c.Nombre == "Alimentación");
+await api.CrearTransaccionAsync(new NuevaTransaccion
+{
+    Tipo = TipoTransaccion.Gasto, CuentaId = billetera.Id, CategoriaId = comida.Id, Monto = 1500, Descripcion = "Almuerzo",
+});
+await api.GuardarPresupuestoAsync(comida.Id, mes, 100000);
+var fin = await api.ResumenFinanzasAsync(mes);
+Comprobar(fin.IngresosDesdeNegocio >= 5000 && fin.Presupuesto.Any(p => p.Categoria == "Alimentación"), $"finanzas: ingresos {Dinero.Formatear(fin.Ingresos)}, gastos {Dinero.Formatear(fin.Gastos)}");
+Comprobar((await api.TransaccionesAsync(mes)).Any(t => t.DesdeCaja), "transacciones con fecha DateOnly");
+Comprobar((await api.CuentasAsync()).Lista.Any(c => c.Id == billetera.Id), "lista de cuentas con saldo");
+
+var dash = await api.DashboardAsync();
+Comprobar(dash.Ventas.Monto >= 75000 && dash.TopProductos.Count > 0, $"dashboard: {dash.Ventas.Ventas} ventas, {Dinero.Formatear(dash.Ventas.Monto)}");
+
+var cierre = await api.CerrarCajaAsync(resumen.EfectivoEsperado - 100);
+Comprobar(cierre.Sesion.Diferencia == -100, "cierre de caja con faltante de Bs 1");
+
+Console.WriteLine(fallos == 0 ? "\nTodo bien." : $"\n{fallos} comprobaciones fallaron.");
+return fallos == 0 ? 0 : 1;

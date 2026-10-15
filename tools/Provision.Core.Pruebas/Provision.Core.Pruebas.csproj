@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Prueba de humo: recorre el flujo principal contra una API real. Sin paquetes externos. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Provision.Core\Provision.Core.csproj" />
+  </ItemGroup>
+</Project>

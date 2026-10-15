@@ -1,0 +1,163 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Provision.Desktop.ViewModels"
+             xmlns:api="using:Provision.Core.Api"
+             x:Class="Provision.Desktop.Views.CajaView"
+             x:DataType="vm:CajaViewModel">
+  <ScrollViewer>
+    <StackPanel Margin="24" Spacing="16">
+
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Classes="titulo" Text="Caja" />
+        <Button Grid.Column="1" Content="Actualizar" Command="{Binding CargarCommand}" />
+      </Grid>
+
+      <ProgressBar IsIndeterminate="True" IsVisible="{Binding Ocupado}" />
+      <Border Classes="aviso-error" IsVisible="{Binding Error, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+        <TextBlock Classes="error" Text="{Binding Error}" />
+      </Border>
+      <Border Classes="aviso-ok" IsVisible="{Binding Aviso, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+        <TextBlock Classes="ok" Text="{Binding Aviso}" />
+      </Border>
+      <Border Classes="tarjeta" IsVisible="{Binding ResultadoCierre, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+        <TextBlock Classes="subtitulo" Text="{Binding ResultadoCierre}" TextWrapping="Wrap" />
+      </Border>
+
+      <!-- Caja cerrada: apertura -->
+      <Border Classes="tarjeta" IsVisible="{Binding Cerrada}" MaxWidth="480" HorizontalAlignment="Left">
+        <StackPanel Spacing="10">
+          <TextBlock Classes="subtitulo" Text="La caja está cerrada" />
+          <TextBlock Classes="etiqueta" TextWrapping="Wrap"
+                     Text="Ábrela con el efectivo inicial (sencillo) para empezar a cobrar." />
+          <TextBox Text="{Binding MontoApertura}" Watermark="Fondo inicial en Bs, ej. 200" />
+          <Button Classes="primario" Content="Abrir caja" Command="{Binding AbrirCommand}" />
+        </StackPanel>
+      </Border>
+
+      <!-- Caja abierta -->
+      <StackPanel Spacing="16" IsVisible="{Binding Abierta}">
+
+        <Grid ColumnDefinitions="*,16,*,16,*">
+          <Border Classes="tarjeta">
+            <StackPanel Spacing="4">
+              <TextBlock Classes="etiqueta" Text="Fondo de apertura" />
+              <TextBlock Classes="cifra" Text="{Binding Resumen.Sesion.MontoApertura, Converter={StaticResource Bs}}" />
+              <TextBlock Classes="etiqueta" Text="{Binding Resumen.Sesion.AbiertaLocal, StringFormat='Abierta {0:dd/MM/yyyy HH:mm}'}" />
+            </StackPanel>
+          </Border>
+          <Border Grid.Column="2" Classes="tarjeta">
+            <StackPanel Spacing="4">
+              <TextBlock Classes="etiqueta" Text="Efectivo que debería haber" />
+              <TextBlock Classes="cifra" Foreground="{StaticResource Primario}"
+                         Text="{Binding Resumen.EfectivoEsperado, Converter={StaticResource Bs}}" />
+              <TextBlock Classes="etiqueta" Text="apertura + entradas − salidas en efectivo" />
+            </StackPanel>
+          </Border>
+          <Border Grid.Column="4" Classes="tarjeta">
+            <StackPanel Spacing="4">
+              <TextBlock Classes="etiqueta" Text="Ingresos / egresos del turno" />
+              <TextBlock Classes="cifra" Text="{Binding Resumen.TotalIngresos, Converter={StaticResource Bs}}" />
+              <TextBlock Classes="etiqueta" Text="{Binding Resumen.TotalEgresos, Converter={StaticResource Bs}, StringFormat='egresos {0}'}" />
+            </StackPanel>
+          </Border>
+        </Grid>
+
+        <Grid ColumnDefinitions="*,16,380">
+          <StackPanel Spacing="16">
+            <!-- Por método -->
+            <Border Classes="tarjeta">
+              <StackPanel Spacing="8">
+                <TextBlock Classes="subtitulo" Text="Por método de pago" />
+                <Grid ColumnDefinitions="*,120,120,120">
+                  <TextBlock Classes="etiqueta" Text="Método" />
+                  <TextBlock Grid.Column="1" Classes="etiqueta" Text="Ingresos" TextAlignment="Right" />
+                  <TextBlock Grid.Column="2" Classes="etiqueta" Text="Egresos" TextAlignment="Right" />
+                  <TextBlock Grid.Column="3" Classes="etiqueta" Text="Neto" TextAlignment="Right" />
+                </Grid>
+                <ItemsControl ItemsSource="{Binding Totales}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:TotalMetodo">
+                      <Grid ColumnDefinitions="*,120,120,120" Margin="0,3">
+                        <TextBlock Text="{Binding Metodo}" />
+                        <TextBlock Grid.Column="1" Text="{Binding Ingresos, Converter={StaticResource Bs}}" TextAlignment="Right" />
+                        <TextBlock Grid.Column="2" Text="{Binding Egresos, Converter={StaticResource Bs}}" TextAlignment="Right" />
+                        <TextBlock Grid.Column="3" Text="{Binding Neto, Converter={StaticResource Bs}}" TextAlignment="Right"
+                                   FontWeight="SemiBold" />
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <TextBlock Classes="etiqueta" TextWrapping="Wrap"
+                           Text="Solo el efectivo se cuenta al cerrar. QR, tarjeta y transferencia se concilian con el banco." />
+              </StackPanel>
+            </Border>
+
+            <!-- Movimientos -->
+            <Border Classes="tarjeta">
+              <StackPanel Spacing="8">
+                <TextBlock Classes="subtitulo" Text="Movimientos del turno" />
+                <ItemsControl ItemsSource="{Binding Movimientos}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="api:MovimientoCaja">
+                      <Grid ColumnDefinitions="60,*,110,120" Margin="0,4">
+                        <TextBlock Classes="etiqueta" Text="{Binding CreadoLocal, StringFormat='{}{0:HH:mm}'}" />
+                        <StackPanel Grid.Column="1">
+                          <TextBlock Text="{Binding Descripcion}" TextTrimming="CharacterEllipsis" />
+                          <TextBlock Classes="etiqueta" Text="{Binding Usuario}" />
+                        </StackPanel>
+                        <TextBlock Grid.Column="2" Classes="etiqueta" Text="{Binding Metodo}" />
+                        <TextBlock Grid.Column="3" TextAlignment="Right" FontWeight="SemiBold">
+                          <Run Text="{Binding Tipo}" FontSize="10" Foreground="{StaticResource TextoSuave}" />
+                          <Run Text=" " />
+                          <Run Text="{Binding Monto, Converter={StaticResource Bs}}" />
+                        </TextBlock>
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+            </Border>
+          </StackPanel>
+
+          <StackPanel Grid.Column="2" Spacing="16">
+            <!-- Movimiento manual -->
+            <Border Classes="tarjeta">
+              <StackPanel Spacing="8">
+                <TextBlock Classes="subtitulo" Text="Registrar movimiento" />
+                <ComboBox ItemsSource="{Binding Conceptos}" SelectedItem="{Binding Concepto}" HorizontalAlignment="Stretch" />
+                <TextBox Text="{Binding MontoMovimiento}" Watermark="Monto Bs" />
+                <TextBox Text="{Binding DescripcionMovimiento}" Watermark="Descripción (ej. pasajes, limpieza)" />
+                <StackPanel Spacing="4" IsVisible="{Binding EsRetiro}">
+                  <TextBlock Classes="etiqueta" TextWrapping="Wrap"
+                             Text="Opcional: la cuenta personal donde entra este dinero (aparecerá en Mis finanzas)." />
+                  <ComboBox ItemsSource="{Binding CuentasPersonales}" SelectedItem="{Binding CuentaDestino}"
+                            PlaceholderText="Sin cuenta personal" HorizontalAlignment="Stretch">
+                    <ComboBox.ItemTemplate>
+                      <DataTemplate x:DataType="api:CuentaPersonal">
+                        <TextBlock Text="{Binding Nombre}" />
+                      </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                  </ComboBox>
+                </StackPanel>
+                <Button Content="Registrar" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                        Command="{Binding RegistrarMovimientoCommand}" />
+              </StackPanel>
+            </Border>
+
+            <!-- Cierre -->
+            <Border Classes="tarjeta">
+              <StackPanel Spacing="8">
+                <TextBlock Classes="subtitulo" Text="Cerrar caja (arqueo)" />
+                <TextBlock Classes="etiqueta" TextWrapping="Wrap"
+                           Text="Cuenta el efectivo físico y escríbelo. El sistema calcula si sobra o falta." />
+                <TextBox Text="{Binding EfectivoContado}" Watermark="Efectivo contado en Bs" />
+                <Button Classes="peligro" Content="Cerrar caja" HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Center" Command="{Binding CerrarCommand}" />
+              </StackPanel>
+            </Border>
+          </StackPanel>
+        </Grid>
+      </StackPanel>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

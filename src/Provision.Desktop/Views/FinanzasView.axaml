@@ -1,0 +1,204 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Provision.Desktop.ViewModels"
+             xmlns:api="using:Provision.Core.Api"
+             x:Class="Provision.Desktop.Views.FinanzasView"
+             x:DataType="vm:FinanzasViewModel">
+  <ScrollViewer>
+    <StackPanel Margin="24" Spacing="16">
+
+      <Grid ColumnDefinitions="*,Auto">
+        <StackPanel>
+          <TextBlock Classes="titulo" Text="Mis finanzas" />
+          <TextBlock Classes="etiqueta" FontSize="14" Text="Tu dinero personal, separado del negocio. Solo tú lo ves." />
+        </StackPanel>
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+          <Button Content="‹" Command="{Binding MesAnteriorCommand}" />
+          <TextBlock Classes="subtitulo" Text="{Binding NombreMes}" MinWidth="150" TextAlignment="Center"
+                     VerticalAlignment="Center" />
+          <Button Content="›" Command="{Binding MesSiguienteCommand}" />
+        </StackPanel>
+      </Grid>
+
+      <ProgressBar IsIndeterminate="True" IsVisible="{Binding Ocupado}" />
+      <Border Classes="aviso-error" IsVisible="{Binding Error, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+        <TextBlock Classes="error" Text="{Binding Error}" />
+      </Border>
+      <Border Classes="aviso-ok" IsVisible="{Binding Aviso, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+        <TextBlock Classes="ok" Text="{Binding Aviso}" />
+      </Border>
+
+      <!-- Resumen del mes -->
+      <Grid ColumnDefinitions="*,12,*,12,*,12,*">
+        <Border Classes="tarjeta">
+          <StackPanel Spacing="4">
+            <TextBlock Classes="etiqueta" Text="Ingresos" />
+            <TextBlock Classes="cifra" Foreground="{StaticResource Exito}"
+                       Text="{Binding Resumen.Ingresos, Converter={StaticResource Bs}}" />
+            <TextBlock Classes="etiqueta"
+                       Text="{Binding Resumen.IngresosDesdeNegocio, Converter={StaticResource Bs}, StringFormat='{}{0} desde el negocio'}" />
+          </StackPanel>
+        </Border>
+        <Border Grid.Column="2" Classes="tarjeta">
+          <StackPanel Spacing="4">
+            <TextBlock Classes="etiqueta" Text="Gastos" />
+            <TextBlock Classes="cifra" Foreground="{StaticResource Peligro}"
+                       Text="{Binding Resumen.Gastos, Converter={StaticResource Bs}}" />
+          </StackPanel>
+        </Border>
+        <Border Grid.Column="4" Classes="tarjeta">
+          <StackPanel Spacing="4">
+            <TextBlock Classes="etiqueta" Text="Ahorro del mes" />
+            <TextBlock Classes="cifra" Text="{Binding Resumen.Ahorro, Converter={StaticResource Bs}}" />
+            <TextBlock Classes="etiqueta" Text="{Binding Resumen.TasaAhorro, StringFormat='{}{0}% de lo que entró'}" />
+          </StackPanel>
+        </Border>
+        <Border Grid.Column="6" Classes="tarjeta">
+          <StackPanel Spacing="4">
+            <TextBlock Classes="etiqueta" Text="Patrimonio (todas tus cuentas)" />
+            <TextBlock Classes="cifra" Foreground="{StaticResource Primario}"
+                       Text="{Binding Resumen.Patrimonio, Converter={StaticResource Bs}}" />
+          </StackPanel>
+        </Border>
+      </Grid>
+
+      <Grid ColumnDefinitions="*,16,380">
+        <StackPanel Spacing="16">
+
+          <!-- Movimientos -->
+          <Border Classes="tarjeta">
+            <StackPanel Spacing="8">
+              <TextBlock Classes="subtitulo" Text="Movimientos del mes" />
+              <TextBlock Classes="etiqueta" Text="Sin movimientos este mes."
+                         IsVisible="{Binding SinMovimientos}" />
+              <ItemsControl ItemsSource="{Binding Transacciones}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:FilaTransaccion">
+                    <Grid ColumnDefinitions="70,*,130" Margin="0,5">
+                      <TextBlock Classes="etiqueta" Text="{Binding Fecha, StringFormat='{}{0:dd/MM}'}" />
+                      <StackPanel Grid.Column="1">
+                        <TextBlock Text="{Binding Descripcion}" TextTrimming="CharacterEllipsis" />
+                        <TextBlock Classes="etiqueta" Text="{Binding Detalle}" />
+                      </StackPanel>
+                      <TextBlock Grid.Column="2" Text="{Binding Monto}" TextAlignment="Right" FontWeight="SemiBold"
+                                 Classes.ok="{Binding EsIngreso}" />
+                    </Grid>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </Border>
+
+          <!-- Presupuesto -->
+          <Border Classes="tarjeta">
+            <StackPanel Spacing="10">
+              <TextBlock Classes="subtitulo" Text="Presupuesto del mes" />
+              <ItemsControl ItemsSource="{Binding Presupuesto}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="api:LineaPresupuesto">
+                    <StackPanel Spacing="4" Margin="0,4">
+                      <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Text="{Binding Categoria}" />
+                        <TextBlock Grid.Column="1" Classes="etiqueta">
+                          <Run Text="{Binding Gastado, Converter={StaticResource Bs}}" />
+                          <Run Text=" de " />
+                          <Run Text="{Binding Monto, Converter={StaticResource Bs}}" />
+                        </TextBlock>
+                      </Grid>
+                      <ProgressBar Minimum="0" Maximum="100" Value="{Binding Porcentaje}" Height="8"
+                                   Classes.excedido="{Binding Excedido}" />
+                    </StackPanel>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+              <Grid ColumnDefinitions="*,8,120,8,Auto">
+                <ComboBox ItemsSource="{Binding CategoriasGasto}" SelectedItem="{Binding CategoriaPresupuesto}"
+                          HorizontalAlignment="Stretch">
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate x:DataType="api:CategoriaPersonal">
+                      <TextBlock Text="{Binding Nombre}" />
+                    </DataTemplate>
+                  </ComboBox.ItemTemplate>
+                </ComboBox>
+                <TextBox Grid.Column="2" Text="{Binding MontoPresupuesto}" Watermark="Tope Bs" />
+                <Button Grid.Column="4" Content="Guardar" Command="{Binding GuardarPresupuestoCommand}" />
+              </Grid>
+            </StackPanel>
+          </Border>
+        </StackPanel>
+
+        <StackPanel Grid.Column="2" Spacing="16">
+
+          <!-- Nuevo movimiento -->
+          <Border Classes="tarjeta">
+            <StackPanel Spacing="8">
+              <TextBlock Classes="subtitulo" Text="Registrar" />
+              <ComboBox ItemsSource="{Binding Tipos}" SelectedItem="{Binding Tipo}" HorizontalAlignment="Stretch" />
+              <TextBox Text="{Binding Monto}" Watermark="Monto Bs" />
+              <TextBlock Classes="etiqueta" Text="Cuenta" />
+              <ComboBox ItemsSource="{Binding Cuentas}" SelectedItem="{Binding CuentaOrigen}" HorizontalAlignment="Stretch">
+                <ComboBox.ItemTemplate>
+                  <DataTemplate x:DataType="api:CuentaPersonal">
+                    <TextBlock Text="{Binding Nombre}" />
+                  </DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
+              <StackPanel Spacing="4" IsVisible="{Binding EsTransferencia}">
+                <TextBlock Classes="etiqueta" Text="Hacia la cuenta" />
+                <ComboBox ItemsSource="{Binding Cuentas}" SelectedItem="{Binding CuentaDestino}" HorizontalAlignment="Stretch">
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate x:DataType="api:CuentaPersonal">
+                      <TextBlock Text="{Binding Nombre}" />
+                    </DataTemplate>
+                  </ComboBox.ItemTemplate>
+                </ComboBox>
+              </StackPanel>
+              <StackPanel Spacing="4" IsVisible="{Binding LlevaCategoria}">
+                <TextBlock Classes="etiqueta" Text="Categoría" />
+                <ComboBox ItemsSource="{Binding CategoriasDelTipo}" SelectedItem="{Binding Categoria}"
+                          HorizontalAlignment="Stretch">
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate x:DataType="api:CategoriaPersonal">
+                      <TextBlock Text="{Binding Nombre}" />
+                    </DataTemplate>
+                  </ComboBox.ItemTemplate>
+                </ComboBox>
+              </StackPanel>
+              <CalendarDatePicker SelectedDate="{Binding Fecha}" HorizontalAlignment="Stretch" />
+              <TextBox Text="{Binding Descripcion}" Watermark="Descripción (opcional)" />
+              <Button Classes="primario" Content="Registrar" HorizontalAlignment="Stretch"
+                      HorizontalContentAlignment="Center" Command="{Binding RegistrarCommand}" />
+            </StackPanel>
+          </Border>
+
+          <!-- Cuentas -->
+          <Border Classes="tarjeta">
+            <StackPanel Spacing="8">
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Classes="subtitulo" Text="Cuentas" />
+                <Button Grid.Column="1" Content="+ Cuenta" Command="{Binding AlternarNuevaCuentaCommand}" />
+              </Grid>
+              <ItemsControl ItemsSource="{Binding Cuentas}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="api:CuentaPersonal">
+                    <Grid ColumnDefinitions="*,Auto" Margin="0,4">
+                      <TextBlock Text="{Binding Nombre}" />
+                      <TextBlock Grid.Column="1" FontWeight="SemiBold"
+                                 Text="{Binding Saldo, Converter={StaticResource Bs}}" />
+                    </Grid>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+              <StackPanel Spacing="8" IsVisible="{Binding CreandoCuenta}">
+                <TextBox Text="{Binding NombreCuenta}" Watermark="Nombre, ej. Banco Unión" />
+                <ComboBox ItemsSource="{Binding TiposCuenta}" SelectedItem="{Binding TipoCuenta}" HorizontalAlignment="Stretch" />
+                <TextBox Text="{Binding SaldoInicialCuenta}" Watermark="Saldo actual Bs (opcional)" />
+                <Button Classes="primario" Content="Crear cuenta" Command="{Binding CrearCuentaCommand}" />
+              </StackPanel>
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </Grid>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

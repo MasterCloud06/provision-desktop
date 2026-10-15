@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Lógica sin interfaz: conexión con la API, modelos y utilidades. Sin paquetes externos. -->
+  <PropertyGroup>
+    <RootNamespace>Provision.Core</RootNamespace>
+  </PropertyGroup>
+</Project>

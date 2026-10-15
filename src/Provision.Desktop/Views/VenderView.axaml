@@ -1,0 +1,201 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Provision.Desktop.ViewModels"
+             xmlns:api="using:Provision.Core.Api"
+             x:Class="Provision.Desktop.Views.VenderView"
+             x:DataType="vm:VenderViewModel">
+  <Grid Margin="24" RowDefinitions="Auto,Auto,*" ColumnDefinitions="*,16,*,16,380">
+
+    <!-- Encabezado y mensajes -->
+    <Grid Grid.ColumnSpan="5" ColumnDefinitions="*,Auto" Margin="0,0,0,12">
+      <TextBlock Classes="titulo" Text="Vender" />
+      <Button Grid.Column="1" Content="Nueva venta (limpiar)" Command="{Binding LimpiarCommand}" />
+    </Grid>
+    <StackPanel Grid.Row="1" Grid.ColumnSpan="5" Spacing="6" Margin="0,0,0,12">
+      <ProgressBar IsIndeterminate="True" IsVisible="{Binding Ocupado}" />
+      <Border Classes="aviso-error" IsVisible="{Binding Error, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+        <TextBlock Classes="error" Text="{Binding Error}" />
+      </Border>
+      <Border Classes="aviso-ok" IsVisible="{Binding Aviso, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+        <TextBlock Classes="ok" Text="{Binding Aviso}" />
+      </Border>
+    </StackPanel>
+
+    <!-- 1. Productos -->
+    <Border Grid.Row="2" Grid.Column="0" Classes="tarjeta">
+      <DockPanel>
+        <StackPanel DockPanel.Dock="Top" Spacing="8" Margin="0,0,0,8">
+          <TextBlock Classes="subtitulo" Text="Productos" />
+          <TextBox Text="{Binding Busqueda}" Watermark="Nombre, código o código de barras + Enter">
+            <TextBox.KeyBindings>
+              <KeyBinding Gesture="Enter" Command="{Binding BuscarCommand}" />
+            </TextBox.KeyBindings>
+          </TextBox>
+        </StackPanel>
+        <ListBox Classes="tabla" ItemsSource="{Binding Resultados}">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="api:Producto">
+              <Grid ColumnDefinitions="*,Auto,Auto">
+                <StackPanel Spacing="2">
+                  <TextBlock Text="{Binding Nombre}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                  <TextBlock Classes="etiqueta">
+                    <Run Text="{Binding Sku}" />
+                    <Run Text=" · stock " />
+                    <Run Text="{Binding Stock}" />
+                  </TextBlock>
+                </StackPanel>
+                <TextBlock Grid.Column="1" Text="{Binding PrecioVenta, Converter={StaticResource Bs}}"
+                           VerticalAlignment="Center" Margin="8,0" />
+                <Button Grid.Column="2" Content="Agregar" VerticalAlignment="Center"
+                        Command="{Binding $parent[UserControl].((vm:VenderViewModel)DataContext).AgregarCommand}"
+                        CommandParameter="{Binding}" />
+              </Grid>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </DockPanel>
+    </Border>
+
+    <!-- 2. Carrito -->
+    <Border Grid.Row="2" Grid.Column="2" Classes="tarjeta">
+      <DockPanel>
+        <TextBlock DockPanel.Dock="Top" Classes="subtitulo" Text="Carrito" Margin="0,0,0,8" />
+
+        <StackPanel DockPanel.Dock="Bottom" Spacing="8" Margin="0,12,0,0">
+          <Grid ColumnDefinitions="*,140">
+            <TextBlock Text="Descuento (Bs)" VerticalAlignment="Center" />
+            <TextBox Grid.Column="1" Text="{Binding DescuentoTexto}" Watermark="0,00" />
+          </Grid>
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Classes="etiqueta" Text="Subtotal" />
+            <TextBlock Grid.Column="1" Text="{Binding Subtotal, Converter={StaticResource Bs}}" />
+          </Grid>
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Classes="subtitulo" Text="Total" />
+            <TextBlock Grid.Column="1" Classes="cifra" Text="{Binding Total, Converter={StaticResource Bs}}" />
+          </Grid>
+
+          <!-- Orden de laboratorio: solo si la venta lleva lentes -->
+          <Border Classes="tarjeta" Background="{StaticResource PrimarioSuave}" BorderThickness="0"
+                  IsVisible="{Binding LlevaLentes}">
+            <StackPanel Spacing="6">
+              <TextBlock FontWeight="SemiBold" Text="Orden de laboratorio" />
+              <TextBlock Classes="etiqueta" Text="Fecha prometida de entrega" />
+              <CalendarDatePicker SelectedDate="{Binding FechaPrometida}" HorizontalAlignment="Stretch" />
+              <TextBox Text="{Binding Instrucciones}" Watermark="Instrucciones para el laboratorio" AcceptsReturn="True"
+                       Height="56" TextWrapping="Wrap" />
+            </StackPanel>
+          </Border>
+        </StackPanel>
+
+        <ListBox Classes="tabla" ItemsSource="{Binding Carrito}">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="vm:LineaCarrito">
+              <Grid ColumnDefinitions="*,Auto,Auto,Auto">
+                <StackPanel VerticalAlignment="Center">
+                  <TextBlock Text="{Binding Producto.Nombre}" TextTrimming="CharacterEllipsis" />
+                  <TextBlock Classes="etiqueta" Text="{Binding Producto.PrecioVenta, Converter={StaticResource Bs}}" />
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                  <Button Content="−" Width="30" HorizontalContentAlignment="Center" Command="{Binding RestarCommand}" />
+                  <TextBlock Text="{Binding Cantidad}" Width="28" TextAlignment="Center" VerticalAlignment="Center" />
+                  <Button Content="+" Width="30" HorizontalContentAlignment="Center" Command="{Binding SumarCommand}" />
+                </StackPanel>
+                <TextBlock Grid.Column="2" Text="{Binding Total, Converter={StaticResource Bs}}" Width="100"
+                           TextAlignment="Right" VerticalAlignment="Center" FontWeight="SemiBold" />
+                <Button Grid.Column="3" Content="✕" Margin="8,0,0,0" Command="{Binding QuitarCommand}" />
+              </Grid>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </DockPanel>
+    </Border>
+
+    <!-- 3. Cliente, pagos y cobro -->
+    <ScrollViewer Grid.Row="2" Grid.Column="4">
+      <StackPanel Spacing="16">
+
+        <Border Classes="tarjeta">
+          <StackPanel Spacing="8">
+            <TextBlock Classes="subtitulo" Text="Cliente" />
+            <TextBlock Classes="etiqueta" TextWrapping="Wrap"
+                       Text="Opcional si paga todo. Obligatorio si deja saldo pendiente." />
+
+            <!-- Cliente elegido -->
+            <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding Cliente, Converter={x:Static ObjectConverters.IsNotNull}}">
+              <TextBlock Text="{Binding Cliente.Descripcion}" FontWeight="SemiBold" VerticalAlignment="Center"
+                         TextWrapping="Wrap" />
+              <Button Grid.Column="1" Content="Cambiar" Command="{Binding QuitarClienteCommand}" />
+            </Grid>
+
+            <!-- Buscar -->
+            <StackPanel Spacing="8" IsVisible="{Binding Cliente, Converter={x:Static ObjectConverters.IsNull}}">
+              <TextBox Text="{Binding BusquedaCliente}" Watermark="Nombre, CI o teléfono + Enter">
+                <TextBox.KeyBindings>
+                  <KeyBinding Gesture="Enter" Command="{Binding BuscarClienteCommand}" />
+                </TextBox.KeyBindings>
+              </TextBox>
+              <ComboBox ItemsSource="{Binding ClientesEncontrados}" SelectedItem="{Binding Cliente}"
+                        PlaceholderText="Resultados de la búsqueda" HorizontalAlignment="Stretch">
+                <ComboBox.ItemTemplate>
+                  <DataTemplate x:DataType="api:Cliente">
+                    <TextBlock Text="{Binding Descripcion}" />
+                  </DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
+              <Button Content="Registrar cliente nuevo" Command="{Binding AlternarNuevoClienteCommand}" />
+              <StackPanel Spacing="6" IsVisible="{Binding CreandoCliente}">
+                <TextBox Text="{Binding NuevoClienteNombre}" Watermark="Nombre completo" />
+                <TextBox Text="{Binding NuevoClienteCi}" Watermark="CI (opcional)" />
+                <TextBox Text="{Binding NuevoClienteTelefono}" Watermark="Teléfono (opcional)" />
+                <Button Classes="primario" Content="Guardar cliente" Command="{Binding GuardarClienteCommand}" />
+              </StackPanel>
+            </StackPanel>
+          </StackPanel>
+        </Border>
+
+        <Border Classes="tarjeta">
+          <StackPanel Spacing="8">
+            <TextBlock Classes="subtitulo" Text="Pagos" />
+            <Grid ColumnDefinitions="*,8,*">
+              <ComboBox ItemsSource="{Binding Metodos}" SelectedItem="{Binding MetodoSeleccionado}"
+                        HorizontalAlignment="Stretch" />
+              <TextBox Grid.Column="2" Text="{Binding MontoPagoTexto}" Watermark="Monto Bs" />
+            </Grid>
+            <TextBox Text="{Binding ReferenciaPago}" Watermark="Referencia (nro. de QR o voucher, opcional)" />
+            <Button Content="Agregar pago" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                    Command="{Binding AgregarPagoCommand}" />
+
+            <ItemsControl ItemsSource="{Binding Pagos}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:PagoAgregado">
+                  <Grid ColumnDefinitions="*,Auto,Auto" Margin="0,4">
+                    <TextBlock Text="{Binding Texto}" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1" Text="{Binding Monto, Converter={StaticResource Bs}}"
+                               VerticalAlignment="Center" Margin="8,0" />
+                    <Button Grid.Column="2" Content="✕" Command="{Binding QuitarCommand}" />
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Classes="etiqueta" Text="Pagado" />
+              <TextBlock Grid.Column="1" Text="{Binding Pagado, Converter={StaticResource Bs}}" />
+            </Grid>
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock FontWeight="SemiBold" Text="Saldo pendiente" />
+              <TextBlock Grid.Column="1" FontWeight="SemiBold" Text="{Binding Saldo, Converter={StaticResource Bs}}" />
+            </Grid>
+          </StackPanel>
+        </Border>
+
+        <Button Classes="primario" Content="Registrar venta" FontSize="16" Padding="16,12"
+                HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                Command="{Binding CobrarCommand}" />
+        <TextBlock Classes="etiqueta" TextWrapping="Wrap"
+                   Text="Si hay saldo pendiente, la venta queda a cuenta del cliente y se cobra después desde Ventas." />
+      </StackPanel>
+    </ScrollViewer>
+  </Grid>
+</UserControl>
