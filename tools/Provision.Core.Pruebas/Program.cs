@@ -34,7 +34,7 @@ try
 catch (ApiException ex) { Comprobar(ex.Status == 401, $"login con clave equivocada → 401 ({ex.Message})"); }
 
 var sesion = await api.LoginAsync(email, password);
-Comprobar(sesion.Usuario.Rol == Rol.Admin, $"login como {sesion.Usuario.Nombre} ({sesion.Usuario.Rol})");
+Comprobar(sesion.Usuario.Rol == Rol.Superadmin, $"login como {sesion.Usuario.Nombre} ({sesion.Usuario.Rol})");
 
 var sufijo = DateTime.Now.ToString("HHmmss");
 var marca = await api.CrearMarcaAsync("Marca prueba " + sufijo);
@@ -121,9 +121,9 @@ var dash = await api.DashboardAsync();
 Comprobar(dash.Ventas.Monto >= 75000 && dash.TopProductos.Count > 0, $"dashboard: {dash.Ventas.Ventas} ventas, {Dinero.Formatear(dash.Ventas.Monto)}");
 
 Console.WriteLine("Roles, productos, clientes y laboratorio");
-Comprobar(sesion.Usuario.Puede("usuarios.gestionar") && sesion.Usuario.NombreRol == "Administrador", "login trae nombre de rol y permisos");
+Comprobar(sesion.Usuario.Puede("auditoria.ver") && sesion.Usuario.NombreRol == "Super administrador", "login trae nombre de rol y permisos");
 var roles = await api.RolesAsync();
-Comprobar(roles.Count == 6 && roles.Any(r => r.Rol == Rol.Cajero && r.Nombre == "Cajero"), "lista de roles (enum CAJERO)");
+Comprobar(roles.Count == 7 && roles.All(r => r.Asignable) && roles.Any(r => r.Rol == Rol.Cajero && r.Nombre == "Cajero"), "lista de roles (enum CAJERO, todos asignables por el super admin)");
 var cajeroEmail = $"cajero{sufijo}@prueba.bo";
 var cajero = await api.CrearUsuarioAsync(new NuevoUsuario
 {
@@ -165,6 +165,18 @@ await api.CambiarEstadoTrabajoAsync(orden.Id, EstadoTrabajo.Entregado);
 var detalleOt = await api.OrdenTrabajoAsync(orden.Id);
 Comprobar(detalleOt.Estado == EstadoTrabajo.Entregado && detalleOt.Historial.Count == 4 && detalleOt.Items.Count == 2,
     "orden: EN_LABORATORIO → LISTO → ENTREGADO con historial");
+
+Console.WriteLine("Auditoría");
+var hoy = DateOnly.FromDateTime(DateTime.Today);
+var aud = await api.ResumenAuditoriaAsync(new FiltrosAuditoria { Desde = hoy.AddDays(-6), Hasta = hoy });
+Comprobar(aud.PorRol.Count == 7 && aud.PorRol.Any(r => r.Rol == Rol.Superadmin && r.Eventos > 0), $"resumen: {aud.Totales.Eventos} eventos, {aud.Totales.Usuarios} usuarios");
+Comprobar(aud.PorModulo.Any(m => m.Modulo == "ventas") && aud.PorDia.Count >= 1, "actividad por módulo y por día");
+var evCajero = await api.EventosAsync(new FiltrosAuditoria { Rol = Rol.Cajero });
+Comprobar(evCajero.Datos.All(e => e.Rol == Rol.Cajero), $"filtro por rol cajero ({evCajero.Total} eventos)");
+var denegados = await api.EventosAsync(new FiltrosAuditoria { Resultado = ResultadoEvento.Denegado });
+Comprobar(denegados.Datos.Any(e => e.Descripcion.Contains("reportes") || e.Resultado == ResultadoEvento.Denegado) || denegados.Total == 0, $"filtro por resultado DENEGADO ({denegados.Total})");
+var ventasEv = await api.EventosAsync(new FiltrosAuditoria { Modulo = "ventas", Buscar = venta.Numero });
+Comprobar(ventasEv.Datos.Any(e => e.Descripcion.StartsWith("Registró la venta " + venta.Numero)), "búsqueda de la venta en el registro");
 
 var cierre = await api.CerrarCajaAsync(resumen.EfectivoEsperado - 100);
 Comprobar(cierre.Sesion.Diferencia == -100, "cierre de caja con faltante de Bs 1");

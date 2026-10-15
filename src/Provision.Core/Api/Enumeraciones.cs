@@ -11,6 +11,7 @@ public static class Enumeraciones
 
     public static string Etiqueta(Rol r) => r switch
     {
+        Rol.Superadmin => "Super administrador",
         Rol.Admin => "Administrador",
         Rol.Encargado => "Encargado de sucursal",
         Rol.Cajero => "Cajero",
@@ -18,6 +19,30 @@ public static class Enumeraciones
         Rol.Optometrista => "Optometrista",
         Rol.Laboratorio => "Laboratorio",
         _ => r.ToString(),
+    };
+
+    public static string Etiqueta(ResultadoEvento r) => r switch
+    {
+        ResultadoEvento.Exito => "Éxito",
+        ResultadoEvento.Denegado => "Sin permiso",
+        ResultadoEvento.Rechazado => "Rechazado",
+        ResultadoEvento.Fallido => "Ingreso fallido",
+        ResultadoEvento.Error => "Error",
+        _ => r.ToString(),
+    };
+
+    public static string EtiquetaModulo(string modulo) => modulo switch
+    {
+        "acceso" => "Acceso",
+        "usuarios" => "Usuarios",
+        "sucursales" => "Sucursales",
+        "catalogo" => "Catálogo",
+        "inventario" => "Inventario",
+        "clientes" => "Clientes",
+        "caja" => "Caja",
+        "ventas" => "Ventas",
+        "laboratorio" => "Laboratorio",
+        _ => modulo,
     };
 
     public static string Etiqueta(TipoProducto t) => t switch

@@ -38,6 +38,7 @@ public sealed partial class ShellViewModel : ViewModelBase
         var opciones = new (string titulo, string icono, string? permiso, Func<ViewModelBase> crear)[]
         {
             ("Inicio", "◧", "reportes.ver", () => new InicioViewModel(sesion)),
+            ("Auditoría", "◉", "auditoria.ver", () => new AuditoriaViewModel(sesion)),
             ("Vender", "＋", "ventas.crear", () => new VenderViewModel(sesion)),
             ("Ventas", "≡", "ventas.ver", () => new VentasViewModel(sesion)),
             ("Caja", "▣", "caja.operar", () => new CajaViewModel(sesion)),

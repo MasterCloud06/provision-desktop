@@ -1,0 +1,247 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Provision.Desktop.ViewModels"
+             xmlns:api="using:Provision.Core.Api"
+             x:Class="Provision.Desktop.Views.AuditoriaView"
+             x:DataType="vm:AuditoriaViewModel">
+  <ScrollViewer>
+    <StackPanel Margin="24" Spacing="16">
+
+      <!-- Encabezado y filtros -->
+      <Grid ColumnDefinitions="*,Auto">
+        <StackPanel>
+          <TextBlock Classes="titulo" Text="Auditoría" />
+          <TextBlock Classes="etiqueta" FontSize="14"
+                     Text="Qué hizo cada rol y cada usuario. Solo lo ve el super administrador." />
+        </StackPanel>
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+          <ComboBox Width="170" ItemsSource="{Binding Periodos}" SelectedItem="{Binding Periodo}" />
+          <Button Content="Actualizar" Command="{Binding CargarCommand}" />
+        </StackPanel>
+      </Grid>
+
+      <ProgressBar IsIndeterminate="True" IsVisible="{Binding Ocupado}" />
+      <Border Classes="aviso-error" IsVisible="{Binding Error, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+        <TextBlock Classes="error" Text="{Binding Error}" />
+      </Border>
+
+      <!-- Indicadores -->
+      <Grid ColumnDefinitions="*,12,*,12,*,12,*">
+        <Border Classes="tarjeta">
+          <StackPanel Spacing="4">
+            <TextBlock Classes="etiqueta" Text="Eventos" />
+            <TextBlock Classes="cifra" Text="{Binding TotalEventos}" />
+            <TextBlock Classes="etiqueta" Text="{Binding TasaExito}" />
+          </StackPanel>
+        </Border>
+        <Border Grid.Column="2" Classes="tarjeta">
+          <StackPanel Spacing="4">
+            <TextBlock Classes="etiqueta" Text="Usuarios con actividad" />
+            <TextBlock Classes="cifra" Text="{Binding UsuariosActivos}" />
+          </StackPanel>
+        </Border>
+        <Border Grid.Column="4" Classes="tarjeta">
+          <StackPanel Spacing="4">
+            <TextBlock Classes="etiqueta" Text="Negados (sin permiso o ingreso fallido)" />
+            <TextBlock Classes="cifra" Foreground="{StaticResource Peligro}" Text="{Binding Negados}" />
+          </StackPanel>
+        </Border>
+        <Border Grid.Column="6" Classes="tarjeta">
+          <StackPanel Spacing="4">
+            <TextBlock Classes="etiqueta" Text="Rechazados por reglas del negocio" />
+            <TextBlock Classes="cifra" Foreground="{StaticResource Aviso}" Text="{Binding Rechazados}" />
+          </StackPanel>
+        </Border>
+      </Grid>
+
+      <Grid ColumnDefinitions="3*,16,2*">
+        <!-- Actividad por rol -->
+        <Border Classes="tarjeta">
+          <StackPanel Spacing="10">
+            <TextBlock Classes="subtitulo" Text="Actividad por rol" />
+            <TextBlock Classes="etiqueta" Text="Haz clic en un rol para ver solo sus eventos abajo." />
+            <ItemsControl ItemsSource="{Binding PorRol}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:FilaRol">
+                  <Button Command="{Binding Filtrar}" Background="Transparent" Padding="4,6"
+                          HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
+                    <Grid ColumnDefinitions="170,*,Auto">
+                      <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="{Binding Nombre}" FontWeight="SemiBold" />
+                        <TextBlock Classes="etiqueta" FontSize="11">
+                          <Run Text="{Binding Usuarios}" />
+                          <Run Text=" · " />
+                          <Run Text="{Binding Ultimo}" />
+                        </TextBlock>
+                      </StackPanel>
+                      <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                        <Border Background="{StaticResource Primario}" Height="14" CornerRadius="3" Width="{Binding Ancho}"
+                                IsVisible="{Binding !SinActividad}" />
+                        <TextBlock Text="{Binding Eventos}" FontWeight="SemiBold" VerticalAlignment="Center" />
+                      </StackPanel>
+                      <Border Grid.Column="2" Classes="chip" Background="{StaticResource PeligroSuave}"
+                              IsVisible="{Binding TieneDenegados}" VerticalAlignment="Center">
+                        <TextBlock FontSize="11" Foreground="{StaticResource Peligro}"
+                                   Text="{Binding Denegados, StringFormat='{}{0} negados'}" />
+                      </Border>
+                    </Grid>
+                  </Button>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </Border>
+
+        <StackPanel Grid.Column="2" Spacing="16">
+          <!-- Por día -->
+          <Border Classes="tarjeta">
+            <StackPanel Spacing="10">
+              <TextBlock Classes="subtitulo" Text="Actividad por día" />
+              <ItemsControl ItemsSource="{Binding PorDia}" Height="140">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate>
+                    <StackPanel Orientation="Horizontal" Spacing="6" />
+                  </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:BarraDia">
+                    <DockPanel Width="34" ToolTip.Tip="{Binding Tooltip}">
+                      <TextBlock DockPanel.Dock="Bottom" Classes="etiqueta" FontSize="10" Text="{Binding Etiqueta}"
+                                 HorizontalAlignment="Center" />
+                      <Border Background="{StaticResource Primario}" Height="{Binding Alto}" CornerRadius="3,3,0,0"
+                              VerticalAlignment="Bottom" Margin="4,0" />
+                    </DockPanel>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </Border>
+
+          <!-- Por módulo -->
+          <Border Classes="tarjeta">
+            <StackPanel Spacing="8">
+              <TextBlock Classes="subtitulo" Text="Por módulo" />
+              <ItemsControl ItemsSource="{Binding PorModulo}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:FilaBarra">
+                    <Grid ColumnDefinitions="100,*,Auto" Margin="0,3">
+                      <TextBlock Text="{Binding Titulo}" VerticalAlignment="Center" />
+                      <Border Grid.Column="1" Background="{StaticResource Primario}" Opacity="0.7" Height="10"
+                              CornerRadius="3" Width="{Binding Ancho}" HorizontalAlignment="Left" />
+                      <TextBlock Grid.Column="2" Text="{Binding Valor}" FontWeight="SemiBold" Margin="8,0,0,0" />
+                    </Grid>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </Grid>
+
+      <Grid ColumnDefinitions="*,16,*">
+        <!-- Usuarios más activos -->
+        <Border Classes="tarjeta">
+          <StackPanel Spacing="8">
+            <TextBlock Classes="subtitulo" Text="Usuarios más activos" />
+            <ItemsControl ItemsSource="{Binding PorUsuario}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:FilaBarra">
+                  <Grid ColumnDefinitions="180,*,Auto,Auto" Margin="0,3">
+                    <StackPanel>
+                      <TextBlock Text="{Binding Titulo}" TextTrimming="CharacterEllipsis" />
+                      <TextBlock Classes="etiqueta" FontSize="11" Text="{Binding Detalle}" />
+                    </StackPanel>
+                    <Border Grid.Column="1" Background="{StaticResource Primario}" Opacity="0.7" Height="10"
+                            CornerRadius="3" Width="{Binding Ancho}" HorizontalAlignment="Left" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="2" Text="{Binding Valor}" FontWeight="SemiBold" Margin="8,0" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="3" Classes="error" FontSize="11" VerticalAlignment="Center"
+                               IsVisible="{Binding TieneNegados}" Text="{Binding Negados, StringFormat='{}{0} negados'}" />
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </Border>
+
+        <!-- Alertas -->
+        <Border Grid.Column="2" Classes="tarjeta">
+          <StackPanel Spacing="8">
+            <TextBlock Classes="subtitulo" Text="Últimos intentos negados" />
+            <TextBlock Classes="ok" Text="Nadie intentó hacer algo sin permiso en este periodo." IsVisible="{Binding SinAlertas}" />
+            <ItemsControl ItemsSource="{Binding Alertas}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="api:AlertaAuditoria">
+                  <StackPanel Margin="0,4">
+                    <TextBlock>
+                      <Run Text="{Binding CreadoLocal, StringFormat='{}{0:dd/MM HH:mm}'}" Foreground="{StaticResource TextoSuave}" />
+                      <Run Text="  " />
+                      <Run Text="{Binding Usuario, TargetNullValue='Desconocido'}" FontWeight="SemiBold" />
+                      <Run Text="  " />
+                      <Run Text="{Binding NombreRol}" Foreground="{StaticResource TextoSuave}" />
+                    </TextBlock>
+                    <TextBlock Classes="error" Text="{Binding Descripcion}" TextWrapping="Wrap" />
+                  </StackPanel>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </Border>
+      </Grid>
+
+      <!-- Registro de eventos -->
+      <Border Classes="tarjeta">
+        <StackPanel Spacing="10">
+          <Grid ColumnDefinitions="*,Auto">
+            <StackPanel>
+              <TextBlock Classes="subtitulo" Text="Registro de eventos" />
+              <TextBlock Classes="etiqueta" Text="{Binding ResumenEventos}" />
+            </StackPanel>
+            <Button Grid.Column="1" Content="Limpiar filtros" Command="{Binding LimpiarFiltrosCommand}" />
+          </Grid>
+          <Grid ColumnDefinitions="200,8,200,8,190,8,*,8,Auto">
+            <ComboBox ItemsSource="{Binding RolesFiltro}" SelectedItem="{Binding FiltroRol}" HorizontalAlignment="Stretch" />
+            <ComboBox Grid.Column="2" ItemsSource="{Binding Resultados}" SelectedItem="{Binding FiltroResultado}"
+                      HorizontalAlignment="Stretch" />
+            <ComboBox Grid.Column="4" ItemsSource="{Binding Modulos}" SelectedItem="{Binding FiltroModulo}"
+                      HorizontalAlignment="Stretch" />
+            <TextBox Grid.Column="6" Text="{Binding Busqueda}" Watermark="Buscar en descripción o usuario + Enter">
+              <TextBox.KeyBindings>
+                <KeyBinding Gesture="Enter" Command="{Binding CargarCommand}" />
+              </TextBox.KeyBindings>
+            </TextBox>
+            <Button Grid.Column="8" Content="Buscar" Command="{Binding CargarCommand}" />
+          </Grid>
+
+          <Grid ColumnDefinitions="120,150,150,100,*,120" Margin="8,4,8,0">
+            <TextBlock Classes="etiqueta" Text="Fecha y hora" />
+            <TextBlock Grid.Column="1" Classes="etiqueta" Text="Usuario" />
+            <TextBlock Grid.Column="2" Classes="etiqueta" Text="Rol" />
+            <TextBlock Grid.Column="3" Classes="etiqueta" Text="Módulo" />
+            <TextBlock Grid.Column="4" Classes="etiqueta" Text="Qué pasó" />
+            <TextBlock Grid.Column="5" Classes="etiqueta" Text="Resultado" />
+          </Grid>
+          <ItemsControl ItemsSource="{Binding Eventos}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:FilaEvento">
+                <Border BorderBrush="{StaticResource Borde}" BorderThickness="0,0,0,1" Padding="8,6">
+                  <Grid ColumnDefinitions="120,150,150,100,*,120">
+                    <TextBlock Classes="etiqueta" Text="{Binding Hora}" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1" Text="{Binding Usuario}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="2" Text="{Binding Rol}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="3" Text="{Binding Modulo}" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="4" Text="{Binding Descripcion}" TextWrapping="Wrap" VerticalAlignment="Center" />
+                    <Border Grid.Column="5" Classes="chip" HorizontalAlignment="Left" VerticalAlignment="Center"
+                            Classes.exito="{Binding EsExito}" Classes.negado="{Binding EsNegado}"
+                            Classes.rechazado="{Binding EsRechazado}">
+                      <TextBlock Text="{Binding Resultado}" FontSize="11" FontWeight="SemiBold" />
+                    </Border>
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </Border>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

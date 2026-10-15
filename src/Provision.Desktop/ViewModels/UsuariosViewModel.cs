@@ -19,6 +19,8 @@ public sealed partial class UsuariosViewModel(Sesion sesion) : ViewModelBase, IS
     /// <summary>Descripción legible de cada permiso, para explicar qué hace cada rol.</summary>
     private static readonly Dictionary<string, string> Descripciones = new()
     {
+        ["auditoria.ver"] = "Ver la auditoría de todos los roles",
+        ["usuarios.administradores"] = "Gestionar administradores",
         ["usuarios.gestionar"] = "Gestionar usuarios",
         ["sucursales.gestionar"] = "Gestionar sucursales",
         ["sucursales.todas"] = "Operar en todas las sucursales",
@@ -53,7 +55,8 @@ public sealed partial class UsuariosViewModel(Sesion sesion) : ViewModelBase, IS
     [RelayCommand]
     private Task CargarAsync() => IntentarAsync(async () =>
     {
-        if (Roles.Count == 0) Roles = await sesion.Api.RolesAsync();
+        // Solo los roles que este usuario puede asignar (un administrador no asigna administradores).
+        if (Roles.Count == 0) Roles = (await sesion.Api.RolesAsync()).Where(r => r.Asignable).ToList();
         Sucursales = await sesion.Api.SucursalesAsync();
         var nombres = Sucursales.ToDictionary(s => s.Id, s => s.Nombre);
         var seleccionadoId = Seleccionado?.Usuario.Id;
@@ -77,6 +80,13 @@ public sealed partial class UsuariosViewModel(Sesion sesion) : ViewModelBase, IS
     public bool HaySeleccion => Seleccionado is not null;
     public bool EsUnoMismo => Seleccionado?.Usuario.Id == sesion.Usuario.Id;
 
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(Editable))]
+    private bool _protegido;
+
+    /// <summary>Se puede editar si no es una cuenta protegida para este usuario.</summary>
+    public bool Editable => !Protegido;
+
     [ObservableProperty] private string _editNombre = "";
 
     [ObservableProperty]
@@ -94,6 +104,8 @@ public sealed partial class UsuariosViewModel(Sesion sesion) : ViewModelBase, IS
         if (value is null) return;
         EditNombre = value.Usuario.Nombre;
         EditRol = Roles.FirstOrDefault(r => r.Rol == value.Usuario.Rol);
+        // Cuentas que este usuario no puede modificar (p. ej. un administrador frente a un super administrador).
+        Protegido = EditRol is null;
         EditSucursal = Sucursales.FirstOrDefault(s => s.Id == value.Usuario.SucursalId);
         EditActivo = value.Usuario.Activo;
         EditPassword = "";

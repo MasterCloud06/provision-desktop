@@ -43,22 +43,24 @@ Si tu backend local usa otro puerto, edita `UrlLocal` en `%APPDATA%\Provision\pr
 
 Cada usuario ve solo las pantallas que su rol permite. Los permisos los define el backend (`src/lib/permisos.ts` en `provision-backend`) y los vuelve a validar en cada operación, así que ocultar un botón aquí es comodidad, no seguridad.
 
-| Pantalla | Administrador | Encargado | Cajero | Ejecutivo de ventas | Optometrista | Laboratorio |
-|---|:-:|:-:|:-:|:-:|:-:|:-:|
-| Inicio (indicadores) | ✓ | ✓ | | | | |
-| Vender | ✓ | ✓ | ✓ cobra | ✓ sin cobrar | | |
-| Ventas | ✓ | ✓ | ✓ cobra saldos | ✓ consulta | ✓ consulta | |
-| Caja | ✓ | ✓ | ✓ | | | |
-| Laboratorio | ✓ | ✓ | ✓ entrega | ✓ entrega | ✓ consulta | ✓ arma |
-| Clientes y recetas | ✓ | ✓ | ✓ | ✓ | ✓ recetas | ✓ consulta |
-| Inventario | ✓ CRUD | ✓ CRUD | consulta | consulta | consulta | consulta |
-| Usuarios | ✓ | | | | | |
-| Mis finanzas | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Pantalla | Super admin | Administrador | Encargado | Cajero | Ejecutivo de ventas | Optometrista | Laboratorio |
+|---|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
+| Inicio (indicadores) | ✓ | ✓ | ✓ | | | | |
+| **Auditoría** | ✓ | | | | | | |
+| Vender | ✓ | ✓ | ✓ | ✓ cobra | ✓ sin cobrar | | |
+| Ventas | ✓ | ✓ | ✓ | ✓ cobra saldos | ✓ consulta | ✓ consulta | |
+| Caja | ✓ | ✓ | ✓ | ✓ | | | |
+| Laboratorio | ✓ | ✓ | ✓ | ✓ entrega | ✓ entrega | ✓ consulta | ✓ arma |
+| Clientes y recetas | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ recetas | ✓ consulta |
+| Inventario | ✓ CRUD | ✓ CRUD | ✓ CRUD | consulta | consulta | consulta | consulta |
+| Usuarios | ✓ todos | ✓ sin administradores | | | | | |
+| Mis finanzas | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 
-El retiro del dueño en Caja solo lo ve el administrador.
+El retiro del dueño en Caja lo ven el super administrador y el administrador. El primer usuario del sistema es el super administrador.
 
 ## Pantallas
 
+- **Auditoría** (solo super administrador): eventos, usuarios con actividad, intentos negados y rechazados; actividad por rol (clic para filtrar), por día, por módulo y por usuario; últimos intentos negados; y el registro completo filtrable por rol, resultado, módulo y texto. Las finanzas personales no se registran.
 - **Inicio**: ventas del día y del mes, margen bruto, cuentas por cobrar, productos bajo stock, más vendidos y estado del laboratorio.
 - **Vender**: buscar productos, carrito con cantidades y descuento, cliente (buscar o registrar al vuelo), pagos mixtos con cálculo del cambio, anticipo con saldo y orden de laboratorio si lleva lentes. Quien no opera caja (ejecutivo de ventas) registra la venta sin cobrar y el cliente pasa a caja.
 - **Ventas**: historial por día, semana o mes, saldos pendientes y cobro de abonos (caja).

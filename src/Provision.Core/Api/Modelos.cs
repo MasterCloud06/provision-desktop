@@ -6,7 +6,7 @@ namespace Provision.Core.Api;
 /* ─────────────────────────── Enumeraciones ─────────────────────────── */
 
 /// <summary>Vendedor = ejecutivo de ventas. Los permisos de cada rol los define el backend.</summary>
-public enum Rol { Admin, Encargado, Cajero, Vendedor, Optometrista, Laboratorio }
+public enum Rol { Superadmin, Admin, Encargado, Cajero, Vendedor, Optometrista, Laboratorio }
 
 public enum TipoProducto { Montura, LenteOftalmico, LenteContacto, GafasSol, Accesorio, Liquido, Servicio }
 
@@ -59,6 +59,8 @@ public sealed record RolInfo
     public Rol Rol { get; init; }
     public string Nombre { get; init; } = "";
     public List<string> Permisos { get; init; } = [];
+    /// <summary>Si el usuario que consultó puede asignar este rol (los administradores solo los asigna el super administrador).</summary>
+    public bool Asignable { get; init; } = true;
 
     public override string ToString() => Nombre;
 }
@@ -469,6 +471,119 @@ public sealed record OrdenTrabajoDetalle
     public Receta? Receta { get; init; }
     public List<ItemVenta> Items { get; init; } = [];
     public List<HistorialTrabajo> Historial { get; init; } = [];
+}
+
+/* ─────────────────────────── Auditoría ─────────────────────────── */
+
+public enum ResultadoEvento { Exito, Denegado, Rechazado, Fallido, Error }
+
+public sealed record FiltrosAuditoria
+{
+    public DateOnly? Desde { get; init; }
+    public DateOnly? Hasta { get; init; }
+    public Rol? Rol { get; init; }
+    public Guid? UsuarioId { get; init; }
+    public string? Modulo { get; init; }
+    public ResultadoEvento? Resultado { get; init; }
+    public string? Buscar { get; init; }
+}
+
+public sealed record TotalesAuditoria
+{
+    public long Eventos { get; init; }
+    public long Exitos { get; init; }
+    public long Denegados { get; init; }
+    public long Rechazados { get; init; }
+    public long Fallidos { get; init; }
+    public long Errores { get; init; }
+    public long Usuarios { get; init; }
+}
+
+public sealed record ActividadRol
+{
+    public Rol Rol { get; init; }
+    public string Nombre { get; init; } = "";
+    public long Eventos { get; init; }
+    public long Denegados { get; init; }
+    public long Usuarios { get; init; }
+    public DateTimeOffset? Ultimo { get; init; }
+}
+
+public sealed record ActividadUsuario
+{
+    public Guid? UsuarioId { get; init; }
+    public string? Usuario { get; init; }
+    public Rol? Rol { get; init; }
+    public string? NombreRol { get; init; }
+    public long Eventos { get; init; }
+    public long Denegados { get; init; }
+    public DateTimeOffset? Ultimo { get; init; }
+}
+
+public sealed record ActividadModulo
+{
+    public string Modulo { get; init; } = "";
+    public long Eventos { get; init; }
+    public long Denegados { get; init; }
+}
+
+public sealed record ActividadDia
+{
+    public string Dia { get; init; } = "";
+    public long Eventos { get; init; }
+    public long Denegados { get; init; }
+}
+
+public sealed record PeriodoAuditoria
+{
+    public string Desde { get; init; } = "";
+    public string Hasta { get; init; } = "";
+}
+
+public sealed record AlertaAuditoria
+{
+    public Guid Id { get; init; }
+    public DateTimeOffset CreadoEn { get; init; }
+    public string? Usuario { get; init; }
+    public string? NombreRol { get; init; }
+    public string Descripcion { get; init; } = "";
+    public ResultadoEvento Resultado { get; init; }
+    public DateTime CreadoLocal => CreadoEn.LocalDateTime;
+}
+
+public sealed record ResumenAuditoria
+{
+    public PeriodoAuditoria Periodo { get; init; } = new();
+    public TotalesAuditoria Totales { get; init; } = new();
+    public List<ActividadRol> PorRol { get; init; } = [];
+    public long SinSesion { get; init; }
+    public List<ActividadUsuario> PorUsuario { get; init; } = [];
+    public List<ActividadModulo> PorModulo { get; init; } = [];
+    public List<ActividadDia> PorDia { get; init; } = [];
+    public List<AlertaAuditoria> Alertas { get; init; } = [];
+}
+
+public sealed record EventoAuditoria
+{
+    public Guid Id { get; init; }
+    public DateTimeOffset CreadoEn { get; init; }
+    public Guid? UsuarioId { get; init; }
+    public string? Usuario { get; init; }
+    public Rol? Rol { get; init; }
+    public string? NombreRol { get; init; }
+    public string? Sucursal { get; init; }
+    public string Modulo { get; init; } = "";
+    public string Accion { get; init; } = "";
+    public string Descripcion { get; init; } = "";
+    public ResultadoEvento Resultado { get; init; }
+    public string? Ip { get; init; }
+    public DateTime CreadoLocal => CreadoEn.LocalDateTime;
+}
+
+public sealed record ListaEventos
+{
+    public List<EventoAuditoria> Datos { get; init; } = [];
+    public int Total { get; init; }
 }
 
 /* ─────────────────────────── Reportes ─────────────────────────── */

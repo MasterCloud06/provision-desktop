@@ -132,6 +132,23 @@
       <Setter Property="Background" Value="{StaticResource Primario}" />
     </Style>
 
+    <!-- Resultado de un evento de auditoría -->
+    <Style Selector="Border.chip.exito">
+      <Setter Property="Background" Value="{StaticResource ExitoSuave}" />
+    </Style>
+    <Style Selector="Border.chip.exito TextBlock">
+      <Setter Property="Foreground" Value="{StaticResource Exito}" />
+    </Style>
+    <Style Selector="Border.chip.negado">
+      <Setter Property="Background" Value="{StaticResource PeligroSuave}" />
+    </Style>
+    <Style Selector="Border.chip.negado TextBlock">
+      <Setter Property="Foreground" Value="{StaticResource Peligro}" />
+    </Style>
+    <Style Selector="Border.chip.rechazado TextBlock">
+      <Setter Property="Foreground" Value="{StaticResource Aviso}" />
+    </Style>
+
     <Style Selector="ProgressBar.excedido">
       <Setter Property="Foreground" Value="{StaticResource Peligro}" />
     </Style>

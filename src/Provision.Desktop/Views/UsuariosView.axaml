@@ -87,6 +87,11 @@
                        Text="Selecciona un usuario para cambiar su rol, sucursal o contraseña, o para desactivarlo." />
             <StackPanel Spacing="8" IsVisible="{Binding HaySeleccion}">
               <TextBlock Classes="subtitulo" Text="{Binding Seleccionado.Email}" TextWrapping="Wrap" />
+              <Border Classes="aviso-error" IsVisible="{Binding Protegido}">
+                <TextBlock Classes="error" TextWrapping="Wrap"
+                           Text="Es una cuenta de administrador: solo el super administrador puede modificarla." />
+              </Border>
+              <StackPanel Spacing="8" IsVisible="{Binding Editable}">
               <TextBox Text="{Binding EditNombre}" Watermark="Nombre" />
               <TextBlock Classes="etiqueta" Text="Rol" />
               <ComboBox ItemsSource="{Binding Roles}" SelectedItem="{Binding EditRol}" HorizontalAlignment="Stretch"
@@ -106,6 +111,7 @@
                          Text="No puedes cambiar tu propio rol ni desactivarte." />
               <Button Classes="primario" Content="Guardar cambios" HorizontalAlignment="Stretch"
                       HorizontalContentAlignment="Center" Command="{Binding GuardarCambiosCommand}" />
+              </StackPanel>
             </StackPanel>
           </StackPanel>
         </Border>

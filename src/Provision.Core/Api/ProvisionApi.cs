@@ -143,6 +143,23 @@ public sealed class ProvisionApi(ApiClient http)
     public Task RegistrarPagosAsync(Guid ventaId, IEnumerable<Pago> pagos, CancellationToken ct = default) =>
         Http.PostAsync<object>($"ventas/{ventaId}/pagos", new { pagos }, ct);
 
+    /* Auditoría (super administrador) */
+
+    private static string QAuditoria(FiltrosAuditoria f, params (string, object?)[] extra) => Q(
+        new (string, object?)[]
+        {
+            ("desde", f.Desde?.ToString("yyyy-MM-dd")), ("hasta", f.Hasta?.ToString("yyyy-MM-dd")),
+            ("rol", f.Rol is null ? null : Enumeraciones.ApiValor(f.Rol.Value)), ("usuarioId", f.UsuarioId),
+            ("modulo", f.Modulo), ("resultado", f.Resultado is null ? null : Enumeraciones.ApiValor(f.Resultado.Value)),
+            ("q", f.Buscar),
+        }.Concat(extra).ToArray());
+
+    public Task<ResumenAuditoria> ResumenAuditoriaAsync(FiltrosAuditoria f, CancellationToken ct = default) =>
+        Http.GetAsync<ResumenAuditoria>("auditoria/resumen" + QAuditoria(f), ct);
+
+    public Task<ListaEventos> EventosAsync(FiltrosAuditoria f, int pagina = 1, int porPagina = 100, CancellationToken ct = default) =>
+        Http.GetAsync<ListaEventos>("auditoria/eventos" + QAuditoria(f, ("pagina", pagina), ("porPagina", porPagina)), ct);
+
     /* Reportes */
 
     public Task<Dashboard> DashboardAsync(CancellationToken ct = default) =>
