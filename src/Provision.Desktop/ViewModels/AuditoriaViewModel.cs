@@ -186,7 +186,7 @@ public sealed partial class AuditoriaViewModel : ViewModelBase, ISeccion
         PorDia = r.PorDia
             .Select(d => new BarraDia(
                 DateOnly.TryParse(d.Dia, out var dia) ? dia.ToString("dd/MM") : d.Dia,
-                d.Eventos, d.Negados, Math.Max(3, 110.0 * d.Eventos / maxDia)))
+                d.Eventos, d.Denegados, Math.Max(3, 110.0 * d.Eventos / maxDia)))
             .ToList();
 
         Alertas = r.Alertas;
