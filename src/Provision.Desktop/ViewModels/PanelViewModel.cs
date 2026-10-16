@@ -47,6 +47,7 @@ public sealed partial class PanelViewModel(Sesion sesion, Func<string, Task> irA
         ["inventario"] = "Ir a Inventario",
         ["usuarios"] = "Ir a Usuarios",
         ["pedidos"] = "Ir a Pedidos web",
+        ["agenda"] = "Ir a la Agenda",
     };
 
     public string Saludo

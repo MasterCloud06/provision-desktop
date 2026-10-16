@@ -254,5 +254,27 @@ Console.WriteLine("Pedidos web");
     await api.CerrarCajaAsync(cajaWeb.EfectivoEsperado);
 }
 
+Console.WriteLine("Agenda");
+{
+    var cfg = await api.ConfigCitasAsync();
+    Comprobar(cfg.Motivos.ContainsKey("EXAMEN_VISTA") && cfg.Duracion > 0, $"configuración: turnos de {cfg.Duracion} min, {cfg.Motivos.Count} motivos");
+    // El primer día con turnos libres de las próximas dos semanas
+    var dia = DateOnly.FromDateTime(DateTime.Today);
+    DiaAgenda? libre = null;
+    for (var i = 0; i < 14 && libre is null; i++)
+        libre = (await api.DisponibilidadCitasAsync(dia.AddDays(i), 1)).FirstOrDefault(d => d.Turnos.Any(t => t.Libre));
+    Comprobar(libre is not null, $"turnos libres el {libre?.Fecha}");
+    var hora = libre!.Turnos.First(t => t.Libre).Hora;
+    var cita = await api.CrearCitaAsync(new NuevaCita { Fecha = libre.Fecha, Hora = hora, NombreContacto = "Paciente " + sufijo, Telefono = "70012345" });
+    Comprobar(cita.Estado == EstadoCita.Confirmada, $"cita agendada {libre.Fecha} {hora} (confirmada)");
+    var fecha = DateOnly.ParseExact(libre.Fecha, "yyyy-MM-dd");
+    var delDia = await api.CitasAsync(fecha, fecha);
+    var mia = delDia.Single(c => c.Id == cita.Id);
+    Comprobar(mia.Siguientes.Contains(EstadoCita.Atendida) && !mia.DesdeTienda, "en la agenda del día, con sus pasos");
+    await api.CambiarEstadoCitaAsync(cita.Id, EstadoCita.NoAsistio);
+    var luego = (await api.CitasAsync(fecha, fecha)).Single(c => c.Id == cita.Id);
+    Comprobar(luego.Estado == EstadoCita.NoAsistio && luego.Siguientes.Count == 0, "marcada como no asistió (enum NO_ASISTIO)");
+}
+
 Console.WriteLine(fallos == 0 ? "\nTodo bien." : $"\n{fallos} comprobaciones fallaron.");
 return fallos == 0 ? 0 : 1;

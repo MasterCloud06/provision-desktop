@@ -28,6 +28,9 @@ public enum MetodoPagoWeb { Stripe, EnTienda }
 
 public enum EntregaPedidoWeb { Retiro, Envio }
 
+/// <summary>Pendiente = reservada (desde la tienda), falta confirmar.</summary>
+public enum EstadoCita { Pendiente, Confirmada, Atendida, NoAsistio, Cancelada }
+
 public enum ConceptoCaja { CobroVenta, Devolucion, Gasto, RetiroDueno, Deposito, Otro }
 
 public enum TipoCuentaPersonal { Efectivo, Banco, BilleteraDigital, TarjetaCredito, Ahorro }
@@ -883,4 +886,57 @@ public sealed record CambioEstadoPedidoWeb
     public EstadoPedidoWeb Estado { get; init; }
     public string? Nota { get; init; }
     public List<Pago>? Pagos { get; init; }
+}
+
+/* ─────────────────────────── Agenda de citas ─────────────────────────── */
+
+public sealed record CitaAgenda
+{
+    public Guid Id { get; init; }
+    /// <summary>YYYY-MM-DD</summary>
+    public string Fecha { get; init; } = "";
+    /// <summary>HH:MM</summary>
+    public string Hora { get; init; } = "";
+    public int Duracion { get; init; }
+    public string Motivo { get; init; } = "";
+    public string MotivoTexto { get; init; } = "";
+    public EstadoCita Estado { get; init; }
+    public string NombreContacto { get; init; } = "";
+    public string Telefono { get; init; } = "";
+    public string? Notas { get; init; }
+    public string? NotasInternas { get; init; }
+    public string? CanceladaMotivo { get; init; }
+    public bool DesdeTienda { get; init; }
+    public string? AtendidaPor { get; init; }
+    public List<EstadoCita> Siguientes { get; init; } = [];
+    public string EstadoTexto => Enumeraciones.Etiqueta(Estado);
+    public string Origen => DesdeTienda ? "Tienda web" : "Óptica";
+}
+
+public sealed record TurnoAgenda
+{
+    public string Hora { get; init; } = "";
+    public bool Libre { get; init; }
+}
+
+public sealed record DiaAgenda
+{
+    public string Fecha { get; init; } = "";
+    public List<TurnoAgenda> Turnos { get; init; } = [];
+}
+
+public sealed record ConfigCitas
+{
+    public Dictionary<string, string> Motivos { get; init; } = [];
+    public int Duracion { get; init; }
+}
+
+public sealed record NuevaCita
+{
+    public string Fecha { get; init; } = "";
+    public string Hora { get; init; } = "";
+    public string Motivo { get; init; } = "EXAMEN_VISTA";
+    public string NombreContacto { get; init; } = "";
+    public string Telefono { get; init; } = "";
+    public string? Notas { get; init; }
 }

@@ -57,6 +57,16 @@ public static class Enumeraciones
         _ => t.ToString(),
     };
 
+    public static string Etiqueta(EstadoCita e) => e switch
+    {
+        EstadoCita.Pendiente => "Por confirmar",
+        EstadoCita.Confirmada => "Confirmada",
+        EstadoCita.Atendida => "Atendida",
+        EstadoCita.NoAsistio => "No asistió",
+        EstadoCita.Cancelada => "Cancelada",
+        _ => e.ToString(),
+    };
+
     public static string Etiqueta(EstadoPedidoWeb e) => e switch
     {
         EstadoPedidoWeb.PendientePago => "Esperando pago",

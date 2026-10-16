@@ -91,6 +91,24 @@ public sealed class ProvisionApi(ApiClient http)
             ? url.Replace("/upload/", $"/upload/c_limit,w_{ancho},f_jpg,q_auto/")
             : url;
 
+    /* Agenda de citas */
+
+    private static string Dia(DateOnly d) => d.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
+
+    public Task<List<CitaAgenda>> CitasAsync(DateOnly desde, DateOnly hasta, CancellationToken ct = default) =>
+        Http.GetAsync<List<CitaAgenda>>("citas" + Q(("desde", Dia(desde)), ("hasta", Dia(hasta))), ct);
+
+    public Task<ConfigCitas> ConfigCitasAsync(CancellationToken ct = default) => Http.GetAsync<ConfigCitas>("citas/config", ct);
+
+    public Task<List<DiaAgenda>> DisponibilidadCitasAsync(DateOnly desde, int dias = 1, CancellationToken ct = default) =>
+        Http.GetAsync<List<DiaAgenda>>("citas/disponibilidad" + Q(("desde", Dia(desde)), ("dias", dias)), ct);
+
+    /// <summary>Cita tomada por el personal (teléfono o mostrador): queda confirmada.</summary>
+    public Task<CitaAgenda> CrearCitaAsync(NuevaCita c, CancellationToken ct = default) => Http.PostAsync<CitaAgenda>("citas", c, ct);
+
+    public Task<CitaAgenda> CambiarEstadoCitaAsync(Guid id, EstadoCita estado, string? nota = null, CancellationToken ct = default) =>
+        Http.PostAsync<CitaAgenda>($"citas/{id}/estado", new { estado = Enumeraciones.ApiValor(estado), nota }, ct);
+
     /* Pedidos de la tienda web */
 
     /// <summary>estado: un valor de la API (PAGADO, LISTO…) o POR_ATENDER; null = todos.</summary>

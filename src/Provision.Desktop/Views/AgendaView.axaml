@@ -1,0 +1,98 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Provision.Desktop.ViewModels"
+             x:Class="Provision.Desktop.Views.AgendaView"
+             x:DataType="vm:AgendaViewModel">
+  <Grid Margin="24" RowDefinitions="Auto,Auto,*" ColumnDefinitions="*,16,340">
+
+    <Grid Grid.ColumnSpan="3" ColumnDefinitions="*,Auto,Auto,Auto,Auto,Auto" Margin="0,0,0,12">
+      <StackPanel>
+        <TextBlock Classes="titulo" Text="Agenda" />
+        <TextBlock Classes="etiqueta" Text="{Binding Resumen}" FontSize="14" />
+      </StackPanel>
+      <Button Grid.Column="1" Content="◀" Command="{Binding DiaAnteriorCommand}" VerticalAlignment="Center" ToolTip.Tip="Día anterior" />
+      <TextBlock Grid.Column="2" Text="{Binding TituloDia}" FontWeight="SemiBold" FontSize="16" MinWidth="260"
+                 TextAlignment="Center" VerticalAlignment="Center" Margin="8,0" />
+      <Button Grid.Column="3" Content="▶" Command="{Binding DiaSiguienteCommand}" VerticalAlignment="Center" ToolTip.Tip="Día siguiente" />
+      <Button Grid.Column="4" Content="Hoy" Command="{Binding IrAHoyCommand}" IsVisible="{Binding !EsHoy}" VerticalAlignment="Center" Margin="8,0,0,0" />
+      <Button Grid.Column="5" Classes="primario" Content="+ Nueva cita" Command="{Binding NuevaCommand}" VerticalAlignment="Center" Margin="8,0,0,0" />
+    </Grid>
+
+    <StackPanel Grid.Row="1" Grid.ColumnSpan="3" Spacing="6" Margin="0,0,0,12">
+      <ProgressBar IsIndeterminate="True" IsVisible="{Binding Ocupado}" />
+      <Border Classes="aviso-error" IsVisible="{Binding Error, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+        <TextBlock Classes="error" Text="{Binding Error}" TextWrapping="Wrap" />
+      </Border>
+      <Border Classes="aviso-ok" IsVisible="{Binding Aviso, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+        <TextBlock Classes="ok" Text="{Binding Aviso}" TextWrapping="Wrap" />
+      </Border>
+    </StackPanel>
+
+    <!-- Citas del día -->
+    <ScrollViewer Grid.Row="2">
+      <StackPanel Spacing="8">
+        <Border Classes="tarjeta" IsVisible="{Binding SinCitas}">
+          <TextBlock Classes="etiqueta" TextWrapping="Wrap"
+                     Text="No hay citas este día. Los clientes reservan desde la tienda web; también puedes agendar una con “+ Nueva cita”." />
+        </Border>
+        <ItemsControl ItemsSource="{Binding Citas}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:FilaCita">
+              <Border Classes="tarjeta" Margin="0,0,0,8">
+                <Grid ColumnDefinitions="80,*,Auto">
+                  <StackPanel>
+                    <TextBlock Text="{Binding Cita.Hora}" FontSize="20" FontWeight="SemiBold" />
+                    <TextBlock Classes="etiqueta" Text="{Binding Cita.Duracion, StringFormat='{}{0} min'}" />
+                  </StackPanel>
+                  <StackPanel Grid.Column="1" Spacing="2">
+                    <TextBlock Text="{Binding Cita.NombreContacto}" FontWeight="SemiBold" FontSize="15" />
+                    <TextBlock Text="{Binding Cita.MotivoTexto}" />
+                    <TextBlock Classes="etiqueta">
+                      <Run Text="{Binding Cita.Telefono}" />
+                      <Run Text=" · " />
+                      <Run Text="{Binding Cita.Origen}" />
+                    </TextBlock>
+                    <TextBlock Text="{Binding Cita.Notas, StringFormat='Nota: {0}'}" TextWrapping="Wrap"
+                               IsVisible="{Binding Cita.Notas, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                    <TextBlock Classes="etiqueta" Text="{Binding Cita.AtendidaPor, StringFormat='Atendió: {0}'}"
+                               IsVisible="{Binding Cita.AtendidaPor, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                    <WrapPanel Margin="0,6,0,0" IsVisible="{Binding Activa}">
+                      <Button Content="Confirmar" Command="{Binding ConfirmarCommand}" IsVisible="{Binding PuedeConfirmar}" Margin="0,0,6,6" />
+                      <Button Content="WhatsApp" Command="{Binding WhatsAppCommand}" Margin="0,0,6,6" />
+                      <Button Classes="primario" Content="Atendida" Command="{Binding AtendidaCommand}" IsVisible="{Binding PuedeAtender}" Margin="0,0,6,6" />
+                      <Button Content="No asistió" Command="{Binding NoAsistioCommand}" Margin="0,0,6,6" />
+                      <Button Classes="peligro" Content="Cancelar" Command="{Binding CancelarCommand}" IsVisible="{Binding PuedeCancelar}" Margin="0,0,6,6" />
+                    </WrapPanel>
+                  </StackPanel>
+                  <TextBlock Grid.Column="2" Text="{Binding Cita.EstadoTexto}" FontWeight="SemiBold" VerticalAlignment="Top" />
+                </Grid>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
+    </ScrollViewer>
+
+    <!-- Nueva cita -->
+    <ScrollViewer Grid.Row="2" Grid.Column="2" IsVisible="{Binding MostrandoNueva}">
+      <Border Classes="tarjeta" VerticalAlignment="Top">
+        <StackPanel Spacing="8">
+          <TextBlock Classes="subtitulo" Text="Nueva cita" />
+          <TextBlock Classes="etiqueta" TextWrapping="Wrap" Text="Para quien llama o viene a la óptica. Queda confirmada." />
+          <TextBlock Classes="etiqueta" Text="Día" />
+          <CalendarDatePicker SelectedDate="{Binding NuevaFecha}" HorizontalAlignment="Stretch" />
+          <TextBlock Classes="etiqueta" Text="{Binding TextoTurnos}" />
+          <ComboBox ItemsSource="{Binding TurnosLibres}" SelectedItem="{Binding NuevaHora}" PlaceholderText="Hora" HorizontalAlignment="Stretch" />
+          <ComboBox ItemsSource="{Binding Motivos}" SelectedItem="{Binding NuevoMotivo}" HorizontalAlignment="Stretch" />
+          <TextBox Text="{Binding NuevoNombre}" Watermark="Nombre del paciente" />
+          <TextBox Text="{Binding NuevoTelefono}" Watermark="Teléfono o WhatsApp" />
+          <TextBox Text="{Binding NuevasNotas}" Watermark="Notas (opcional)" AcceptsReturn="True" TextWrapping="Wrap" />
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <Button Classes="primario" Content="Agendar" Command="{Binding GuardarNuevaCommand}" />
+            <Button Content="Cancelar" Command="{Binding CancelarNuevaCommand}" />
+          </StackPanel>
+        </StackPanel>
+      </Border>
+    </ScrollViewer>
+  </Grid>
+</UserControl>
