@@ -54,6 +54,7 @@ Cada usuario ve solo las pantallas que su rol permite. Los permisos los define e
 | Laboratorio | ✓ | ✓ | ✓ | ✓ entrega | ✓ entrega | ✓ consulta | ✓ arma |
 | Clientes y recetas | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ recetas | ✓ consulta |
 | Inventario | ✓ CRUD | ✓ CRUD | ✓ CRUD | consulta | consulta | consulta | consulta |
+| Pedidos web | ✓ | ✓ | ✓ | ✓ cobra | ✓ sin cobrar | | |
 | Usuarios | ✓ todos | ✓ sin administradores | | | | | |
 | Mis finanzas | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 
@@ -70,6 +71,7 @@ El retiro del dueño en Caja lo ven el super administrador y el administrador. E
 - **Laboratorio**: tablero de órdenes por estado y atrasadas; graduación, productos e instrucciones; botones solo para los pasos que tu rol puede hacer (enviar, listo, entregar, cancelar) e historial de cada orden.
 - **Clientes**: búsqueda, ficha con datos, saldo pendiente y compras; recetas OD/OI (esfera, cilindro, eje, adición, DNP) y registro de nuevas recetas.
 - **Inventario**: CRUD de productos (crear, editar, eliminar —o desactivar si tiene historial— y reactivar) con **foto** (se sube a Cloudinary), **descripción**, **características** (para quién, medidas de montura `52□18 140`, material, forma, color; índice y tratamiento en lentes) y si se **muestra en la tienda web**; marcas, filtros por tipo, estado y bajo stock, y entrada de mercadería.
+- **Pedidos web** (cajero, ejecutivo de ventas, encargado y administradores): los pedidos de la tienda en línea, por atender, esperando pago, entregados o cancelados. Para cada uno: qué compró, cómo lo recibe y cómo paga; botones para cada paso (preparar → listo para retirar o enviado → entregado); **avisar al cliente por WhatsApp**; notas internas y cancelar (devuelve el stock y, si pagó con tarjeta, el dinero). **Al entregar queda registrado como venta**, y si paga al retirar se **cobra en la caja abierta**.
 - **Usuarios**: crear usuarios con su rol y sucursal (muestra qué puede hacer cada rol), cambiar rol, sucursal o contraseña, y activar/desactivar. Nadie puede quitarse su propio rol ni desactivarse.
 - **Mis finanzas**: ingresos, gastos, ahorro y patrimonio del mes; cuentas; ingresos, gastos y transferencias; presupuesto por categoría.
 

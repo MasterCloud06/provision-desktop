@@ -214,5 +214,45 @@ Comprobar(ventasEv.Datos.Any(e => e.Descripcion.StartsWith("Registró la venta "
 var cierre = await api.CerrarCajaAsync(resumen.EfectivoEsperado - 100);
 Comprobar(cierre.Sesion.Diferencia == -100, "cierre de caja con faltante de Bs 1");
 
+Console.WriteLine("Pedidos web");
+{
+    // Un cliente compra en la tienda (API de la tienda, sin pasar por Provision.Core) y paga al retirar.
+    using var tienda = new HttpClient { BaseAddress = new Uri(url.TrimEnd('/') + "/") };
+    async Task<System.Text.Json.JsonElement> Tienda(HttpMethod m, string ruta, object? cuerpo = null, string? token = null)
+    {
+        using var req = new HttpRequestMessage(m, ruta);
+        if (cuerpo is not null) req.Content = System.Net.Http.Json.JsonContent.Create(cuerpo);
+        if (token is not null) req.Headers.Authorization = new("Bearer", token);
+        using var r = await tienda.SendAsync(req);
+        var texto = await r.Content.ReadAsStringAsync();
+        if (!r.IsSuccessStatusCode) throw new Exception($"{ruta}: {texto}");
+        return System.Text.Json.JsonDocument.Parse(texto).RootElement.Clone();
+    }
+    var reg = await Tienda(HttpMethod.Post, "tienda/auth/registro", new { nombre = "Cliente web " + sufijo, email = $"web{sufijo}@prueba.bo", password = "clave-segura-1", telefono = "70012345" });
+    var tk = reg.GetProperty("token").GetString()!;
+    var paraWeb = (await api.ProductosAsync(buscar: "LEN-" + sufijo)).Datos.Single();
+    await Tienda(HttpMethod.Put, $"tienda/carrito/{paraWeb.Id}", new { cantidad = 1 }, tk);
+    var nuevo = await Tienda(HttpMethod.Post, "tienda/pedidos", new { entrega = "RETIRO", metodoPago = "EN_TIENDA", nombreContacto = "Cliente web", telefono = "70012345" }, tk);
+    var pedidoId = Guid.Parse(nuevo.GetProperty("pedido").GetProperty("id").GetString()!);
+
+    var porAtender = await api.PedidosWebAsync("POR_ATENDER");
+    Comprobar(porAtender.Datos.Any(p => p.Id == pedidoId && p.MetodoPago == MetodoPagoWeb.EnTienda && p.Estado == EstadoPedidoWeb.PendientePago),
+        $"lista de pedidos web ({porAtender.Conteos.GetValueOrDefault("POR_ATENDER")} por atender)");
+    var det = await api.PedidoWebAsync(pedidoId);
+    Comprobar(det.CobrarAlEntregar && det.Items.Count == 1 && det.Siguientes.Contains(EstadoPedidoWeb.Listo), $"detalle {det.Numero}: cobrar al entregar, {det.Items[0].Nombre}");
+    await api.CambiarEstadoPedidoWebAsync(pedidoId, new CambioEstadoPedidoWeb { Estado = EstadoPedidoWeb.Listo });
+    await api.AbrirCajaAsync(5000);
+    await api.CambiarEstadoPedidoWebAsync(pedidoId, new CambioEstadoPedidoWeb
+    {
+        Estado = EstadoPedidoWeb.Entregado,
+        Pagos = [new Pago { Metodo = MetodoPago.Qr, Monto = det.Total, Referencia = "QR-" + sufijo }],
+    });
+    var entregado = await api.PedidoWebAsync(pedidoId);
+    Comprobar(entregado.Estado == EstadoPedidoWeb.Entregado && entregado.VentaNumero is not null, $"cobrado y entregado: venta {entregado.VentaNumero}");
+    var cajaWeb = await api.CajaActualAsync();
+    Comprobar(cajaWeb!.PorMetodo["QR"].Ingresos == det.Total, "el cobro entró en la caja (QR)");
+    await api.CerrarCajaAsync(cajaWeb.EfectivoEsperado);
+}
+
 Console.WriteLine(fallos == 0 ? "\nTodo bien." : $"\n{fallos} comprobaciones fallaron.");
 return fallos == 0 ? 0 : 1;

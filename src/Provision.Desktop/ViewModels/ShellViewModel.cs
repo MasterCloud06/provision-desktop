@@ -44,6 +44,7 @@ public sealed partial class ShellViewModel : ViewModelBase
             ("auditoria", "Auditoría", "◉", "auditoria.ver", () => new AuditoriaViewModel(sesion)),
             ("vender", "Vender", "＋", "ventas.crear", () => new VenderViewModel(sesion)),
             ("ventas", "Ventas", "≡", "ventas.ver", () => new VentasViewModel(sesion)),
+            ("pedidos", "Pedidos web", "⬚", "tienda.gestionar", () => new PedidosWebViewModel(sesion)),
             ("caja", "Caja", "▣", "caja.operar", () => new CajaViewModel(sesion)),
             ("laboratorio", "Laboratorio", "◎", "laboratorio.ver", () => new LaboratorioViewModel(sesion)),
             ("clientes", "Clientes", "☺", "clientes.ver", () => new ClientesViewModel(sesion)),

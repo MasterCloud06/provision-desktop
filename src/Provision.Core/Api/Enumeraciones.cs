@@ -57,6 +57,18 @@ public static class Enumeraciones
         _ => t.ToString(),
     };
 
+    public static string Etiqueta(EstadoPedidoWeb e) => e switch
+    {
+        EstadoPedidoWeb.PendientePago => "Esperando pago",
+        EstadoPedidoWeb.Pagado => "Pagado",
+        EstadoPedidoWeb.Preparando => "En preparación",
+        EstadoPedidoWeb.Listo => "Listo para retirar",
+        EstadoPedidoWeb.Enviado => "Enviado",
+        EstadoPedidoWeb.Entregado => "Entregado",
+        EstadoPedidoWeb.Cancelado => "Cancelado",
+        _ => e.ToString(),
+    };
+
     public static string Etiqueta(MetodoPago m) => m switch
     {
         MetodoPago.Efectivo => "Efectivo",

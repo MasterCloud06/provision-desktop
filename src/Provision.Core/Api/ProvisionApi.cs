@@ -91,6 +91,24 @@ public sealed class ProvisionApi(ApiClient http)
             ? url.Replace("/upload/", $"/upload/c_limit,w_{ancho},f_jpg,q_auto/")
             : url;
 
+    /* Pedidos de la tienda web */
+
+    /// <summary>estado: un valor de la API (PAGADO, LISTO…) o POR_ATENDER; null = todos.</summary>
+    public Task<PaginaPedidosWeb> PedidosWebAsync(string? estado = null, string? buscar = null, int porPagina = 100, CancellationToken ct = default) =>
+        Http.GetAsync<PaginaPedidosWeb>("pedidos-web" + Q(("estado", estado), ("q", buscar), ("porPagina", porPagina)), ct);
+
+    public Task<PedidoWeb> PedidoWebAsync(Guid id, CancellationToken ct = default) =>
+        Http.GetAsync<PedidoWeb>($"pedidos-web/{id}", ct);
+
+    public Task<PedidoWeb> CambiarEstadoPedidoWebAsync(Guid id, CambioEstadoPedidoWeb c, CancellationToken ct = default) =>
+        Http.PostAsync<PedidoWeb>($"pedidos-web/{id}/estado", c, ct);
+
+    public Task<PedidoWeb> CancelarPedidoWebAsync(Guid id, string motivo, CancellationToken ct = default) =>
+        Http.PostAsync<PedidoWeb>($"pedidos-web/{id}/cancelar", new { motivo }, ct);
+
+    public Task<PedidoWeb> NotasPedidoWebAsync(Guid id, string notas, CancellationToken ct = default) =>
+        Http.PostAsync<PedidoWeb>($"pedidos-web/{id}/notas", new { notasInternas = notas }, ct);
+
     public Task<List<Marca>> MarcasAsync(CancellationToken ct = default) =>
         Http.GetAsync<List<Marca>>("catalogo/marcas", ct);
 

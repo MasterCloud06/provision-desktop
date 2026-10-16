@@ -1,0 +1,169 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Provision.Desktop.ViewModels"
+             xmlns:api="using:Provision.Core.Api"
+             x:Class="Provision.Desktop.Views.PedidosWebView"
+             x:DataType="vm:PedidosWebViewModel">
+  <Grid Margin="24" RowDefinitions="Auto,Auto,*" ColumnDefinitions="*,16,380">
+
+    <Grid Grid.ColumnSpan="3" ColumnDefinitions="*,Auto,Auto,Auto" Margin="0,0,0,12">
+      <StackPanel>
+        <TextBlock Classes="titulo" Text="Pedidos web" />
+        <TextBlock Classes="etiqueta" Text="{Binding Resumen}" FontSize="14" />
+      </StackPanel>
+      <TextBox Grid.Column="1" Width="220" Text="{Binding Busqueda}" Watermark="Número, nombre o correo + Enter"
+               VerticalAlignment="Center" Margin="0,0,8,0">
+        <TextBox.KeyBindings>
+          <KeyBinding Gesture="Enter" Command="{Binding CargarCommand}" />
+        </TextBox.KeyBindings>
+      </TextBox>
+      <ComboBox Grid.Column="2" Width="170" ItemsSource="{Binding Filtros}" SelectedItem="{Binding Filtro}"
+                VerticalAlignment="Center" Margin="0,0,8,0" />
+      <Button Grid.Column="3" Content="Actualizar" Command="{Binding CargarCommand}" VerticalAlignment="Center" />
+    </Grid>
+
+    <StackPanel Grid.Row="1" Grid.ColumnSpan="3" Spacing="6" Margin="0,0,0,12">
+      <ProgressBar IsIndeterminate="True" IsVisible="{Binding Ocupado}" />
+      <Border Classes="aviso-error" IsVisible="{Binding Error, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+        <TextBlock Classes="error" Text="{Binding Error}" TextWrapping="Wrap" />
+      </Border>
+      <Border Classes="aviso-ok" IsVisible="{Binding Aviso, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+        <TextBlock Classes="ok" Text="{Binding Aviso}" TextWrapping="Wrap" />
+      </Border>
+    </StackPanel>
+
+    <!-- Lista -->
+    <Border Grid.Row="2" Classes="tarjeta" Padding="8">
+      <DockPanel>
+        <Grid DockPanel.Dock="Top" ColumnDefinitions="130,*,130,90,100,110" Margin="8,4,8,8">
+          <TextBlock Classes="etiqueta" Text="Número" />
+          <TextBlock Grid.Column="1" Classes="etiqueta" Text="Cliente" />
+          <TextBlock Grid.Column="2" Classes="etiqueta" Text="Estado" />
+          <TextBlock Grid.Column="3" Classes="etiqueta" Text="Entrega" />
+          <TextBlock Grid.Column="4" Classes="etiqueta" Text="Total" TextAlignment="Right" />
+          <TextBlock Grid.Column="5" Classes="etiqueta" Text="Fecha" TextAlignment="Right" />
+        </Grid>
+        <TextBlock DockPanel.Dock="Top" Classes="etiqueta" Margin="8" TextWrapping="Wrap"
+                   IsVisible="{Binding SinPedidos}"
+                   Text="No hay pedidos en esta vista. Los clientes compran en la tienda web y sus pedidos aparecen aquí." />
+        <ListBox Classes="tabla" ItemsSource="{Binding Pedidos}" SelectedItem="{Binding Seleccionado}">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="api:PedidoWebResumen">
+              <Grid ColumnDefinitions="130,*,130,90,100,110">
+                <TextBlock Text="{Binding Numero}" FontWeight="SemiBold" />
+                <StackPanel Grid.Column="1">
+                  <TextBlock Text="{Binding NombreContacto}" TextTrimming="CharacterEllipsis" />
+                  <TextBlock Classes="etiqueta" FontSize="12" Text="{Binding Unidades, StringFormat='{}{0} unidades'}" />
+                </StackPanel>
+                <TextBlock Grid.Column="2" Text="{Binding EstadoTexto}" />
+                <TextBlock Grid.Column="3" Text="{Binding EntregaTexto}" />
+                <TextBlock Grid.Column="4" Text="{Binding Total, Converter={StaticResource Bs}}" TextAlignment="Right" FontWeight="SemiBold" />
+                <TextBlock Grid.Column="5" Classes="etiqueta" TextAlignment="Right"
+                           Text="{Binding CreadoLocal, StringFormat='{}{0:dd/MM HH:mm}'}" />
+              </Grid>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </DockPanel>
+    </Border>
+
+    <!-- Detalle -->
+    <ScrollViewer Grid.Row="2" Grid.Column="2">
+      <Border Classes="tarjeta" VerticalAlignment="Top">
+        <StackPanel Spacing="10">
+          <TextBlock Classes="etiqueta" TextWrapping="Wrap" IsVisible="{Binding !HayDetalle}"
+                     Text="Elige un pedido para ver qué compró el cliente, prepararlo, avisarle y entregarlo." />
+
+          <StackPanel Spacing="10" IsVisible="{Binding HayDetalle}">
+            <StackPanel>
+              <TextBlock Classes="subtitulo" Text="{Binding Detalle.Numero}" />
+              <TextBlock FontWeight="SemiBold" Text="{Binding EstadoTexto}" />
+            </StackPanel>
+
+            <!-- Cliente y entrega -->
+            <StackPanel Spacing="2">
+              <TextBlock FontWeight="SemiBold" Text="{Binding Detalle.NombreContacto}" />
+              <TextBlock Text="{Binding Detalle.Telefono}" />
+              <TextBlock Classes="etiqueta" Text="{Binding Detalle.Cliente.Email}" />
+              <TextBlock Margin="0,6,0,0" Text="{Binding EntregaTexto}" FontWeight="SemiBold" />
+              <TextBlock Text="{Binding DireccionCompleta}" TextWrapping="Wrap"
+                         IsVisible="{Binding DireccionCompleta, Converter={x:Static ObjectConverters.IsNotNull}}" />
+              <TextBlock Text="{Binding PagoTexto}" />
+              <TextBlock Classes="etiqueta" Text="{Binding Detalle.VentaNumero, StringFormat='Registrado como venta {0}'}"
+                         IsVisible="{Binding Detalle.VentaNumero, Converter={x:Static ObjectConverters.IsNotNull}}" />
+              <TextBlock Classes="etiqueta" TextWrapping="Wrap" Text="{Binding Detalle.CanceladoMotivo, StringFormat='Cancelado: {0}'}"
+                         IsVisible="{Binding Detalle.CanceladoMotivo, Converter={x:Static ObjectConverters.IsNotNull}}" />
+            </StackPanel>
+            <Border Classes="aviso-ok" IsVisible="{Binding Detalle.Notas, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+              <TextBlock TextWrapping="Wrap" Text="{Binding Detalle.Notas, StringFormat='Nota del cliente: {0}'}" />
+            </Border>
+
+            <!-- Productos -->
+            <ItemsControl ItemsSource="{Binding Detalle.Items}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="api:ItemPedidoWeb">
+                  <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,2">
+                    <TextBlock Text="{Binding Cantidad, StringFormat='{}{0} ×'}" Margin="0,0,6,0" />
+                    <TextBlock Grid.Column="1" Text="{Binding Nombre}" TextWrapping="Wrap" />
+                    <TextBlock Grid.Column="2" Text="{Binding Subtotal, Converter={StaticResource Bs}}" Margin="8,0,0,0" />
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding TieneEnvio}">
+              <TextBlock Classes="etiqueta" Text="Envío" />
+              <TextBlock Grid.Column="1" Text="{Binding Detalle.CostoEnvio, Converter={StaticResource Bs}}" />
+            </Grid>
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock FontWeight="SemiBold" Text="Total" />
+              <TextBlock Grid.Column="1" FontWeight="SemiBold" FontSize="16" Text="{Binding Detalle.Total, Converter={StaticResource Bs}}" />
+            </Grid>
+
+            <!-- Cobro al entregar -->
+            <StackPanel Spacing="6" IsVisible="{Binding MuestraCobro}">
+              <TextBlock Classes="subtitulo" FontSize="15" Text="Cobro al entregar" />
+              <TextBlock Classes="etiqueta" TextWrapping="Wrap"
+                         Text="El cliente paga ahora. Entra en la caja abierta y el pedido queda registrado como venta." />
+              <ComboBox ItemsSource="{Binding Metodos}" SelectedItem="{Binding Metodo}" HorizontalAlignment="Stretch" />
+              <TextBox Text="{Binding Referencia}" Watermark="Referencia del QR o voucher (opcional)" />
+            </StackPanel>
+            <TextBlock Classes="etiqueta" TextWrapping="Wrap" IsVisible="{Binding CobroSinPermiso}"
+                       Text="Este pedido se paga al retirar: lo entrega y lo cobra quien opera la caja." />
+
+            <!-- Pasos -->
+            <ItemsControl ItemsSource="{Binding Pasos}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:PasoPedido">
+                  <Button Classes="primario" Content="{Binding Texto}" Command="{Binding Comando}"
+                          HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Margin="0,0,0,6" />
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <Button Content="Avisar por WhatsApp" Command="{Binding AvisarWhatsAppCommand}" IsVisible="{Binding PuedeAvisar}"
+                    HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
+
+            <!-- Notas internas -->
+            <TextBlock Classes="etiqueta" Text="Notas internas (el cliente no las ve)" Margin="0,6,0,0" />
+            <TextBox Text="{Binding NotasInternas}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60" />
+            <Button Content="Guardar notas" Command="{Binding GuardarNotasCommand}" />
+
+            <!-- Cancelar -->
+            <Button Classes="peligro" Content="Cancelar pedido" Command="{Binding PedirCancelarCommand}"
+                    IsVisible="{Binding PuedeCancelar}" Margin="0,8,0,0" />
+            <Border Classes="aviso-error" IsVisible="{Binding ConfirmandoCancelar}">
+              <StackPanel Spacing="8">
+                <TextBlock Classes="error" TextWrapping="Wrap"
+                           Text="Los productos vuelven al inventario. Si el cliente pagó con tarjeta, se le devuelve el dinero." />
+                <TextBox Text="{Binding MotivoCancelacion}" Watermark="Motivo (el cliente lo ve)" />
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <Button Classes="peligro" Content="Sí, cancelar" Command="{Binding CancelarPedidoCommand}" />
+                  <Button Content="No" Command="{Binding NoCancelarCommand}" />
+                </StackPanel>
+              </StackPanel>
+            </Border>
+          </StackPanel>
+        </StackPanel>
+      </Border>
+    </ScrollViewer>
+  </Grid>
+</UserControl>

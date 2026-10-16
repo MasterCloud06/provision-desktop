@@ -20,6 +20,14 @@ public enum EstadoTrabajo { Pendiente, EnLaboratorio, Listo, Entregado, Cancelad
 
 public enum TipoMovimientoCaja { Ingreso, Egreso }
 
+/// <summary>Estado de un pedido de la tienda web.</summary>
+public enum EstadoPedidoWeb { PendientePago, Pagado, Preparando, Listo, Enviado, Entregado, Cancelado }
+
+/// <summary>Stripe = tarjeta en línea; EnTienda = paga al retirar.</summary>
+public enum MetodoPagoWeb { Stripe, EnTienda }
+
+public enum EntregaPedidoWeb { Retiro, Envio }
+
 public enum ConceptoCaja { CobroVenta, Devolucion, Gasto, RetiroDueno, Deposito, Otro }
 
 public enum TipoCuentaPersonal { Efectivo, Banco, BilleteraDigital, TarjetaCredito, Ahorro }
@@ -787,4 +795,92 @@ public sealed record ResumenFinanzas
     public List<GastoCategoria> PorCategoria { get; init; } = [];
     public List<LineaPresupuesto> Presupuesto { get; init; } = [];
     public long Patrimonio { get; init; }
+}
+
+/* ─────────────────────────── Pedidos de la tienda web ─────────────────────────── */
+
+public sealed record PedidoWebResumen
+{
+    public Guid Id { get; init; }
+    public string Numero { get; init; } = "";
+    public EstadoPedidoWeb Estado { get; init; }
+    public MetodoPagoWeb MetodoPago { get; init; }
+    public EntregaPedidoWeb Entrega { get; init; }
+    public string NombreContacto { get; init; } = "";
+    public string Telefono { get; init; } = "";
+    public string Email { get; init; } = "";
+    public long Total { get; init; }
+    public int Unidades { get; init; }
+    public DateTimeOffset? PagadoEn { get; init; }
+    public DateTimeOffset? ExpiraEn { get; init; }
+    public DateTimeOffset CreadoEn { get; init; }
+    public DateTime CreadoLocal => CreadoEn.LocalDateTime;
+    public string EstadoTexto => Enumeraciones.Etiqueta(Estado);
+    public string EntregaTexto => Entrega == EntregaPedidoWeb.Retiro ? "Retira" : "Envío";
+    public string PagoTexto => MetodoPago == MetodoPagoWeb.Stripe ? "Tarjeta" : "Al retirar";
+}
+
+public sealed record PaginaPedidosWeb
+{
+    public List<PedidoWebResumen> Datos { get; init; } = [];
+    public int Total { get; init; }
+    /// <summary>Cuántos pedidos hay en cada estado (y POR_ATENDER).</summary>
+    public Dictionary<string, int> Conteos { get; init; } = [];
+}
+
+public sealed record ItemPedidoWeb
+{
+    public Guid ProductoId { get; init; }
+    public string Nombre { get; init; } = "";
+    public long PrecioUnitario { get; init; }
+    public int Cantidad { get; init; }
+    public long Subtotal { get; init; }
+    public string? ImagenUrl { get; init; }
+}
+
+public sealed record ClientePedidoWeb
+{
+    public Guid Id { get; init; }
+    public string Nombre { get; init; } = "";
+    public string Email { get; init; } = "";
+    public string? Telefono { get; init; }
+    public string? Ci { get; init; }
+    public string? Nit { get; init; }
+}
+
+public sealed record PedidoWeb
+{
+    public Guid Id { get; init; }
+    public string Numero { get; init; } = "";
+    public EstadoPedidoWeb Estado { get; init; }
+    public MetodoPagoWeb MetodoPago { get; init; }
+    public EntregaPedidoWeb Entrega { get; init; }
+    public string NombreContacto { get; init; } = "";
+    public string Telefono { get; init; } = "";
+    public string? Direccion { get; init; }
+    public string? Ciudad { get; init; }
+    public string? Notas { get; init; }
+    public long Subtotal { get; init; }
+    public long CostoEnvio { get; init; }
+    public long Total { get; init; }
+    public DateTimeOffset? ExpiraEn { get; init; }
+    public DateTimeOffset? PagadoEn { get; init; }
+    public string? NotasInternas { get; init; }
+    public string? CanceladoMotivo { get; init; }
+    public Guid? VentaId { get; init; }
+    public string? VentaNumero { get; init; }
+    public DateTimeOffset CreadoEn { get; init; }
+    public List<ItemPedidoWeb> Items { get; init; } = [];
+    public ClientePedidoWeb? Cliente { get; init; }
+    /// <summary>A qué estados puede pasar ahora.</summary>
+    public List<EstadoPedidoWeb> Siguientes { get; init; } = [];
+    /// <summary>Pago al retirar aún sin cobrar: al entregarlo se cobra en caja.</summary>
+    public bool CobrarAlEntregar { get; init; }
+}
+
+public sealed record CambioEstadoPedidoWeb
+{
+    public EstadoPedidoWeb Estado { get; init; }
+    public string? Nota { get; init; }
+    public List<Pago>? Pagos { get; init; }
 }
