@@ -1,0 +1,33 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Provision.Desktop.ViewModels"
+             x:Class="Provision.Desktop.Views.ActualizacionView"
+             x:DataType="vm:ActualizacionViewModel">
+  <Grid Background="#E61D2733">
+    <Border Classes="tarjeta" Width="520" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="32">
+      <StackPanel Spacing="14">
+        <TextBlock Classes="titulo" Text="{Binding Titulo}" TextWrapping="Wrap" />
+        <TextBlock Text="{Binding Detalle}" TextWrapping="Wrap" />
+        <TextBlock Classes="etiqueta" Text="{Binding Tamano}"
+                   IsVisible="{Binding Tamano, Converter={x:Static ObjectConverters.IsNotNull}}" />
+
+        <StackPanel Spacing="6" IsVisible="{Binding Descargando}">
+          <ProgressBar Minimum="0" Maximum="100" Value="{Binding Progreso}" Height="8" />
+        </StackPanel>
+        <TextBlock Classes="etiqueta" Text="{Binding Estado}"
+                   IsVisible="{Binding Estado, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+        <Border Classes="aviso-error" IsVisible="{Binding Error, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+          <TextBlock Classes="error" Text="{Binding Error}" TextWrapping="Wrap" />
+        </Border>
+
+        <Button Classes="primario" Content="Actualizar ahora" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                Command="{Binding ActualizarAhoraCommand}" IsVisible="{Binding PuedeReemplazarse}" IsEnabled="{Binding !Descargando}" />
+        <TextBlock Classes="etiqueta" TextWrapping="Wrap" IsVisible="{Binding SoloNavegador}"
+                   Text="Esta copia no se puede actualizar sola. Descarga la versión nueva y reemplaza el Provision.exe que usas." />
+        <Button Content="Descargar desde el navegador" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                Command="{Binding AbrirEnNavegadorCommand}" IsVisible="{Binding Ultima, Converter={x:Static ObjectConverters.IsNotNull}}" />
+        <Button Content="Cerrar Provisión" HorizontalAlignment="Center" Command="{Binding SalirCommand}" />
+      </StackPanel>
+    </Border>
+  </Grid>
+</UserControl>

@@ -45,6 +45,18 @@ public sealed class ApiClient : IDisposable
 
     private readonly HttpClient _http;
 
+    /// <summary>
+    /// Cómo se identifica la app ante el backend en cada petición, p. ej. "escritorio/41".
+    /// El backend rechaza (426) las compilaciones anteriores a la última publicada.
+    /// </summary>
+    public static string? IdentificacionApp { get; set; }
+
+    /// <summary>
+    /// Se dispara cuando el backend responde que hay que actualizar la app (426), desde cualquier pantalla.
+    /// Trae la última versión publicada.
+    /// </summary>
+    public static event EventHandler<VersionPublicada?>? ActualizacionRequerida;
+
     public ApiClient(string urlBase, HttpMessageHandler? handler = null)
     {
         UrlBase = urlBase.TrimEnd('/') + "/";
@@ -53,6 +65,7 @@ public sealed class ApiClient : IDisposable
         // El plan gratuito de Render "duerme" el servicio: la primera petición puede tardar ~1 minuto.
         _http.Timeout = TimeSpan.FromSeconds(90);
         _http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        if (IdentificacionApp is { } id) _http.DefaultRequestHeaders.Add("X-Provision-App", id);
     }
 
     public string UrlBase { get; }
@@ -128,7 +141,15 @@ public sealed class ApiClient : IDisposable
             if (resp.StatusCode == HttpStatusCode.Unauthorized && Token is not null)
                 SesionExpirada?.Invoke(this, EventArgs.Empty);
 
-            throw await LeerErrorAsync(resp, ct).ConfigureAwait(false);
+            var error = await LeerErrorAsync(resp, ct).ConfigureAwait(false);
+            if ((int)resp.StatusCode == 426 && error.Codigo == "ACTUALIZACION_REQUERIDA")
+            {
+                VersionPublicada? ultima = null;
+                if (error.Detalles is { ValueKind: JsonValueKind.Object } d && d.TryGetProperty("ultima", out var u))
+                    ultima = u.Deserialize<VersionPublicada>(Json);
+                ActualizacionRequerida?.Invoke(this, ultima);
+            }
+            throw error;
         }
     }
 

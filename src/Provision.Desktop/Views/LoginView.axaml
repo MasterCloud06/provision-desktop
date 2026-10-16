@@ -50,6 +50,7 @@
         <Border Classes="aviso-error" IsVisible="{Binding Error, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
           <TextBlock Classes="error" Text="{Binding Error}" />
         </Border>
+        <TextBlock Classes="etiqueta" FontSize="12" HorizontalAlignment="Center" Text="{Binding VersionApp}" />
       </StackPanel>
     </Border>
   </Grid>

@@ -8,5 +8,9 @@
         MinWidth="1100" MinHeight="680"
         WindowStartupLocation="CenterScreen"
         Background="{StaticResource Fondo}">
-  <ContentControl Content="{Binding Contenido}" />
+  <Grid>
+    <ContentControl Content="{Binding Contenido}" IsEnabled="{Binding !Bloqueada}" />
+    <!-- Actualización obligatoria: tapa todo hasta instalar la versión nueva -->
+    <ContentControl Content="{Binding Actualizacion}" IsVisible="{Binding Bloqueada}" />
+  </Grid>
 </Window>

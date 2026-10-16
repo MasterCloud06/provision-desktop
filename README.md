@@ -99,6 +99,10 @@ Montos: la API trabaja en **centavos** (Bs 150,50 = 15050). `Dinero.Formatear` l
 .\scripts\probar-api.ps1 -Email admin@provision.local -Password CambiaEsto123
 ```
 
-## Compilación automática
+## Instalar y actualizar
 
-Cada cambio en `main` se compila en GitHub Actions (Windows) y deja `Provision.exe` como artefacto descargable en la pestaña *Actions* del repo.
+Cada cambio en `main` se compila en GitHub Actions y se publica como **versión nueva** en [Releases](https://github.com/MasterCloud06/provision-desktop/releases/latest) (`Provision.exe`, versión `0.1.<número de compilación>`).
+
+- **Primera vez:** descarga `Provision.exe` y guárdalo en una carpeta tuya (por ejemplo `Documentos\Provision`). No lo pongas en "Archivos de programa": ahí Windows no deja que se actualice solo.
+- **Actualizar es obligatorio.** Al abrir, cada 15 minutos y en cada operación, la app compara su versión con la última publicada. Si hay una nueva, se bloquea con la pantalla **"Hay una versión nueva"**: *Actualizar ahora* la descarga, reemplaza el `.exe` y la vuelve a abrir. El backend también rechaza a las versiones viejas, así que no se puede seguir trabajando con una desactualizada.
+- Las compilaciones locales (`dotnet run`, `.\scripts\ejecutar.ps1`) son la "versión de desarrollo" y nunca se bloquean.

@@ -91,6 +91,10 @@ public sealed class ProvisionApi(ApiClient http)
             ? url.Replace("/upload/", $"/upload/c_limit,w_{ancho},f_jpg,q_auto/")
             : url;
 
+    /// <summary>Última versión publicada de cada app (no requiere sesión).</summary>
+    public Task<InfoActualizaciones> ActualizacionesAsync(CancellationToken ct = default) =>
+        Http.GetAsync<InfoActualizaciones>("actualizaciones", ct);
+
     /* Agenda de citas */
 
     private static string Dia(DateOnly d) => d.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);

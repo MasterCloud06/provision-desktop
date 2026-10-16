@@ -21,6 +21,8 @@ public sealed partial class LoginViewModel : ViewModelBase
 
     public IReadOnlyList<Entorno> Entornos { get; } = Entorno.Todos;
 
+    public string VersionApp => Actualizador.VersionTexto;
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(UrlDestino), nameof(EsDesarrollo))]
     private Entorno _entornoSeleccionado;

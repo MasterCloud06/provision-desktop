@@ -940,3 +940,23 @@ public sealed record NuevaCita
     public string Telefono { get; init; } = "";
     public string? Notas { get; init; }
 }
+
+/* ─────────────────────────── Actualizaciones de las apps ─────────────────────────── */
+
+/// <summary>Una versión publicada. <see cref="Compilacion"/> es el número que sube con cada cambio.</summary>
+public sealed record VersionPublicada
+{
+    public int Compilacion { get; init; }
+    public string Version { get; init; } = "";
+    public string Url { get; init; } = "";
+    public long? Tamano { get; init; }
+    public string? Notas { get; init; }
+    public DateTimeOffset PublicadaEn { get; init; }
+}
+
+public sealed record InfoActualizaciones
+{
+    public bool Obligatoria { get; init; }
+    public VersionPublicada? Escritorio { get; init; }
+    public VersionPublicada? Android { get; init; }
+}

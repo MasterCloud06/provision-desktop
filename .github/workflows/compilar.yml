@@ -1,4 +1,5 @@
-# Cada cambio: compila la solución y corre la prueba sin conexión del núcleo.
+# Cada cambio en main: compila, publica Provision.exe como versión nueva (Releases)
+# y las copias instaladas se actualizan solas (es obligatorio: el backend bloquea las viejas).
 name: Compilar escritorio
 
 on:
@@ -7,19 +8,39 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   compilar:
     runs-on: windows-latest
+    env:
+      # 0.1.<número de compilación>: la app lee ese número para saber si está al día.
+      VERSION: 0.1.${{ github.run_number }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.x
       - name: Compilar
-        run: dotnet build Provision.sln -c Release
+        run: dotnet build Provision.sln -c Release -p:Version=${{ env.VERSION }}
       - name: Generar Provision.exe
-        run: dotnet publish src/Provision.Desktop -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o publicado
+        run: dotnet publish src/Provision.Desktop -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:Version=${{ env.VERSION }} -o publicado
       - uses: actions/upload-artifact@v4
         with:
           name: Provision-windows
-          path: publicado/
+          path: publicado/Provision.exe
+
+      - name: Publicar versión
+        if: github.event_name != 'pull_request'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: escritorio-${{ github.run_number }}
+          name: Provisión escritorio ${{ env.VERSION }}
+          make_latest: true
+          files: publicado/Provision.exe
+          body: |
+            Aplicación de escritorio de Provisión para Windows, versión ${{ env.VERSION }}.
+
+            **Primera instalación:** descarga `Provision.exe` y guárdalo en una carpeta tuya (por ejemplo `Documentos\Provision`), no en "Archivos de programa": así se puede actualizar sola.
+            **Actualizaciones:** son automáticas. Cuando hay una versión nueva, la app pide actualizar y lo hace sola.
