@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Provision.Desktop.ViewModels"
+             xmlns:ui="using:Provision.Desktop.Controles"
              xmlns:api="using:Provision.Core.Api"
              x:Class="Provision.Desktop.Views.LaboratorioView"
              x:DataType="vm:LaboratorioViewModel">
@@ -13,7 +14,12 @@
       </StackPanel>
       <ComboBox Grid.Column="1" Width="300" ItemsSource="{Binding Filtros}" SelectedItem="{Binding Filtro}"
                 VerticalAlignment="Center" Margin="0,0,8,0" />
-      <Button Grid.Column="2" Content="Actualizar" Command="{Binding CargarCommand}" VerticalAlignment="Center" />
+      <Button Grid.Column="2" Command="{Binding CargarCommand}" VerticalAlignment="Center" ToolTip.Tip="Recargar los datos">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <ui:Icono Data="{x:Static ui:Iconos.Recargar}" Width="16" Height="16" />
+            <TextBlock Text="Actualizar" />
+          </StackPanel>
+        </Button>
     </Grid>
 
     <StackPanel Grid.Row="1" Grid.ColumnSpan="3" Spacing="6" Margin="0,0,0,12">
@@ -29,17 +35,28 @@
     <!-- Lista -->
     <Border Grid.Row="2" Classes="tarjeta" Padding="8">
       <DockPanel>
-        <Grid DockPanel.Dock="Top" ColumnDefinitions="140,*,160,110,110" Margin="8,4,8,8">
+        <Grid DockPanel.Dock="Top" ColumnDefinitions="100,*,140,84,96" Margin="8,4,8,8">
           <TextBlock Classes="etiqueta" Text="Orden" />
           <TextBlock Grid.Column="1" Classes="etiqueta" Text="Cliente" />
           <TextBlock Grid.Column="2" Classes="etiqueta" Text="Estado" />
           <TextBlock Grid.Column="3" Classes="etiqueta" Text="Prometida" />
           <TextBlock Grid.Column="4" Classes="etiqueta" Text="Saldo" TextAlignment="Right" />
         </Grid>
+        <Panel>
+          <StackPanel Classes="vacio">
+            <StackPanel.IsVisible>
+              <MultiBinding Converter="{x:Static BoolConverters.And}">
+                <Binding Path="!Ocupado" />
+                <Binding Path="!Ordenes.Count" />
+              </MultiBinding>
+            </StackPanel.IsVisible>
+            <ui:Icono Data="{x:Static ui:Iconos.Laboratorio}" />
+            <TextBlock Text="No hay órdenes de trabajo en esta vista." />
+          </StackPanel>
         <ListBox Classes="tabla" ItemsSource="{Binding Ordenes}" SelectedItem="{Binding Seleccionada}">
           <ListBox.ItemTemplate>
             <DataTemplate x:DataType="api:OrdenTrabajoFila">
-              <Grid ColumnDefinitions="140,*,160,110,110">
+              <Grid ColumnDefinitions="100,*,140,84,96">
                 <StackPanel>
                   <TextBlock Text="{Binding Numero}" FontWeight="SemiBold" />
                   <TextBlock Classes="etiqueta" Text="{Binding VentaNumero}" />
@@ -51,7 +68,7 @@
                 <TextBlock Grid.Column="2" Text="{Binding EstadoTexto}" VerticalAlignment="Center" />
                 <StackPanel Grid.Column="3" VerticalAlignment="Center">
                   <TextBlock Text="{Binding FechaPrometida, StringFormat='{}{0:dd/MM}', TargetNullValue='—'}" />
-                  <TextBlock Classes="error" Text="Atrasada" FontSize="11" IsVisible="{Binding Atrasada}" />
+                  <TextBlock Classes="error" Text="Atrasada" FontSize="12" IsVisible="{Binding Atrasada}" />
                 </StackPanel>
                 <TextBlock Grid.Column="4" Text="{Binding Saldo, Converter={StaticResource Bs}}" TextAlignment="Right"
                            VerticalAlignment="Center" />
@@ -59,6 +76,7 @@
             </DataTemplate>
           </ListBox.ItemTemplate>
         </ListBox>
+        </Panel>
       </DockPanel>
     </Border>
 

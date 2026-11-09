@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Provision.Desktop.ViewModels"
+             xmlns:ui="using:Provision.Desktop.Controles"
              xmlns:api="using:Provision.Core.Api"
              x:Class="Provision.Desktop.Views.VentasView"
              x:DataType="vm:VentasViewModel">
@@ -13,7 +14,12 @@
       </StackPanel>
       <ComboBox Grid.Column="1" Width="220" ItemsSource="{Binding Filtros}" SelectedItem="{Binding Filtro}"
                 VerticalAlignment="Center" Margin="0,0,8,0" />
-      <Button Grid.Column="2" Content="Actualizar" Command="{Binding CargarCommand}" VerticalAlignment="Center" />
+      <Button Grid.Column="2" Command="{Binding CargarCommand}" VerticalAlignment="Center" ToolTip.Tip="Recargar los datos">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <ui:Icono Data="{x:Static ui:Iconos.Recargar}" Width="16" Height="16" />
+            <TextBlock Text="Actualizar" />
+          </StackPanel>
+        </Button>
     </Grid>
 
     <StackPanel Grid.Row="1" Grid.ColumnSpan="3" Spacing="6" Margin="0,0,0,12">
@@ -29,7 +35,7 @@
     <!-- Lista -->
     <Border Grid.Row="2" Classes="tarjeta" Padding="8">
       <DockPanel>
-        <Grid DockPanel.Dock="Top" ColumnDefinitions="130,*,110,110,110,120" Margin="8,4,8,8">
+        <Grid DockPanel.Dock="Top" ColumnDefinitions="110,*,96,96,96,96" Margin="8,4,8,8">
           <TextBlock Classes="etiqueta" Text="Número" />
           <TextBlock Grid.Column="1" Classes="etiqueta" Text="Cliente" />
           <TextBlock Grid.Column="2" Classes="etiqueta" Text="Total" TextAlignment="Right" />
@@ -37,10 +43,21 @@
           <TextBlock Grid.Column="4" Classes="etiqueta" Text="Saldo" TextAlignment="Right" />
           <TextBlock Grid.Column="5" Classes="etiqueta" Text="Fecha" TextAlignment="Right" />
         </Grid>
+        <Panel>
+          <StackPanel Classes="vacio">
+            <StackPanel.IsVisible>
+              <MultiBinding Converter="{x:Static BoolConverters.And}">
+                <Binding Path="!Ocupado" />
+                <Binding Path="!Ventas.Count" />
+              </MultiBinding>
+            </StackPanel.IsVisible>
+            <ui:Icono Data="{x:Static ui:Iconos.Ventas}" />
+            <TextBlock Text="No hay ventas con estos filtros." />
+          </StackPanel>
         <ListBox Classes="tabla" ItemsSource="{Binding Ventas}" SelectedItem="{Binding Seleccionada}">
           <ListBox.ItemTemplate>
             <DataTemplate x:DataType="api:VentaResumen">
-              <Grid ColumnDefinitions="130,*,110,110,110,120">
+              <Grid ColumnDefinitions="110,*,96,96,96,96">
                 <TextBlock Text="{Binding Numero}" FontWeight="SemiBold" />
                 <TextBlock Grid.Column="1" Text="{Binding Cliente, TargetNullValue='Sin cliente'}"
                            TextTrimming="CharacterEllipsis" />
@@ -54,6 +71,7 @@
             </DataTemplate>
           </ListBox.ItemTemplate>
         </ListBox>
+        </Panel>
       </DockPanel>
     </Border>
 

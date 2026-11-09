@@ -1,50 +1,84 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Provision.Desktop.ViewModels"
+             xmlns:ui="using:Provision.Desktop.Controles"
              x:Class="Provision.Desktop.Views.ShellView"
              x:DataType="vm:ShellViewModel">
-  <Grid ColumnDefinitions="232,*">
+  <Grid ColumnDefinitions="248,*">
 
     <!-- Menú lateral -->
-    <Border Grid.Column="0" Background="{StaticResource Barra}" Padding="14,20">
+    <Border Grid.Column="0" Background="{StaticResource Barra}" Padding="14,20,14,14">
       <DockPanel>
-        <StackPanel DockPanel.Dock="Top" Spacing="2" Margin="6,0,0,24">
-          <TextBlock Text="Provisión" FontSize="24" FontWeight="Bold" Foreground="White" />
-          <Border Classes="chip" HorizontalAlignment="Left" Margin="0,6,0,0"
-                  IsVisible="{Binding EsDesarrollo}">
-            <TextBlock Text="{Binding NombreEntorno}" FontSize="11" FontWeight="SemiBold"
-                       Foreground="{StaticResource Aviso}" />
-          </Border>
-          <TextBlock Text="{Binding NombreEntorno}" FontSize="11" Foreground="#64748B"
-                     IsVisible="{Binding !EsDesarrollo}" Margin="0,6,0,0" />
-        </StackPanel>
 
-        <StackPanel DockPanel.Dock="Bottom" Spacing="8" Margin="6,16,0,0">
-          <StackPanel Spacing="2">
-            <TextBlock Text="{Binding NombreUsuario}" Foreground="White" FontWeight="SemiBold"
-                       TextTrimming="CharacterEllipsis" />
-            <TextBlock Text="{Binding RolUsuario}" Foreground="#64748B" FontSize="11" />
+        <!-- Marca y entorno -->
+        <StackPanel DockPanel.Dock="Top" Spacing="14" Margin="6,0,6,22">
+          <StackPanel Orientation="Horizontal" Spacing="12">
+            <Border Width="38" Height="38" CornerRadius="10" Background="{StaticResource BarraActivo}">
+              <ui:Icono Data="{x:Static ui:Iconos.Marca}" Width="24" Height="24" Grosor="1.7"
+                        Foreground="{StaticResource Cristal}" />
+            </Border>
+            <StackPanel VerticalAlignment="Center">
+              <TextBlock Text="Provisión" FontSize="18" FontWeight="Bold" Foreground="White" LetterSpacing="-0.2" />
+              <TextBlock Text="Gestión de ópticas" FontSize="12" Foreground="{StaticResource BarraTextoSuave}" />
+            </StackPanel>
           </StackPanel>
-          <Button Classes="nav" Content="Cerrar sesión" Command="{Binding CerrarSesionCommand}" Margin="-6,0,0,0" />
+          <Border Classes="chip" HorizontalAlignment="Left" IsVisible="{Binding EsDesarrollo}"
+                  ToolTip.Tip="Estás conectado al servidor de desarrollo">
+            <TextBlock Text="{Binding NombreEntorno}" Foreground="{StaticResource Aviso}" />
+          </Border>
+          <TextBlock Text="{Binding NombreEntorno}" FontSize="12" Foreground="{StaticResource BarraTextoSuave}"
+                     IsVisible="{Binding !EsDesarrollo}" />
         </StackPanel>
 
-        <ItemsControl ItemsSource="{Binding Menu}">
-          <ItemsControl.ItemsPanel>
-            <ItemsPanelTemplate>
-              <StackPanel Spacing="4" />
-            </ItemsPanelTemplate>
-          </ItemsControl.ItemsPanel>
-          <ItemsControl.ItemTemplate>
-            <DataTemplate x:DataType="vm:OpcionMenu">
-              <Button Classes="nav" Classes.activo="{Binding Activo}" Command="{Binding Seleccionar}">
-                <StackPanel Orientation="Horizontal" Spacing="12">
-                  <TextBlock Text="{Binding Icono}" Width="18" TextAlignment="Center" />
-                  <TextBlock Text="{Binding Titulo}" />
-                </StackPanel>
-              </Button>
-            </DataTemplate>
-          </ItemsControl.ItemTemplate>
-        </ItemsControl>
+        <!-- Usuario y salida -->
+        <Border DockPanel.Dock="Bottom" BorderBrush="{StaticResource BarraBorde}" BorderThickness="0,1,0,0"
+                Padding="6,14,0,0" Margin="0,12,0,0">
+          <Grid ColumnDefinitions="Auto,*,Auto">
+            <Border Width="36" Height="36" CornerRadius="18" Background="{StaticResource Primario}" VerticalAlignment="Center">
+              <TextBlock Text="{Binding Iniciales}" Foreground="White" FontWeight="SemiBold" FontSize="13"
+                         HorizontalAlignment="Center" VerticalAlignment="Center" />
+            </Border>
+            <StackPanel Grid.Column="1" Margin="10,0,6,0" VerticalAlignment="Center">
+              <TextBlock Text="{Binding NombreUsuario}" Foreground="White" FontWeight="SemiBold"
+                         TextTrimming="CharacterEllipsis" />
+              <TextBlock Text="{Binding RolUsuario}" Foreground="{StaticResource BarraTextoSuave}" FontSize="12"
+                         TextTrimming="CharacterEllipsis" />
+            </StackPanel>
+            <Button Grid.Column="2" Classes="nav icono" Command="{Binding CerrarSesionCommand}"
+                    HorizontalAlignment="Right" ToolTip.Tip="Cerrar sesión"
+                    AutomationProperties.Name="Cerrar sesión">
+              <ui:Icono Data="{x:Static ui:Iconos.Salir}" />
+            </Button>
+          </Grid>
+        </Border>
+
+        <!-- Opciones según el rol -->
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+          <StackPanel Spacing="6">
+            <TextBlock Text="MENÚ" FontSize="12" FontWeight="SemiBold" LetterSpacing="0.8"
+                       Foreground="{StaticResource BarraTextoSuave}" Margin="12,0,0,4" />
+            <ItemsControl ItemsSource="{Binding Menu}">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <StackPanel Spacing="2" />
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:OpcionMenu">
+                  <Button Classes="nav" Classes.activo="{Binding Activo}" Command="{Binding Seleccionar}"
+                          AutomationProperties.Name="{Binding Titulo}">
+                    <Grid ColumnDefinitions="Auto,Auto,*">
+                      <Border Classes="marca-activo" Width="3" Height="18" CornerRadius="2" Margin="-12,0,9,0"
+                              Background="{StaticResource Cristal}" />
+                      <ui:Icono Grid.Column="1" Data="{Binding Icono}" Margin="0,0,12,0" />
+                      <TextBlock Grid.Column="2" Text="{Binding Titulo}" VerticalAlignment="Center" />
+                    </Grid>
+                  </Button>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </ScrollViewer>
       </DockPanel>
     </Border>
 

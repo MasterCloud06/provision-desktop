@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Provision.Desktop.ViewModels"
+             xmlns:ui="using:Provision.Desktop.Controles"
              xmlns:api="using:Provision.Core.Api"
              x:Class="Provision.Desktop.Views.InventarioView"
              x:DataType="vm:InventarioViewModel">
@@ -11,8 +12,13 @@
         <TextBlock Classes="titulo" Text="Inventario" />
         <TextBlock Classes="etiqueta" Text="{Binding Resumen}" FontSize="14" />
       </StackPanel>
-      <Button Grid.Column="1" Classes="primario" Content="+ Nuevo producto" VerticalAlignment="Center"
-              IsVisible="{Binding PuedeGestionar}" Command="{Binding NuevoCommand}" />
+      <Button Grid.Column="1" Classes="primario" VerticalAlignment="Center"
+              IsVisible="{Binding PuedeGestionar}" Command="{Binding NuevoCommand}">
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <ui:Icono Data="{x:Static ui:Iconos.Mas}" Width="16" Height="16" />
+          <TextBlock Text="Nuevo producto" />
+        </StackPanel>
+      </Button>
     </Grid>
 
     <!-- Filtros -->
@@ -43,42 +49,56 @@
     <!-- Lista de productos -->
     <Border Grid.Row="3" Classes="tarjeta" Padding="8">
       <DockPanel>
-        <Grid DockPanel.Dock="Top" ColumnDefinitions="140,*,130,80,110,110" Margin="8,4,8,8">
+        <!-- Columnas: la marca va bajo el nombre para que "Producto" tenga espacio aun con el panel lateral abierto -->
+        <Grid DockPanel.Dock="Top" ColumnDefinitions="110,*,64,104,104" Margin="8,4,8,8">
           <TextBlock Classes="etiqueta" Text="SKU" />
           <TextBlock Grid.Column="1" Classes="etiqueta" Text="Producto" />
-          <TextBlock Grid.Column="2" Classes="etiqueta" Text="Marca" />
-          <TextBlock Grid.Column="3" Classes="etiqueta" Text="Stock" TextAlignment="Right" />
-          <TextBlock Grid.Column="4" Classes="etiqueta" Text="Costo prom." TextAlignment="Right" />
-          <TextBlock Grid.Column="5" Classes="etiqueta" Text="Precio" TextAlignment="Right" />
+          <TextBlock Grid.Column="2" Classes="etiqueta" Text="Stock" TextAlignment="Right" />
+          <TextBlock Grid.Column="3" Classes="etiqueta" Text="Costo prom." TextAlignment="Right" />
+          <TextBlock Grid.Column="4" Classes="etiqueta" Text="Precio" TextAlignment="Right" />
         </Grid>
+        <Panel>
+          <StackPanel Classes="vacio">
+            <StackPanel.IsVisible>
+              <MultiBinding Converter="{x:Static BoolConverters.And}">
+                <Binding Path="!Ocupado" />
+                <Binding Path="!Productos.Count" />
+              </MultiBinding>
+            </StackPanel.IsVisible>
+            <ui:Icono Data="{x:Static ui:Iconos.Inventario}" />
+            <TextBlock Text="No hay productos con estos filtros. Cambia la búsqueda o crea un producto nuevo." />
+          </StackPanel>
         <ListBox Classes="tabla" ItemsSource="{Binding Productos}" SelectedItem="{Binding Seleccionado}">
           <ListBox.ItemTemplate>
             <DataTemplate x:DataType="api:Producto">
-              <Grid ColumnDefinitions="140,*,130,80,110,110">
-                <TextBlock Text="{Binding Sku}" Classes="etiqueta" VerticalAlignment="Center" />
-                <StackPanel Grid.Column="1">
-                  <StackPanel Orientation="Horizontal" Spacing="6">
+              <Grid ColumnDefinitions="110,*,64,104,104">
+                <TextBlock Text="{Binding Sku}" Classes="etiqueta" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                <StackPanel Grid.Column="1" Spacing="2" Margin="0,0,8,0">
+                  <Grid ColumnDefinitions="*,Auto">
                     <TextBlock Text="{Binding Nombre}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
-                    <Border Classes="chip" IsVisible="{Binding !Activo}">
-                      <TextBlock Text="Desactivado" FontSize="10" Foreground="{StaticResource Aviso}" />
+                    <Border Grid.Column="1" Classes="chip" IsVisible="{Binding !Activo}" Margin="6,0,0,0">
+                      <TextBlock Text="Desactivado" Foreground="{StaticResource Aviso}" />
                     </Border>
-                  </StackPanel>
-                  <TextBlock Classes="etiqueta" Text="{Binding Modelo}" />
+                  </Grid>
+                  <TextBlock Classes="etiqueta" TextTrimming="CharacterEllipsis">
+                    <Run Text="{Binding Marca}" />
+                    <Run Text="{Binding Modelo}" />
+                  </TextBlock>
                 </StackPanel>
-                <TextBlock Grid.Column="2" Text="{Binding Marca}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
-                <StackPanel Grid.Column="3" HorizontalAlignment="Right" VerticalAlignment="Center">
+                <StackPanel Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Center">
                   <TextBlock Text="{Binding Stock}" TextAlignment="Right" FontWeight="SemiBold"
                              Classes.error="{Binding BajoStock}" IsVisible="{Binding ControlaStock}" />
                   <TextBlock Text="—" Classes="etiqueta" IsVisible="{Binding !ControlaStock}" />
                 </StackPanel>
-                <TextBlock Grid.Column="4" Text="{Binding CostoPromedio, Converter={StaticResource Bs}}"
-                           TextAlignment="Right" VerticalAlignment="Center" Classes="etiqueta" />
-                <TextBlock Grid.Column="5" Text="{Binding PrecioVenta, Converter={StaticResource Bs}}"
-                           TextAlignment="Right" VerticalAlignment="Center" />
+                <TextBlock Grid.Column="3" Text="{Binding CostoPromedio, Converter={StaticResource Bs}}"
+                           TextAlignment="Right" VerticalAlignment="Center" Classes="etiqueta monto" />
+                <TextBlock Grid.Column="4" Text="{Binding PrecioVenta, Converter={StaticResource Bs}}"
+                           TextAlignment="Right" VerticalAlignment="Center" Classes="monto" FontWeight="SemiBold" />
               </Grid>
             </DataTemplate>
           </ListBox.ItemTemplate>
         </ListBox>
+        </Panel>
       </DockPanel>
     </Border>
 
@@ -112,7 +132,7 @@
 
             <!-- Foto -->
             <TextBlock Classes="etiqueta" Text="Foto (se ve en la tienda web)" Margin="0,8,0,0" />
-            <Border Height="180" CornerRadius="8" Background="#EEF2F2" ClipToBounds="True"
+            <Border Height="180" CornerRadius="8" Background="{StaticResource Superficie}" ClipToBounds="True"
                     IsVisible="{Binding FormFoto, Converter={x:Static ObjectConverters.IsNotNull}}">
               <Image Source="{Binding FormFoto}" Stretch="Uniform" />
             </Border>
@@ -177,7 +197,7 @@
                        Text="Selecciona un producto de la lista para verlo, editarlo o registrar unidades que llegaron." />
 
             <StackPanel Spacing="8" IsVisible="{Binding HaySeleccion}">
-              <Border Height="200" CornerRadius="8" Background="#EEF2F2" ClipToBounds="True" IsVisible="{Binding TieneFotoSeleccionado}">
+              <Border Height="200" CornerRadius="8" Background="{StaticResource Superficie}" ClipToBounds="True" IsVisible="{Binding TieneFotoSeleccionado}">
                 <Image Source="{Binding FotoSeleccionado}" Stretch="Uniform" />
               </Border>
               <TextBlock Classes="subtitulo" Text="{Binding Seleccionado.Nombre}" TextWrapping="Wrap" />

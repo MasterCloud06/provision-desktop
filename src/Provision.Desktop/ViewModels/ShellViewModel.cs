@@ -1,6 +1,8 @@
+using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Provision.Core.Configuracion;
+using Provision.Desktop.Controles;
 using Provision.Desktop.Servicios;
 
 namespace Provision.Desktop.ViewModels;
@@ -11,14 +13,14 @@ public interface ISeccion
     Task ActivarAsync();
 }
 
-public sealed partial class OpcionMenu(string clave, string titulo, string icono, Func<ViewModelBase> crear) : ObservableObject
+public sealed partial class OpcionMenu(string clave, string titulo, Geometry icono, Func<ViewModelBase> crear) : ObservableObject
 {
     private ViewModelBase? _vista;
 
     /// <summary>Identificador de la pantalla (el mismo que usa el backend en las tareas del panel).</summary>
     public string Clave { get; } = clave;
     public string Titulo { get; } = titulo;
-    public string Icono { get; } = icono;
+    public Geometry Icono { get; } = icono;
 
     [ObservableProperty] private bool _activo;
 
@@ -37,21 +39,21 @@ public sealed partial class ShellViewModel : ViewModelBase
         Sesion = sesion;
         _alSalir = alSalir;
         // Cada pantalla aparece solo si el rol tiene el permiso que la habilita (null = todos).
-        var opciones = new (string clave, string titulo, string icono, string? permiso, Func<ViewModelBase> crear)[]
+        var opciones = new (string clave, string titulo, Geometry icono, string? permiso, Func<ViewModelBase> crear)[]
         {
-            ("panel", "Mi panel", "◈", null, () => new PanelViewModel(sesion, IrAAsync, TienePantalla)),
-            ("indicadores", "Indicadores", "◧", "reportes.ver", () => new InicioViewModel(sesion)),
-            ("auditoria", "Auditoría", "◉", "auditoria.ver", () => new AuditoriaViewModel(sesion)),
-            ("vender", "Vender", "＋", "ventas.crear", () => new VenderViewModel(sesion)),
-            ("ventas", "Ventas", "≡", "ventas.ver", () => new VentasViewModel(sesion)),
-            ("pedidos", "Pedidos web", "⬚", "tienda.gestionar", () => new PedidosWebViewModel(sesion)),
-            ("caja", "Caja", "▣", "caja.operar", () => new CajaViewModel(sesion)),
-            ("agenda", "Agenda", "◷", "citas.gestionar", () => new AgendaViewModel(sesion)),
-            ("laboratorio", "Laboratorio", "◎", "laboratorio.ver", () => new LaboratorioViewModel(sesion)),
-            ("clientes", "Clientes", "☺", "clientes.ver", () => new ClientesViewModel(sesion)),
-            ("inventario", "Inventario", "▤", "catalogo.ver", () => new InventarioViewModel(sesion)),
-            ("usuarios", "Usuarios", "⚿", "usuarios.gestionar", () => new UsuariosViewModel(sesion)),
-            ("finanzas", "Mis finanzas", "◔", null, () => new FinanzasViewModel(sesion)),
+            ("panel", "Mi panel", Iconos.Panel, null, () => new PanelViewModel(sesion, IrAAsync, TienePantalla)),
+            ("indicadores", "Indicadores", Iconos.Indicadores, "reportes.ver", () => new InicioViewModel(sesion)),
+            ("auditoria", "Auditoría", Iconos.Auditoria, "auditoria.ver", () => new AuditoriaViewModel(sesion)),
+            ("vender", "Vender", Iconos.Vender, "ventas.crear", () => new VenderViewModel(sesion)),
+            ("ventas", "Ventas", Iconos.Ventas, "ventas.ver", () => new VentasViewModel(sesion)),
+            ("pedidos", "Pedidos web", Iconos.Pedidos, "tienda.gestionar", () => new PedidosWebViewModel(sesion)),
+            ("caja", "Caja", Iconos.Caja, "caja.operar", () => new CajaViewModel(sesion)),
+            ("agenda", "Agenda", Iconos.Agenda, "citas.gestionar", () => new AgendaViewModel(sesion)),
+            ("laboratorio", "Laboratorio", Iconos.Laboratorio, "laboratorio.ver", () => new LaboratorioViewModel(sesion)),
+            ("clientes", "Clientes", Iconos.Clientes, "clientes.ver", () => new ClientesViewModel(sesion)),
+            ("inventario", "Inventario", Iconos.Inventario, "catalogo.ver", () => new InventarioViewModel(sesion)),
+            ("usuarios", "Usuarios", Iconos.Usuarios, "usuarios.gestionar", () => new UsuariosViewModel(sesion)),
+            ("finanzas", "Mis finanzas", Iconos.Finanzas, null, () => new FinanzasViewModel(sesion)),
         };
         Menu = opciones
             .Where(o => o.permiso is null || sesion.Puede(o.permiso))
@@ -69,6 +71,12 @@ public sealed partial class ShellViewModel : ViewModelBase
     public IReadOnlyList<OpcionMenu> Menu { get; }
 
     public string NombreUsuario => Sesion.Usuario.Nombre;
+
+    /// <summary>Dos iniciales para el avatar del menú ("María López" → "ML").</summary>
+    public string Iniciales => string.Concat(NombreUsuario
+        .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+        .Take(2)
+        .Select(p => char.ToUpperInvariant(p[0])));
     public string RolUsuario => string.IsNullOrEmpty(Sesion.Usuario.NombreRol)
         ? Core.Api.Enumeraciones.Etiqueta(Sesion.Usuario.Rol)
         : Sesion.Usuario.NombreRol;

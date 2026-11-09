@@ -1,56 +1,89 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Provision.Desktop.ViewModels"
+             xmlns:ui="using:Provision.Desktop.Controles"
              x:Class="Provision.Desktop.Views.LoginView"
              x:DataType="vm:LoginViewModel">
-  <Grid ColumnDefinitions="*,*">
+  <Grid ColumnDefinitions="5*,6*">
 
     <!-- Panel de marca -->
     <Border Grid.Column="0" Background="{StaticResource Barra}">
-      <StackPanel VerticalAlignment="Center" Margin="64" Spacing="12">
-        <TextBlock Text="Provisión" FontSize="44" FontWeight="Bold" Foreground="White" />
-        <TextBlock Text="Inventario, caja, ventas y finanzas para tu óptica."
-                   FontSize="18" Foreground="#94A3B8" TextWrapping="Wrap" />
-      </StackPanel>
+      <Grid RowDefinitions="Auto,*,Auto" Margin="56,48">
+        <StackPanel Orientation="Horizontal" Spacing="12">
+          <Border Width="42" Height="42" CornerRadius="11" Background="{StaticResource BarraActivo}">
+            <ui:Icono Data="{x:Static ui:Iconos.Marca}" Width="26" Height="26" Grosor="1.7"
+                      Foreground="{StaticResource Cristal}" />
+          </Border>
+          <TextBlock Text="Provisión" FontSize="22" FontWeight="Bold" Foreground="White"
+                     VerticalAlignment="Center" LetterSpacing="-0.3" />
+        </StackPanel>
+
+        <StackPanel Grid.Row="1" VerticalAlignment="Center" Spacing="18" MaxWidth="440" HorizontalAlignment="Left">
+          <TextBlock Text="Tu óptica, en orden." FontSize="38" FontWeight="Bold" Foreground="White"
+                     LetterSpacing="-0.8" TextWrapping="Wrap" />
+          <TextBlock Text="Caja, ventas, laboratorio, inventario y agenda en un solo lugar, para cada sucursal."
+                     FontSize="17" LineHeight="26" Foreground="{StaticResource BarraTexto}" TextWrapping="Wrap" />
+          <StackPanel Spacing="12" Margin="0,10,0,0">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+              <ui:Icono Data="{x:Static ui:Iconos.Check}" Foreground="{StaticResource Cristal}" />
+              <TextBlock Text="Ventas con pagos mixtos y orden de laboratorio" Foreground="{StaticResource BarraTexto}" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="10">
+              <ui:Icono Data="{x:Static ui:Iconos.Check}" Foreground="{StaticResource Cristal}" />
+              <TextBlock Text="Inventario con kardex por sucursal" Foreground="{StaticResource BarraTexto}" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="10">
+              <ui:Icono Data="{x:Static ui:Iconos.Check}" Foreground="{StaticResource Cristal}" />
+              <TextBlock Text="Pedidos de la tienda web y citas de examen" Foreground="{StaticResource BarraTexto}" />
+            </StackPanel>
+          </StackPanel>
+        </StackPanel>
+
+        <TextBlock Grid.Row="2" Text="{Binding VersionApp}" FontSize="12" Foreground="{StaticResource BarraTextoSuave}" />
+      </Grid>
     </Border>
 
     <!-- Formulario -->
-    <Border Grid.Column="1" Classes="tarjeta" Width="400"
-            HorizontalAlignment="Center" VerticalAlignment="Center" Padding="32">
-      <StackPanel Spacing="14">
-        <TextBlock Classes="titulo" Text="Ingresar" />
-
-        <StackPanel Spacing="4">
-          <TextBlock Classes="etiqueta" Text="Entorno" />
-          <ComboBox ItemsSource="{Binding Entornos}" SelectedItem="{Binding EntornoSeleccionado}"
-                    HorizontalAlignment="Stretch" />
-          <TextBlock Classes="etiqueta" Text="{Binding UrlDestino}" FontSize="11" />
+    <Border Grid.Column="1" Background="{StaticResource Tarjeta}">
+      <StackPanel Width="380" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="18">
+        <StackPanel Spacing="6">
+          <TextBlock Classes="titulo" Text="Ingresar" />
+          <TextBlock Classes="etiqueta" FontSize="14" Text="Usa el correo y la contraseña que te dio tu óptica." TextWrapping="Wrap" />
         </StackPanel>
 
-        <StackPanel Spacing="4">
-          <TextBlock Classes="etiqueta" Text="Correo" />
-          <TextBox Text="{Binding Email}" Watermark="tu@correo.com" />
+        <StackPanel Spacing="6">
+          <TextBlock Text="Correo" FontWeight="Medium" />
+          <TextBox Text="{Binding Email}" Watermark="tu@correo.com" AutomationProperties.Name="Correo" />
         </StackPanel>
 
-        <StackPanel Spacing="4">
-          <TextBlock Classes="etiqueta" Text="Contraseña" />
-          <TextBox Text="{Binding Password}" PasswordChar="●" Watermark="Contraseña">
+        <StackPanel Spacing="6">
+          <TextBlock Text="Contraseña" FontWeight="Medium" />
+          <TextBox Text="{Binding Password}" PasswordChar="●" Watermark="Contraseña" AutomationProperties.Name="Contraseña">
             <TextBox.KeyBindings>
               <KeyBinding Gesture="Enter" Command="{Binding IngresarCommand}" />
             </TextBox.KeyBindings>
           </TextBox>
         </StackPanel>
 
-        <Button Classes="primario" Content="Ingresar" HorizontalAlignment="Stretch"
-                HorizontalContentAlignment="Center" Command="{Binding IngresarCommand}" />
-
-        <ProgressBar IsIndeterminate="True" IsVisible="{Binding Ocupado}" />
-        <TextBlock Classes="etiqueta" Text="{Binding Aviso}" TextWrapping="Wrap"
-                   IsVisible="{Binding Aviso, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
         <Border Classes="aviso-error" IsVisible="{Binding Error, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
           <TextBlock Classes="error" Text="{Binding Error}" />
         </Border>
-        <TextBlock Classes="etiqueta" FontSize="12" HorizontalAlignment="Center" Text="{Binding VersionApp}" />
+        <TextBlock Classes="etiqueta" Text="{Binding Aviso}" TextWrapping="Wrap"
+                   IsVisible="{Binding Aviso, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+        <Button Classes="primario" Content="Ingresar" HorizontalAlignment="Stretch" MinHeight="44"
+                HorizontalContentAlignment="Center" Command="{Binding IngresarCommand}" />
+        <ProgressBar IsIndeterminate="True" IsVisible="{Binding Ocupado}" Height="4" />
+
+        <!-- Servidor: opción técnica, al final y en segundo plano -->
+        <Border BorderBrush="{StaticResource Borde}" BorderThickness="0,1,0,0" Padding="0,16,0,0" Margin="0,6,0,0">
+          <StackPanel Spacing="6">
+            <TextBlock Classes="seccion" Text="SERVIDOR" />
+            <ComboBox ItemsSource="{Binding Entornos}" SelectedItem="{Binding EntornoSeleccionado}"
+                      HorizontalAlignment="Stretch" AutomationProperties.Name="Servidor" />
+            <TextBlock Classes="etiqueta" Text="{Binding UrlDestino}" FontSize="12" TextTrimming="CharacterEllipsis" />
+          </StackPanel>
+        </Border>
       </StackPanel>
     </Border>
   </Grid>

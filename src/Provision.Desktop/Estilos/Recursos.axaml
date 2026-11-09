@@ -1,0 +1,55 @@
+<!--
+  Tokens de diseño de Provisión. Es la misma marca que la tienda web (estilos.css): tinta pizarra y verde cristal.
+  Contraste comprobado sobre Fondo y Tarjeta: Texto ≈ 14:1, TextoSuave ≈ 6:1, Primario ≈ 6,5:1 (AA para texto).
+  Las vistas usan estas claves; nunca colores sueltos.
+-->
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!-- Marca -->
+  <SolidColorBrush x:Key="Primario" Color="#17695F" />
+  <SolidColorBrush x:Key="PrimarioOscuro" Color="#11524A" />
+  <SolidColorBrush x:Key="PrimarioPresionado" Color="#0C3F39" />
+  <SolidColorBrush x:Key="PrimarioSuave" Color="#E3F1EE" />
+  <SolidColorBrush x:Key="PrimarioSuaveFuerte" Color="#CFE6E1" />
+  <SolidColorBrush x:Key="Cristal" Color="#7FD1C4" />
+
+  <!-- Menú lateral (tinta) -->
+  <SolidColorBrush x:Key="Barra" Color="#1D2733" />
+  <SolidColorBrush x:Key="BarraHover" Color="#27333F" />
+  <SolidColorBrush x:Key="BarraActivo" Color="#2E3D4A" />
+  <SolidColorBrush x:Key="BarraBorde" Color="#2E3A46" />
+  <SolidColorBrush x:Key="BarraTexto" Color="#D5DEE4" />
+  <SolidColorBrush x:Key="BarraTextoSuave" Color="#97A6B2" />
+
+  <!-- Superficies -->
+  <SolidColorBrush x:Key="Fondo" Color="#F2F5F5" />
+  <SolidColorBrush x:Key="Tarjeta" Color="#FFFFFF" />
+  <SolidColorBrush x:Key="Superficie" Color="#EDF2F2" />
+  <SolidColorBrush x:Key="SuperficieHover" Color="#F5F8F8" />
+  <SolidColorBrush x:Key="Borde" Color="#DCE3E3" />
+  <SolidColorBrush x:Key="BordeFuerte" Color="#C3CECE" />
+
+  <!-- Texto -->
+  <SolidColorBrush x:Key="Texto" Color="#1D2733" />
+  <SolidColorBrush x:Key="TextoSuave" Color="#4E5D69" />
+  <SolidColorBrush x:Key="TextoDeshabilitado" Color="#8A97A1" />
+
+  <!-- Estados -->
+  <SolidColorBrush x:Key="Peligro" Color="#B42318" />
+  <SolidColorBrush x:Key="PeligroOscuro" Color="#8F1C13" />
+  <SolidColorBrush x:Key="PeligroSuave" Color="#FDECEA" />
+  <SolidColorBrush x:Key="Exito" Color="#157A3D" />
+  <SolidColorBrush x:Key="ExitoSuave" Color="#E3F4E8" />
+  <SolidColorBrush x:Key="Aviso" Color="#8A5300" />
+  <SolidColorBrush x:Key="AvisoSuave" Color="#FFF3D6" />
+
+  <!-- Velo de la pantalla de actualización -->
+  <SolidColorBrush x:Key="Velo" Color="#E61D2733" />
+
+  <!-- Formas -->
+  <CornerRadius x:Key="RadioControl">8</CornerRadius>
+  <CornerRadius x:Key="RadioTarjeta">12</CornerRadius>
+  <BoxShadows x:Key="SombraTarjeta">0 1 2 0 #121D2733, 0 1 3 0 #0A1D2733</BoxShadows>
+  <BoxShadows x:Key="SombraElevada">0 12 32 -8 #401D2733</BoxShadows>
+</ResourceDictionary>

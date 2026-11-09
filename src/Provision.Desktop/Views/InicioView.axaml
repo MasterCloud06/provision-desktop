@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Provision.Desktop.ViewModels"
+             xmlns:ui="using:Provision.Desktop.Controles"
              xmlns:api="using:Provision.Core.Api"
              x:Class="Provision.Desktop.Views.InicioView"
              x:DataType="vm:InicioViewModel">
@@ -19,7 +20,12 @@
           <Border Classes="aviso-error" IsVisible="{Binding !CajaAbierta}">
             <TextBlock Classes="error" Text="{Binding EstadoCaja}" FontWeight="SemiBold" />
           </Border>
-          <Button Content="Actualizar" Command="{Binding ActualizarCommand}" />
+          <Button Command="{Binding ActualizarCommand}" ToolTip.Tip="Recargar los datos">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <ui:Icono Data="{x:Static ui:Iconos.Recargar}" Width="16" Height="16" />
+            <TextBlock Text="Actualizar" />
+          </StackPanel>
+        </Button>
         </StackPanel>
       </Grid>
 

@@ -2,14 +2,23 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Provision.Desktop.ViewModels"
              xmlns:api="using:Provision.Core.Api"
+             xmlns:ui="using:Provision.Desktop.Controles"
              x:Class="Provision.Desktop.Views.VenderView"
              x:DataType="vm:VenderViewModel">
   <Grid Margin="24" RowDefinitions="Auto,Auto,*" ColumnDefinitions="*,16,*,16,380">
 
     <!-- Encabezado y mensajes -->
-    <Grid Grid.ColumnSpan="5" ColumnDefinitions="*,Auto" Margin="0,0,0,12">
-      <TextBlock Classes="titulo" Text="Vender" />
-      <Button Grid.Column="1" Content="Nueva venta (limpiar)" Command="{Binding LimpiarCommand}" />
+    <Grid Grid.ColumnSpan="5" ColumnDefinitions="*,Auto" Margin="0,0,0,16">
+      <StackPanel Spacing="2">
+        <TextBlock Classes="titulo" Text="Vender" />
+        <TextBlock Classes="etiqueta" Text="Busca productos, arma el carrito y registra el cobro." />
+      </StackPanel>
+      <Button Grid.Column="1" Classes="fantasma" Command="{Binding LimpiarCommand}" VerticalAlignment="Center">
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <ui:Icono Data="{x:Static ui:Iconos.Recargar}" Width="16" Height="16" />
+          <TextBlock Text="Nueva venta" />
+        </StackPanel>
+      </Button>
     </Grid>
     <StackPanel Grid.Row="1" Grid.ColumnSpan="5" Spacing="6" Margin="0,0,0,12">
       <ProgressBar IsIndeterminate="True" IsVisible="{Binding Ocupado}" />
@@ -26,33 +35,48 @@
       <DockPanel>
         <StackPanel DockPanel.Dock="Top" Spacing="8" Margin="0,0,0,8">
           <TextBlock Classes="subtitulo" Text="Productos" />
-          <TextBox Text="{Binding Busqueda}" Watermark="Nombre, código o código de barras + Enter">
+          <TextBox Text="{Binding Busqueda}" Watermark="Nombre o código + Enter"
+                   AutomationProperties.Name="Buscar producto">
+            <TextBox.InnerLeftContent>
+              <ui:Icono Data="{x:Static ui:Iconos.Buscar}" Width="16" Height="16" Margin="10,0,0,0"
+                        Foreground="{StaticResource TextoSuave}" />
+            </TextBox.InnerLeftContent>
             <TextBox.KeyBindings>
               <KeyBinding Gesture="Enter" Command="{Binding BuscarCommand}" />
             </TextBox.KeyBindings>
           </TextBox>
         </StackPanel>
-        <ListBox Classes="tabla" ItemsSource="{Binding Resultados}">
-          <ListBox.ItemTemplate>
-            <DataTemplate x:DataType="api:Producto">
-              <Grid ColumnDefinitions="*,Auto,Auto">
-                <StackPanel Spacing="2">
-                  <TextBlock Text="{Binding Nombre}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
-                  <TextBlock Classes="etiqueta">
-                    <Run Text="{Binding Sku}" />
-                    <Run Text=" · stock " />
-                    <Run Text="{Binding Stock}" />
-                  </TextBlock>
-                </StackPanel>
-                <TextBlock Grid.Column="1" Text="{Binding PrecioVenta, Converter={StaticResource Bs}}"
-                           VerticalAlignment="Center" Margin="8,0" />
-                <Button Grid.Column="2" Content="Agregar" VerticalAlignment="Center"
-                        Command="{Binding $parent[UserControl].((vm:VenderViewModel)DataContext).AgregarCommand}"
-                        CommandParameter="{Binding}" />
-              </Grid>
-            </DataTemplate>
-          </ListBox.ItemTemplate>
-        </ListBox>
+        <Panel>
+          <StackPanel Classes="vacio" IsVisible="{Binding !Resultados.Count}">
+            <ui:Icono Data="{x:Static ui:Iconos.Buscar}" />
+            <TextBlock Text="Escribe el nombre, el código o escanea el código de barras y presiona Enter." />
+          </StackPanel>
+          <ListBox Classes="tabla" ItemsSource="{Binding Resultados}">
+            <ListBox.ItemTemplate>
+              <DataTemplate x:DataType="api:Producto">
+                <Grid ColumnDefinitions="*,Auto,Auto">
+                  <StackPanel Spacing="2" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding Nombre}" FontWeight="SemiBold" TextWrapping="Wrap" MaxLines="2"
+                               TextTrimming="CharacterEllipsis" />
+                    <TextBlock Classes="etiqueta" TextTrimming="CharacterEllipsis">
+                      <Run Text="{Binding Sku}" />
+                      <Run Text=" · stock " />
+                      <Run Text="{Binding Stock}" />
+                    </TextBlock>
+                  </StackPanel>
+                  <TextBlock Grid.Column="1" Classes="monto" Text="{Binding PrecioVenta, Converter={StaticResource Bs}}"
+                             VerticalAlignment="Center" Margin="12,0" FontWeight="SemiBold" />
+                  <Button Grid.Column="2" Classes="icono" VerticalAlignment="Center"
+                          ToolTip.Tip="Agregar al carrito" AutomationProperties.Name="Agregar al carrito"
+                          Command="{Binding $parent[UserControl].((vm:VenderViewModel)DataContext).AgregarCommand}"
+                          CommandParameter="{Binding}">
+                    <ui:Icono Data="{x:Static ui:Iconos.Mas}" Width="16" Height="16" />
+                  </Button>
+                </Grid>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </Panel>
       </DockPanel>
     </Border>
 
@@ -68,12 +92,14 @@
           </Grid>
           <Grid ColumnDefinitions="*,Auto">
             <TextBlock Classes="etiqueta" Text="Subtotal" />
-            <TextBlock Grid.Column="1" Text="{Binding Subtotal, Converter={StaticResource Bs}}" />
+            <TextBlock Grid.Column="1" Classes="monto" Text="{Binding Subtotal, Converter={StaticResource Bs}}" />
           </Grid>
-          <Grid ColumnDefinitions="*,Auto">
-            <TextBlock Classes="subtitulo" Text="Total" />
-            <TextBlock Grid.Column="1" Classes="cifra" Text="{Binding Total, Converter={StaticResource Bs}}" />
-          </Grid>
+          <Border BorderBrush="{StaticResource Borde}" BorderThickness="0,1,0,0" Padding="0,10,0,0">
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Classes="subtitulo" Text="Total" VerticalAlignment="Center" />
+              <TextBlock Grid.Column="1" Classes="cifra" Text="{Binding Total, Converter={StaticResource Bs}}" />
+            </Grid>
+          </Border>
 
           <!-- Orden de laboratorio: solo si la venta lleva lentes -->
           <Border Classes="tarjeta" Background="{StaticResource PrimarioSuave}" BorderThickness="0"
@@ -88,26 +114,42 @@
           </Border>
         </StackPanel>
 
-        <ListBox Classes="tabla" ItemsSource="{Binding Carrito}">
-          <ListBox.ItemTemplate>
-            <DataTemplate x:DataType="vm:LineaCarrito">
-              <Grid ColumnDefinitions="*,Auto,Auto,Auto">
-                <StackPanel VerticalAlignment="Center">
-                  <TextBlock Text="{Binding Producto.Nombre}" TextTrimming="CharacterEllipsis" />
-                  <TextBlock Classes="etiqueta" Text="{Binding Producto.PrecioVenta, Converter={StaticResource Bs}}" />
-                </StackPanel>
-                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
-                  <Button Content="−" Width="30" HorizontalContentAlignment="Center" Command="{Binding RestarCommand}" />
-                  <TextBlock Text="{Binding Cantidad}" Width="28" TextAlignment="Center" VerticalAlignment="Center" />
-                  <Button Content="+" Width="30" HorizontalContentAlignment="Center" Command="{Binding SumarCommand}" />
-                </StackPanel>
-                <TextBlock Grid.Column="2" Text="{Binding Total, Converter={StaticResource Bs}}" Width="100"
-                           TextAlignment="Right" VerticalAlignment="Center" FontWeight="SemiBold" />
-                <Button Grid.Column="3" Content="✕" Margin="8,0,0,0" Command="{Binding QuitarCommand}" />
-              </Grid>
-            </DataTemplate>
-          </ListBox.ItemTemplate>
-        </ListBox>
+        <Panel>
+          <StackPanel Classes="vacio" IsVisible="{Binding !Carrito.Count}">
+            <ui:Icono Data="{x:Static ui:Iconos.Vender}" />
+            <TextBlock Text="El carrito está vacío. Agrega productos desde la lista de la izquierda." />
+          </StackPanel>
+          <ListBox Classes="tabla" ItemsSource="{Binding Carrito}">
+            <ListBox.ItemTemplate>
+              <DataTemplate x:DataType="vm:LineaCarrito">
+                <Grid ColumnDefinitions="*,Auto,Auto,Auto">
+                  <StackPanel VerticalAlignment="Center" Spacing="2">
+                    <TextBlock Text="{Binding Producto.Nombre}" FontWeight="Medium" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Classes="etiqueta monto" Text="{Binding Producto.PrecioVenta, Converter={StaticResource Bs}}" />
+                  </StackPanel>
+                  <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                    <Button Classes="icono" Command="{Binding RestarCommand}" ToolTip.Tip="Quitar una unidad"
+                            AutomationProperties.Name="Quitar una unidad">
+                      <ui:Icono Data="{x:Static ui:Iconos.Menos}" Width="16" Height="16" />
+                    </Button>
+                    <TextBlock Classes="monto" Text="{Binding Cantidad}" Width="28" TextAlignment="Center" VerticalAlignment="Center"
+                               FontWeight="SemiBold" />
+                    <Button Classes="icono" Command="{Binding SumarCommand}" ToolTip.Tip="Agregar una unidad"
+                            AutomationProperties.Name="Agregar una unidad">
+                      <ui:Icono Data="{x:Static ui:Iconos.Mas}" Width="16" Height="16" />
+                    </Button>
+                  </StackPanel>
+                  <TextBlock Grid.Column="2" Classes="monto" Text="{Binding Total, Converter={StaticResource Bs}}" Width="100"
+                             TextAlignment="Right" VerticalAlignment="Center" FontWeight="SemiBold" />
+                  <Button Grid.Column="3" Classes="fantasma icono" Margin="6,0,0,0" Command="{Binding QuitarCommand}"
+                          ToolTip.Tip="Quitar del carrito" AutomationProperties.Name="Quitar del carrito">
+                    <ui:Icono Data="{x:Static ui:Iconos.Cerrar}" Width="16" Height="16" Foreground="{StaticResource Peligro}" />
+                  </Button>
+                </Grid>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </Panel>
       </DockPanel>
     </Border>
 
@@ -178,7 +220,10 @@
                     <TextBlock Text="{Binding Texto}" VerticalAlignment="Center" />
                     <TextBlock Grid.Column="1" Text="{Binding Monto, Converter={StaticResource Bs}}"
                                VerticalAlignment="Center" Margin="8,0" />
-                    <Button Grid.Column="2" Content="✕" Command="{Binding QuitarCommand}" />
+                    <Button Grid.Column="2" Classes="fantasma icono" Command="{Binding QuitarCommand}"
+                            ToolTip.Tip="Quitar pago" AutomationProperties.Name="Quitar pago">
+                      <ui:Icono Data="{x:Static ui:Iconos.Cerrar}" Width="16" Height="16" Foreground="{StaticResource Peligro}" />
+                    </Button>
                   </Grid>
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
@@ -195,7 +240,7 @@
           </StackPanel>
         </Border>
 
-        <Button Classes="primario" Content="Registrar venta" FontSize="16" Padding="16,12"
+        <Button Classes="primario" Content="Registrar venta" FontSize="16" Padding="16,12" MinHeight="48"
                 HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
                 Command="{Binding CobrarCommand}" />
         <TextBlock Classes="etiqueta" TextWrapping="Wrap" IsVisible="{Binding OperaCaja}"

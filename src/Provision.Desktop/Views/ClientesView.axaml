@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Provision.Desktop.ViewModels"
+             xmlns:ui="using:Provision.Desktop.Controles"
              xmlns:api="using:Provision.Core.Api"
              x:Class="Provision.Desktop.Views.ClientesView"
              x:DataType="vm:ClientesViewModel">
@@ -8,8 +9,13 @@
 
     <Grid Grid.ColumnSpan="3" ColumnDefinitions="*,Auto" Margin="0,0,0,12">
       <TextBlock Classes="titulo" Text="Clientes" />
-      <Button Grid.Column="1" Classes="primario" Content="+ Nuevo cliente" VerticalAlignment="Center"
-              IsVisible="{Binding PuedeGestionar}" Command="{Binding AlternarNuevoCommand}" />
+      <Button Grid.Column="1" Classes="primario" VerticalAlignment="Center"
+              IsVisible="{Binding PuedeGestionar}" Command="{Binding AlternarNuevoCommand}">
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <ui:Icono Data="{x:Static ui:Iconos.Mas}" Width="16" Height="16" />
+          <TextBlock Text="Nuevo cliente" />
+        </StackPanel>
+      </Button>
     </Grid>
 
     <StackPanel Grid.Row="1" Grid.ColumnSpan="3" Spacing="6" Margin="0,0,0,12">
@@ -41,6 +47,17 @@
             </StackPanel>
           </StackPanel>
         </StackPanel>
+        <Panel>
+          <StackPanel Classes="vacio">
+            <StackPanel.IsVisible>
+              <MultiBinding Converter="{x:Static BoolConverters.And}">
+                <Binding Path="!Ocupado" />
+                <Binding Path="!Clientes.Count" />
+              </MultiBinding>
+            </StackPanel.IsVisible>
+            <ui:Icono Data="{x:Static ui:Iconos.Clientes}" />
+            <TextBlock Text="No encontramos clientes. Busca por nombre, CI o teléfono, o registra uno nuevo." />
+          </StackPanel>
         <ListBox Classes="tabla" ItemsSource="{Binding Clientes}" SelectedItem="{Binding Seleccionado}">
           <ListBox.ItemTemplate>
             <DataTemplate x:DataType="api:Cliente">
@@ -55,6 +72,7 @@
             </DataTemplate>
           </ListBox.ItemTemplate>
         </ListBox>
+        </Panel>
       </DockPanel>
     </Border>
 
@@ -91,8 +109,13 @@
             <StackPanel Spacing="10">
               <Grid ColumnDefinitions="*,Auto">
                 <TextBlock Classes="subtitulo" Text="Recetas" />
-                <Button Grid.Column="1" Content="+ Nueva receta" IsVisible="{Binding PuedeRecetar}"
-                        Command="{Binding AlternarRecetaCommand}" />
+                <Button Grid.Column="1" IsVisible="{Binding PuedeRecetar}"
+                        Command="{Binding AlternarRecetaCommand}">
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <ui:Icono Data="{x:Static ui:Iconos.Mas}" Width="16" Height="16" />
+          <TextBlock Text="Nueva receta" />
+        </StackPanel>
+      </Button>
               </Grid>
 
               <!-- Formulario de receta -->

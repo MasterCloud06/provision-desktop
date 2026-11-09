@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Provision.Desktop.ViewModels"
+             xmlns:ui="using:Provision.Desktop.Controles"
              xmlns:api="using:Provision.Core.Api"
              x:Class="Provision.Desktop.Views.UsuariosView"
              x:DataType="vm:UsuariosViewModel">
@@ -11,8 +12,13 @@
         <TextBlock Classes="titulo" Text="Usuarios" />
         <TextBlock Classes="etiqueta" FontSize="14" Text="Quién entra al sistema y qué puede hacer cada uno." />
       </StackPanel>
-      <Button Grid.Column="1" Classes="primario" Content="+ Nuevo usuario" VerticalAlignment="Center"
-              Command="{Binding AlternarNuevoCommand}" />
+      <Button Grid.Column="1" Classes="primario" VerticalAlignment="Center"
+              Command="{Binding AlternarNuevoCommand}">
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <ui:Icono Data="{x:Static ui:Iconos.Mas}" Width="16" Height="16" />
+          <TextBlock Text="Nuevo usuario" />
+        </StackPanel>
+      </Button>
     </Grid>
 
     <StackPanel Grid.Row="1" Grid.ColumnSpan="3" Spacing="6" Margin="0,0,0,12">
@@ -28,23 +34,25 @@
     <!-- Lista -->
     <Border Grid.Row="2" Classes="tarjeta" Padding="8">
       <DockPanel>
-        <Grid DockPanel.Dock="Top" ColumnDefinitions="*,*,180,150,90" Margin="8,4,8,8">
-          <TextBlock Classes="etiqueta" Text="Nombre" />
-          <TextBlock Grid.Column="1" Classes="etiqueta" Text="Correo" />
-          <TextBlock Grid.Column="2" Classes="etiqueta" Text="Rol" />
-          <TextBlock Grid.Column="3" Classes="etiqueta" Text="Sucursal" />
-          <TextBlock Grid.Column="4" Classes="etiqueta" Text="Estado" />
+        <Grid DockPanel.Dock="Top" ColumnDefinitions="*,168,140,72" Margin="8,4,8,8">
+          <TextBlock Classes="etiqueta" Text="Usuario" />
+          <TextBlock Grid.Column="1" Classes="etiqueta" Text="Rol" />
+          <TextBlock Grid.Column="2" Classes="etiqueta" Text="Sucursal" />
+          <TextBlock Grid.Column="3" Classes="etiqueta" Text="Estado" />
         </Grid>
         <ListBox Classes="tabla" ItemsSource="{Binding Usuarios}" SelectedItem="{Binding Seleccionado}">
           <ListBox.ItemTemplate>
             <DataTemplate x:DataType="vm:FilaUsuario">
-              <Grid ColumnDefinitions="*,*,180,150,90">
-                <TextBlock Text="{Binding Nombre}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
-                <TextBlock Grid.Column="1" Text="{Binding Email}" TextTrimming="CharacterEllipsis" />
-                <TextBlock Grid.Column="2" Text="{Binding Rol}" />
-                <TextBlock Grid.Column="3" Text="{Binding Sucursal}" TextTrimming="CharacterEllipsis" />
-                <TextBlock Grid.Column="4" Text="Activo" Classes="ok" IsVisible="{Binding Activo}" />
-                <TextBlock Grid.Column="4" Text="Inactivo" Classes="error" IsVisible="{Binding !Activo}" />
+              <Grid ColumnDefinitions="*,168,140,72">
+                <StackPanel Spacing="2" Margin="0,0,8,0">
+                  <TextBlock Text="{Binding Nombre}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                  <TextBlock Classes="etiqueta" Text="{Binding Email}" TextTrimming="CharacterEllipsis" />
+                </StackPanel>
+                <TextBlock Grid.Column="1" Text="{Binding Rol}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                <TextBlock Grid.Column="2" Text="{Binding Sucursal}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                           Margin="0,0,8,0" />
+                <TextBlock Grid.Column="3" Text="Activo" Classes="ok" VerticalAlignment="Center" IsVisible="{Binding Activo}" />
+                <TextBlock Grid.Column="3" Text="Inactivo" Classes="error" VerticalAlignment="Center" IsVisible="{Binding !Activo}" />
               </Grid>
             </DataTemplate>
           </ListBox.ItemTemplate>

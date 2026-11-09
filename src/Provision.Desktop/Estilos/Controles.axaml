@@ -1,0 +1,367 @@
+<!--
+  Estilos de controles de Provisión escritorio. Minimalismo funcional y denso (herramienta de trabajo diario):
+  jerarquía tipográfica clara, una sola acción primaria por zona, foco siempre visible, transiciones de 150 ms.
+-->
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="using:Provision.Desktop.Controles">
+
+  <!-- ───────────── Base ───────────── -->
+  <Style Selector="Window">
+    <Setter Property="FontFamily" Value="fonts:Inter#Inter" />
+    <Setter Property="FontSize" Value="14" />
+    <Setter Property="Foreground" Value="{StaticResource Texto}" />
+  </Style>
+
+  <!-- ───────────── Tipografía ───────────── -->
+  <Style Selector="TextBlock.titulo">
+    <Setter Property="FontSize" Value="26" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="LetterSpacing" Value="-0.4" />
+    <Setter Property="Foreground" Value="{StaticResource Texto}" />
+  </Style>
+  <Style Selector="TextBlock.subtitulo">
+    <Setter Property="FontSize" Value="16" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Foreground" Value="{StaticResource Texto}" />
+  </Style>
+  <Style Selector="TextBlock.etiqueta">
+    <Setter Property="FontSize" Value="13" />
+    <Setter Property="Foreground" Value="{StaticResource TextoSuave}" />
+  </Style>
+  <!-- Rótulo de sección en mayúsculas (sobre grupos de datos) -->
+  <Style Selector="TextBlock.seccion">
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="LetterSpacing" Value="0.6" />
+    <Setter Property="Foreground" Value="{StaticResource TextoSuave}" />
+  </Style>
+  <!-- Cifras: dígitos de ancho fijo para que las columnas de montos queden alineadas -->
+  <Style Selector="TextBlock.cifra">
+    <Setter Property="FontSize" Value="26" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="LetterSpacing" Value="-0.4" />
+    <Setter Property="FontFeatures" Value="+tnum" />
+    <Setter Property="Foreground" Value="{StaticResource Texto}" />
+  </Style>
+  <Style Selector="TextBlock.monto">
+    <Setter Property="FontFeatures" Value="+tnum" />
+  </Style>
+  <Style Selector="TextBlock.error">
+    <Setter Property="Foreground" Value="{StaticResource Peligro}" />
+    <Setter Property="TextWrapping" Value="Wrap" />
+  </Style>
+  <Style Selector="TextBlock.ok">
+    <Setter Property="Foreground" Value="{StaticResource Exito}" />
+    <Setter Property="TextWrapping" Value="Wrap" />
+  </Style>
+
+  <!-- ───────────── Contenedores ───────────── -->
+  <Style Selector="Border.tarjeta">
+    <Setter Property="Background" Value="{StaticResource Tarjeta}" />
+    <Setter Property="BorderBrush" Value="{StaticResource Borde}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="{StaticResource RadioTarjeta}" />
+    <Setter Property="Padding" Value="20" />
+    <Setter Property="BoxShadow" Value="{StaticResource SombraTarjeta}" />
+  </Style>
+  <Style Selector="Border.aviso-error">
+    <Setter Property="Background" Value="{StaticResource PeligroSuave}" />
+    <Setter Property="BorderBrush" Value="#F5C2BD" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="{StaticResource RadioControl}" />
+    <Setter Property="Padding" Value="12,9" />
+  </Style>
+  <Style Selector="Border.aviso-ok">
+    <Setter Property="Background" Value="{StaticResource ExitoSuave}" />
+    <Setter Property="BorderBrush" Value="#B9E2C6" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="{StaticResource RadioControl}" />
+    <Setter Property="Padding" Value="12,9" />
+  </Style>
+  <Style Selector="Border.chip">
+    <Setter Property="CornerRadius" Value="10" />
+    <Setter Property="Padding" Value="8,3" />
+    <Setter Property="Background" Value="{StaticResource AvisoSuave}" />
+  </Style>
+  <Style Selector="Border.chip TextBlock">
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+  <!-- Estado vacío: icono + mensaje centrados dentro de una tarjeta o lista -->
+  <Style Selector="StackPanel.vacio">
+    <Setter Property="HorizontalAlignment" Value="Center" />
+    <Setter Property="Margin" Value="0,28" />
+    <Setter Property="Spacing" Value="8" />
+  </Style>
+  <Style Selector="StackPanel.vacio ui|Icono">
+    <Setter Property="Width" Value="28" />
+    <Setter Property="Height" Value="28" />
+    <Setter Property="HorizontalAlignment" Value="Center" />
+    <Setter Property="Foreground" Value="{StaticResource TextoDeshabilitado}" />
+  </Style>
+  <Style Selector="StackPanel.vacio TextBlock">
+    <Setter Property="HorizontalAlignment" Value="Center" />
+    <Setter Property="TextAlignment" Value="Center" />
+    <Setter Property="Foreground" Value="{StaticResource TextoSuave}" />
+    <Setter Property="TextWrapping" Value="Wrap" />
+    <Setter Property="MaxWidth" Value="320" />
+  </Style>
+
+  <!-- ───────────── Botones ───────────── -->
+  <!-- Secundario (por defecto): blanco con borde -->
+  <Style Selector="Button">
+    <Setter Property="Background" Value="{StaticResource Tarjeta}" />
+    <Setter Property="BorderBrush" Value="{StaticResource BordeFuerte}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="Foreground" Value="{StaticResource Texto}" />
+    <Setter Property="CornerRadius" Value="{StaticResource RadioControl}" />
+    <Setter Property="Padding" Value="14,7" />
+    <Setter Property="MinHeight" Value="36" />
+    <Setter Property="FontWeight" Value="Medium" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="Transitions">
+      <Transitions>
+        <BrushTransition Property="Background" Duration="0:0:0.15" />
+      </Transitions>
+    </Setter>
+  </Style>
+  <Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource SuperficieHover}" />
+    <Setter Property="BorderBrush" Value="{StaticResource Primario}" />
+    <Setter Property="Foreground" Value="{StaticResource Texto}" />
+  </Style>
+  <Style Selector="Button:pressed /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource Superficie}" />
+  </Style>
+  <Style Selector="Button:disabled /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource Superficie}" />
+    <Setter Property="BorderBrush" Value="{StaticResource Borde}" />
+    <Setter Property="Foreground" Value="{StaticResource TextoDeshabilitado}" />
+  </Style>
+
+  <!-- Primario: la acción principal de la pantalla -->
+  <Style Selector="Button.primario">
+    <Setter Property="Background" Value="{StaticResource Primario}" />
+    <Setter Property="BorderBrush" Value="{StaticResource Primario}" />
+    <Setter Property="Foreground" Value="White" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Padding" Value="18,8" />
+  </Style>
+  <Style Selector="Button.primario:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource PrimarioOscuro}" />
+    <Setter Property="BorderBrush" Value="{StaticResource PrimarioOscuro}" />
+    <Setter Property="Foreground" Value="White" />
+  </Style>
+  <Style Selector="Button.primario:pressed /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource PrimarioPresionado}" />
+  </Style>
+  <Style Selector="Button.primario:disabled /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="#A7CBC5" />
+    <Setter Property="BorderBrush" Value="#A7CBC5" />
+    <Setter Property="Foreground" Value="White" />
+  </Style>
+
+  <!-- Peligro: acciones destructivas (anular, cancelar, eliminar) -->
+  <Style Selector="Button.peligro">
+    <Setter Property="Background" Value="{StaticResource Peligro}" />
+    <Setter Property="BorderBrush" Value="{StaticResource Peligro}" />
+    <Setter Property="Foreground" Value="White" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+  <Style Selector="Button.peligro:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource PeligroOscuro}" />
+    <Setter Property="BorderBrush" Value="{StaticResource PeligroOscuro}" />
+    <Setter Property="Foreground" Value="White" />
+  </Style>
+
+  <!-- Fantasma: acciones terciarias y botones de icono -->
+  <Style Selector="Button.fantasma">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+  </Style>
+  <Style Selector="Button.fantasma:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource Superficie}" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+  </Style>
+  <Style Selector="Button.icono">
+    <Setter Property="Padding" Value="8" />
+    <Setter Property="MinWidth" Value="36" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Button ui|Icono">
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+
+  <!-- ───────────── Menú lateral ───────────── -->
+  <Style Selector="Button.nav">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Foreground" Value="{StaticResource BarraTexto}" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="HorizontalContentAlignment" Value="Left" />
+    <Setter Property="Padding" Value="12,9" />
+    <Setter Property="MinHeight" Value="40" />
+    <Setter Property="FontWeight" Value="Medium" />
+  </Style>
+  <Style Selector="Button.nav ui|Icono">
+    <Setter Property="Foreground" Value="{StaticResource BarraTextoSuave}" />
+  </Style>
+  <Style Selector="Button.nav:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource BarraHover}" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+    <Setter Property="Foreground" Value="White" />
+  </Style>
+  <Style Selector="Button.nav:pressed /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource BarraActivo}" />
+  </Style>
+  <Style Selector="Button.nav.activo">
+    <Setter Property="Background" Value="{StaticResource BarraActivo}" />
+    <Setter Property="Foreground" Value="White" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+  <Style Selector="Button.nav.activo ui|Icono">
+    <Setter Property="Foreground" Value="{StaticResource Cristal}" />
+  </Style>
+  <Style Selector="Button.nav.activo:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource BarraActivo}" />
+  </Style>
+  <!-- Marca de la opción activa: barra cristal a la izquierda -->
+  <Style Selector="Button.nav Border.marca-activo">
+    <Setter Property="IsVisible" Value="False" />
+  </Style>
+  <Style Selector="Button.nav.activo Border.marca-activo">
+    <Setter Property="IsVisible" Value="True" />
+  </Style>
+
+  <!-- ───────────── Campos ───────────── -->
+  <Style Selector="TextBox, ComboBox, NumericUpDown, CalendarDatePicker">
+    <Setter Property="CornerRadius" Value="{StaticResource RadioControl}" />
+    <Setter Property="MinHeight" Value="36" />
+    <Setter Property="BorderBrush" Value="{StaticResource BordeFuerte}" />
+    <Setter Property="Background" Value="{StaticResource Tarjeta}" />
+  </Style>
+  <Style Selector="TextBox">
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+  </Style>
+  <Style Selector="TextBox:pointerover /template/ Border#PART_BorderElement">
+    <Setter Property="BorderBrush" Value="{StaticResource Primario}" />
+    <Setter Property="Background" Value="{StaticResource Tarjeta}" />
+  </Style>
+  <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
+    <Setter Property="BorderBrush" Value="{StaticResource Primario}" />
+    <Setter Property="BorderThickness" Value="2" />
+    <Setter Property="Background" Value="{StaticResource Tarjeta}" />
+  </Style>
+  <Style Selector="TextBox /template/ TextBlock#PART_Watermark, TextBox /template/ TextBlock#PART_FloatingWatermark">
+    <Setter Property="Foreground" Value="{StaticResource TextoDeshabilitado}" />
+  </Style>
+  <Style Selector="ComboBox:pointerover /template/ Border#Background">
+    <Setter Property="BorderBrush" Value="{StaticResource Primario}" />
+    <Setter Property="Background" Value="{StaticResource Tarjeta}" />
+  </Style>
+
+  <!-- ───────────── Listas tipo tabla ───────────── -->
+  <Style Selector="ListBox.tabla">
+    <Setter Property="Background" Value="Transparent" />
+  </Style>
+  <Style Selector="ListBox.tabla ListBoxItem">
+    <Setter Property="Padding" Value="12,9" />
+    <Setter Property="BorderBrush" Value="{StaticResource Borde}" />
+    <Setter Property="BorderThickness" Value="0,0,0,1" />
+    <Setter Property="Cursor" Value="Hand" />
+  </Style>
+  <Style Selector="ListBox.tabla ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource SuperficieHover}" />
+  </Style>
+  <Style Selector="ListBox.tabla ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource PrimarioSuave}" />
+    <Setter Property="Foreground" Value="{StaticResource Texto}" />
+  </Style>
+  <Style Selector="ListBox.tabla ListBoxItem:selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource PrimarioSuaveFuerte}" />
+  </Style>
+
+  <!-- ───────────── Mi panel: tareas por urgencia ───────────── -->
+  <Style Selector="Border.tarea">
+    <Setter Property="Background" Value="{StaticResource Tarjeta}" />
+    <Setter Property="BorderBrush" Value="{StaticResource Borde}" />
+    <Setter Property="BorderThickness" Value="4,1,1,1" />
+    <Setter Property="CornerRadius" Value="{StaticResource RadioTarjeta}" />
+    <Setter Property="Padding" Value="18,14" />
+    <Setter Property="BoxShadow" Value="{StaticResource SombraTarjeta}" />
+  </Style>
+  <Style Selector="TextBlock.etiqueta-urgencia">
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="FontWeight" Value="Bold" />
+    <Setter Property="LetterSpacing" Value="0.6" />
+    <Setter Property="Foreground" Value="{StaticResource TextoSuave}" />
+  </Style>
+  <Style Selector="Border.cifra-tarea">
+    <Setter Property="Background" Value="{StaticResource PrimarioSuave}" />
+  </Style>
+  <Style Selector="Border.tarea.alta">
+    <Setter Property="BorderBrush" Value="{StaticResource Peligro}" />
+  </Style>
+  <Style Selector="Border.tarea.alta TextBlock.etiqueta-urgencia">
+    <Setter Property="Foreground" Value="{StaticResource Peligro}" />
+  </Style>
+  <Style Selector="Border.tarea.alta Border.cifra-tarea">
+    <Setter Property="Background" Value="{StaticResource PeligroSuave}" />
+  </Style>
+  <Style Selector="Border.tarea.alta Border.cifra-tarea TextBlock">
+    <Setter Property="Foreground" Value="{StaticResource Peligro}" />
+  </Style>
+  <Style Selector="Border.tarea.media">
+    <Setter Property="BorderBrush" Value="{StaticResource Aviso}" />
+  </Style>
+  <Style Selector="Border.tarea.media TextBlock.etiqueta-urgencia">
+    <Setter Property="Foreground" Value="{StaticResource Aviso}" />
+  </Style>
+  <Style Selector="Border.tarea.media Border.cifra-tarea">
+    <Setter Property="Background" Value="{StaticResource AvisoSuave}" />
+  </Style>
+  <Style Selector="Border.tarea.media Border.cifra-tarea TextBlock">
+    <Setter Property="Foreground" Value="{StaticResource Aviso}" />
+  </Style>
+  <Style Selector="Border.tarea.info">
+    <Setter Property="BorderBrush" Value="{StaticResource Primario}" />
+  </Style>
+  <Style Selector="Border.tarea.info TextBlock.etiqueta-urgencia">
+    <Setter Property="Foreground" Value="{StaticResource Primario}" />
+  </Style>
+  <Style Selector="Border.tarea.ok">
+    <Setter Property="BorderBrush" Value="{StaticResource Exito}" />
+  </Style>
+  <Style Selector="Border.tarea.ok TextBlock.etiqueta-urgencia">
+    <Setter Property="Foreground" Value="{StaticResource Exito}" />
+  </Style>
+
+  <!-- ───────────── Auditoría: resultado de un evento ───────────── -->
+  <Style Selector="Border.chip.exito">
+    <Setter Property="Background" Value="{StaticResource ExitoSuave}" />
+  </Style>
+  <Style Selector="Border.chip.exito TextBlock">
+    <Setter Property="Foreground" Value="{StaticResource Exito}" />
+  </Style>
+  <Style Selector="Border.chip.negado">
+    <Setter Property="Background" Value="{StaticResource PeligroSuave}" />
+  </Style>
+  <Style Selector="Border.chip.negado TextBlock">
+    <Setter Property="Foreground" Value="{StaticResource Peligro}" />
+  </Style>
+  <Style Selector="Border.chip.rechazado TextBlock">
+    <Setter Property="Foreground" Value="{StaticResource Aviso}" />
+  </Style>
+
+  <!-- ───────────── Progreso ───────────── -->
+  <Style Selector="ProgressBar">
+    <Setter Property="Foreground" Value="{StaticResource Primario}" />
+    <Setter Property="Background" Value="{StaticResource Superficie}" />
+    <Setter Property="CornerRadius" Value="3" />
+  </Style>
+  <Style Selector="ProgressBar.excedido">
+    <Setter Property="Foreground" Value="{StaticResource Peligro}" />
+  </Style>
+</Styles>
