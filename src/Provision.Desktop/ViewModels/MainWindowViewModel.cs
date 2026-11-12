@@ -60,7 +60,10 @@ public sealed partial class MainWindowViewModel : ViewModelBase
 
     private void AlIngresar(Sesion sesion)
     {
+        // Esta versión ya ingresó bien con el servidor: recién ahora se borra la anterior (antes servía de respaldo).
+        Actualizador.LimpiarAnterior();
         _sesion = sesion;
+        Provision.Desktop.Controles.ImagenRemota.Cliente = sesion.Api.Http;
         sesion.Api.Http.SesionExpirada += (_, _) =>
             Dispatcher.UIThread.Post(() => VolverAlLogin("Tu sesión expiró. Vuelve a ingresar."));
         Contenido = new ShellViewModel(sesion, () => VolverAlLogin(null));
@@ -70,6 +73,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     {
         if (Contenido is ShellViewModel shell) shell.Sesion.Api.CerrarSesion();
         _sesion = null;
+        Provision.Desktop.Controles.ImagenRemota.Cliente = null;
         var login = new LoginViewModel(AlIngresar) { Error = mensaje };
         Contenido = login;
     }

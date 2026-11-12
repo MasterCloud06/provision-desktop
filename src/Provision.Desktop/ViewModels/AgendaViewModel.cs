@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -41,7 +41,7 @@ public sealed partial class AgendaViewModel : ViewModelBase, ISeccion
     }
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(TituloDia), nameof(EsHoy))]
+    [NotifyPropertyChangedFor(nameof(TituloDia), nameof(EsHoy), nameof(FechaCalendario))]
     private DateOnly _dia;
 
     public string TituloDia
@@ -54,6 +54,11 @@ public sealed partial class AgendaViewModel : ViewModelBase, ISeccion
         }
     }
 
+    public DateTime? FechaCalendario
+    {
+        get => Dia.ToDateTime(TimeOnly.MinValue);
+        set { if (value is { } fecha && DateOnly.FromDateTime(fecha) != Dia) { Dia = DateOnly.FromDateTime(fecha); _ = CargarAsync(); } }
+    }
     public bool EsHoy => Dia == DateOnly.FromDateTime(DateTime.Today);
 
     [ObservableProperty]
@@ -72,7 +77,9 @@ public sealed partial class AgendaViewModel : ViewModelBase, ISeccion
     [RelayCommand]
     private Task CargarAsync() => IntentarAsync(async () =>
     {
-        var lista = await _sesion.Api.CitasAsync(Dia, Dia);
+        var diaConsultado = Dia;
+        var lista = await _sesion.Api.CitasAsync(diaConsultado, diaConsultado);
+        if (Dia != diaConsultado) return;
         Citas = lista.Select(c => new FilaCita(c, CambiarAsync, AbrirWhatsApp)).ToList();
         var activas = lista.Count(c => c.Estado is EstadoCita.Pendiente or EstadoCita.Confirmada);
         var porConfirmar = lista.Count(c => c.Estado == EstadoCita.Pendiente);

@@ -6,10 +6,10 @@ namespace Provision.Core.Configuracion;
 public sealed record Entorno(string Clave, string Nombre, string UrlApi)
 {
     public static readonly Entorno Local =
-        new("local", "Local", "http://localhost:3000/api/v1");
+        new("local", "Local", "http://localhost:5080/api/optica/provision/v1");
 
     public static readonly Entorno Desarrollo =
-        new("desarrollo", "Desarrollo", "https://provision-backend-ib50.onrender.com/api/v1");
+        new("desarrollo", "Desarrollo", Environment.GetEnvironmentVariable("ENAI_API_URL") ?? "https://enai-api.onrender.com/api/optica/provision/v1");
 
     public static IReadOnlyList<Entorno> Todos { get; } = [Local, Desarrollo];
 

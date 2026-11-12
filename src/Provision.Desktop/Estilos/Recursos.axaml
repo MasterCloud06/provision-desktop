@@ -1,13 +1,12 @@
-<!--
-  Tokens de diseño de Provisión. Es la misma marca que la tienda web (estilos.css): tinta pizarra y verde cristal.
-  Contraste comprobado sobre Fondo y Tarjeta: Texto ≈ 14:1, TextoSuave ≈ 6:1, Primario ≈ 6,5:1 (AA para texto).
-  Las vistas usan estas claves; nunca colores sueltos.
+﻿<!--
+  Tokens compartidos de Provisión Desktop: petróleo, esmeralda y gris cálido.
+  Las ayudas de entrada usan TextoSuave sin transparencia; TextoDeshabilitado se reserva para estados inactivos.
 -->
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
   <!-- Marca -->
-  <SolidColorBrush x:Key="Primario" Color="#17695F" />
+  <SolidColorBrush x:Key="Primario" Color="#087F72" />
   <SolidColorBrush x:Key="PrimarioOscuro" Color="#11524A" />
   <SolidColorBrush x:Key="PrimarioPresionado" Color="#0C3F39" />
   <SolidColorBrush x:Key="PrimarioSuave" Color="#E3F1EE" />
@@ -15,7 +14,7 @@
   <SolidColorBrush x:Key="Cristal" Color="#7FD1C4" />
 
   <!-- Menú lateral (tinta) -->
-  <SolidColorBrush x:Key="Barra" Color="#1D2733" />
+  <SolidColorBrush x:Key="Barra" Color="#12343B" />
   <SolidColorBrush x:Key="BarraHover" Color="#27333F" />
   <SolidColorBrush x:Key="BarraActivo" Color="#2E3D4A" />
   <SolidColorBrush x:Key="BarraBorde" Color="#2E3A46" />
@@ -23,7 +22,7 @@
   <SolidColorBrush x:Key="BarraTextoSuave" Color="#97A6B2" />
 
   <!-- Superficies -->
-  <SolidColorBrush x:Key="Fondo" Color="#F2F5F5" />
+  <SolidColorBrush x:Key="Fondo" Color="#F4F5F2" />
   <SolidColorBrush x:Key="Tarjeta" Color="#FFFFFF" />
   <SolidColorBrush x:Key="Superficie" Color="#EDF2F2" />
   <SolidColorBrush x:Key="SuperficieHover" Color="#F5F8F8" />
@@ -31,7 +30,7 @@
   <SolidColorBrush x:Key="BordeFuerte" Color="#C3CECE" />
 
   <!-- Texto -->
-  <SolidColorBrush x:Key="Texto" Color="#1D2733" />
+  <SolidColorBrush x:Key="Texto" Color="#12343B" />
   <SolidColorBrush x:Key="TextoSuave" Color="#4E5D69" />
   <SolidColorBrush x:Key="TextoDeshabilitado" Color="#8A97A1" />
 
@@ -47,6 +46,12 @@
   <!-- Velo de la pantalla de actualización -->
   <SolidColorBrush x:Key="Velo" Color="#E61D2733" />
 
+  <!-- Escala compartida de escritorio: títulos, paneles y densidad operativa. -->
+  <x:Double x:Key="TextoBase">14</x:Double>
+  <x:Double x:Key="TextoTitulo">28</x:Double>
+  <x:Double x:Key="TextoSubtitulo">16</x:Double>
+  <Thickness x:Key="MargenPagina">20</Thickness>
+  <Thickness x:Key="RellenoPanel">16</Thickness>
   <!-- Formas -->
   <CornerRadius x:Key="RadioControl">8</CornerRadius>
   <CornerRadius x:Key="RadioTarjeta">12</CornerRadius>

@@ -1,10 +1,13 @@
-# Cada cambio en main: compila, publica Provision.exe como versión nueva (Releases)
-# y las copias instaladas se actualizan solas (es obligatorio: el backend bloquea las viejas).
+# Compila y prueba en cada push a main y en cada PR. Solo publica una versión al subir un tag escritorio-N:
+# las copias instaladas se actualizan solas (es obligatorio: el backend bloquea las viejas), así que publicar
+# es una decisión explícita. N debe ser mayor que el de la última versión publicada.
+#   git tag escritorio-7 && git push origin escritorio-7
 name: Compilar escritorio
 
 on:
   push:
     branches: [main]
+    tags: ['escritorio-*']
   pull_request:
   workflow_dispatch:
 
@@ -14,16 +17,32 @@ permissions:
 jobs:
   compilar:
     runs-on: windows-latest
-    env:
-      # 0.1.<número de compilación>: la app lee ese número para saber si está al día.
-      VERSION: 0.1.${{ github.run_number }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.x
+
+      # 0.1.N: la app lee N para saber si está al día. Fuera de un tag es 0 (versión de desarrollo: nunca se
+      # publica, el backend no la bloquea y no se actualiza sola).
+      - name: Número de versión
+        shell: bash
+        run: |
+          if [ "$GITHUB_REF_TYPE" = "tag" ]; then
+            N="${GITHUB_REF_NAME#escritorio-}"
+            if ! [[ "$N" =~ ^[1-9][0-9]*$ ]]; then
+              echo "::error::El tag debe ser escritorio-N con N entero mayor que 0 (por ejemplo escritorio-7)."
+              exit 1
+            fi
+          else
+            N=0
+          fi
+          echo "VERSION=0.1.$N" >> "$GITHUB_ENV"
+
       - name: Compilar
         run: dotnet build Provision.sln -c Release -p:Version=${{ env.VERSION }}
+      - name: Pruebas
+        run: dotnet test --project tests/Provision.Core.Tests -c Release --no-build
       - name: Generar Provision.exe
         run: dotnet publish src/Provision.Desktop -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:Version=${{ env.VERSION }} -o publicado
       - uses: actions/upload-artifact@v4
@@ -32,10 +51,10 @@ jobs:
           path: publicado/Provision.exe
 
       - name: Publicar versión
-        if: github.event_name != 'pull_request'
+        if: github.ref_type == 'tag'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: escritorio-${{ github.run_number }}
+          tag_name: ${{ github.ref_name }}
           name: Provisión escritorio ${{ env.VERSION }}
           make_latest: true
           files: publicado/Provision.exe

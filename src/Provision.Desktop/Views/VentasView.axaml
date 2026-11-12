@@ -1,11 +1,11 @@
-<UserControl xmlns="https://github.com/avaloniaui"
+﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Provision.Desktop.ViewModels"
              xmlns:ui="using:Provision.Desktop.Controles"
              xmlns:api="using:Provision.Core.Api"
              x:Class="Provision.Desktop.Views.VentasView"
              x:DataType="vm:VentasViewModel">
-  <Grid Margin="24" RowDefinitions="Auto,Auto,*" ColumnDefinitions="*,16,340">
+  <Grid Margin="{StaticResource MargenPagina}" RowDefinitions="Auto,Auto,Auto,*" ColumnDefinitions="*,16,310">
 
     <Grid Grid.ColumnSpan="3" ColumnDefinitions="*,Auto,Auto" Margin="0,0,0,12">
       <StackPanel>
@@ -32,16 +32,15 @@
       </Border>
     </StackPanel>
 
+    <Border Grid.Row="2" Grid.ColumnSpan="3" Classes="banda" Margin="0,0,0,16"><Grid ColumnDefinitions="*,20,*"><StackPanel><TextBlock Text="Registro comercial" Classes="subtitulo"/><TextBlock Text="Consulta una venta para cobrar o gestionar su estado." Classes="etiqueta" TextWrapping="Wrap"/></StackPanel><TextBox Grid.Column="2" Text="{Binding Busqueda}" Watermark="Buscar venta o cliente" AutomationProperties.Name="Buscar venta o cliente"/></Grid></Border>
     <!-- Lista -->
-    <Border Grid.Row="2" Classes="tarjeta" Padding="8">
+    <Border Grid.Row="3" Classes="superficie" Padding="8">
       <DockPanel>
-        <Grid DockPanel.Dock="Top" ColumnDefinitions="110,*,96,96,96,96" Margin="8,4,8,8">
-          <TextBlock Classes="etiqueta" Text="Número" />
-          <TextBlock Grid.Column="1" Classes="etiqueta" Text="Cliente" />
-          <TextBlock Grid.Column="2" Classes="etiqueta" Text="Total" TextAlignment="Right" />
-          <TextBlock Grid.Column="3" Classes="etiqueta" Text="Pagado" TextAlignment="Right" />
-          <TextBlock Grid.Column="4" Classes="etiqueta" Text="Saldo" TextAlignment="Right" />
-          <TextBlock Grid.Column="5" Classes="etiqueta" Text="Fecha" TextAlignment="Right" />
+        <Grid DockPanel.Dock="Top" ColumnDefinitions="*,112,108,90" Margin="8,4,8,8">
+          <TextBlock Classes="etiqueta" Text="Venta / cliente" />
+          <TextBlock Grid.Column="1" Classes="etiqueta" Text="Total / pagado" TextAlignment="Right" />
+          <TextBlock Grid.Column="2" Classes="etiqueta" Text="Saldo" TextAlignment="Right" />
+          <TextBlock Grid.Column="3" Classes="etiqueta" Text="Fecha" TextAlignment="Right" />
         </Grid>
         <Panel>
           <StackPanel Classes="vacio">
@@ -54,19 +53,23 @@
             <ui:Icono Data="{x:Static ui:Iconos.Ventas}" />
             <TextBlock Text="No hay ventas con estos filtros." />
           </StackPanel>
-        <ListBox Classes="tabla" ItemsSource="{Binding Ventas}" SelectedItem="{Binding Seleccionada}">
+        <ListBox Classes="tabla" ItemsSource="{Binding VentasVisibles}" SelectedItem="{Binding Seleccionada}">
           <ListBox.ItemTemplate>
             <DataTemplate x:DataType="api:VentaResumen">
-              <Grid ColumnDefinitions="110,*,96,96,96,96">
-                <TextBlock Text="{Binding Numero}" FontWeight="SemiBold" />
-                <TextBlock Grid.Column="1" Text="{Binding Cliente, TargetNullValue='Sin cliente'}"
-                           TextTrimming="CharacterEllipsis" />
-                <TextBlock Grid.Column="2" Text="{Binding Total, Converter={StaticResource Bs}}" TextAlignment="Right" />
-                <TextBlock Grid.Column="3" Text="{Binding Pagado, Converter={StaticResource Bs}}" TextAlignment="Right" />
-                <TextBlock Grid.Column="4" Text="{Binding Saldo, Converter={StaticResource Bs}}" TextAlignment="Right"
-                           FontWeight="SemiBold" />
-                <TextBlock Grid.Column="5" Classes="etiqueta" TextAlignment="Right"
-                           Text="{Binding CreadoLocal, StringFormat='{}{0:dd/MM HH:mm}'}" />
+              <Grid ColumnDefinitions="*,112,108,90">
+                <StackPanel Spacing="4" Margin="0,0,8,0">
+                  <TextBlock Text="{Binding Numero}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                  <TextBlock Classes="etiqueta" Text="{Binding Cliente, TargetNullValue='Sin cliente'}" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Cliente}" />
+                </StackPanel>
+                <StackPanel Grid.Column="1" Spacing="4">
+                  <TextBlock Classes="monto" Text="{Binding Total, Converter={StaticResource Bs}}" TextAlignment="Right" />
+                  <TextBlock Classes="etiqueta monto" Text="{Binding Pagado, Converter={StaticResource Bs}}" TextAlignment="Right" />
+                </StackPanel>
+                <TextBlock Grid.Column="2" Classes="monto" Text="{Binding Saldo, Converter={StaticResource Bs}}" TextAlignment="Right" FontWeight="SemiBold" />
+                <StackPanel Grid.Column="3" Spacing="4">
+                  <TextBlock Classes="etiqueta" TextAlignment="Right" Text="{Binding CreadoLocal, StringFormat='{}{0:dd/MM/yyyy}'}" />
+                  <TextBlock Classes="etiqueta" TextAlignment="Right" Text="{Binding CreadoLocal, StringFormat='{}{0:HH:mm}'}" />
+                </StackPanel>
               </Grid>
             </DataTemplate>
           </ListBox.ItemTemplate>
@@ -76,9 +79,10 @@
     </Border>
 
     <!-- Abono -->
-    <Border Grid.Row="2" Grid.Column="2" Classes="tarjeta" VerticalAlignment="Top">
+    <Border Grid.Row="3" Grid.Column="2" Classes="superficie" VerticalAlignment="Top">
       <StackPanel Spacing="8">
-        <TextBlock Classes="subtitulo" Text="Cobrar saldo" />
+        <TextBlock Classes="subtitulo" Text="Gestionar venta" />
+        <Button Classes="peligro" Content="Anular venta" Command="{Binding PrepararAnulacionCommand}" IsVisible="{Binding PuedeAnular}" IsEnabled="{Binding !Ocupado}" />
         <TextBlock Classes="etiqueta" TextWrapping="Wrap" IsVisible="{Binding !OperaCaja}"
                    Text="Los saldos los cobra caja. Aquí puedes revisar las ventas y lo que queda pendiente." />
         <TextBlock Classes="etiqueta" TextWrapping="Wrap" IsVisible="{Binding OperaCaja}"
@@ -100,6 +104,21 @@
                      Text="Se necesita la caja abierta. Con el saldo en cero, la orden de laboratorio se puede entregar." />
         </StackPanel>
       </StackPanel>
+    </Border>
+    <Border Grid.RowSpan="4" Grid.ColumnSpan="3" Background="{StaticResource Velo}" IsVisible="{Binding ConfirmandoAnulacion}">
+      <Border Classes="superficie" Width="460" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <StackPanel Spacing="12" IsEnabled="{Binding !Ocupado}">
+          <TextBlock Classes="subtitulo" Text="Confirmar anulación" />
+          <TextBlock Text="ENAI devolverá las existencias y registrará el reembolso por los medios de pago originales. Si hubo cobros, la caja debe estar abierta." TextWrapping="Wrap" />
+          <TextBlock Text="Motivo de anulación" />
+          <TextBox Text="{Binding MotivoAnulacion}" MaxLength="300" AcceptsReturn="True" Height="80" TextWrapping="Wrap" />
+          <TextBlock Classes="error" Text="{Binding Error}" />
+          <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+            <Button Content="Conservar venta" Command="{Binding CancelarAnulacionCommand}" />
+            <Button Classes="peligro" Content="Confirmar anulación" Command="{Binding AnularCommand}" />
+          </StackPanel>
+        </StackPanel>
+      </Border>
     </Border>
   </Grid>
 </UserControl>

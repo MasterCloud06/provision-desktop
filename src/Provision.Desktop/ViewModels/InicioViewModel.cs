@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Provision.Core;
 using Provision.Core.Api;
@@ -32,6 +32,9 @@ public sealed partial class InicioViewModel(Sesion sesion) : ViewModelBase, ISec
     [ObservableProperty] private string _estadoCaja = "";
     [ObservableProperty] private bool _cajaAbierta;
 
+    public bool VerTendencia => sesion.Puede("ventas.ver");
+    [ObservableProperty] private IReadOnlyList<PuntoSerie> _evolucion = [];
+    [ObservableProperty] private string _comparacion = "";
     public Task ActivarAsync() => ActualizarAsync();
 
     [RelayCommand]
@@ -54,5 +57,15 @@ public sealed partial class InicioViewModel(Sesion sesion) : ViewModelBase, ISec
                 (d.OrdenesTrabajo.TryGetValue(Enumeraciones.ApiValor(e), out var n) ? n : 0).ToString()))
             .ToList();
         TopProductos = d.TopProductos;
+        if (VerTendencia)
+        {
+            var hoy = DateOnly.FromDateTime(DateTime.UtcNow.AddHours(-4));
+            var ventas = await sesion.Api.VentasAsync(hoy.AddDays(-13), hoy);
+            var serie = SeriesVisuales.VentasDiarias(ventas.Datos, hoy, 14);
+            Evolucion = serie.Skip(7).ToList();
+            var anterior = serie.Take(7).Sum(x => x.Valor);
+            var actual = serie.Skip(7).Sum(x => x.Valor);
+            Comparacion = anterior == 0 ? "Sin base de comparación en los 7 días anteriores" : $"{(actual / anterior - 1) * 100:+0.0;-0.0;0}% frente a los 7 días anteriores";
+        }
     });
 }

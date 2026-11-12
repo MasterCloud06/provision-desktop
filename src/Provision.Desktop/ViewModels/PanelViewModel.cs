@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Provision.Core.Api;
 using Provision.Desktop.Servicios;
@@ -18,10 +18,10 @@ public sealed class TareaItem(TareaPanel t, string? textoBoton, IAsyncRelayComma
     public bool EsOk { get; } = t.Urgencia == Urgencia.Ok;
     public string Etiqueta { get; } = t.Urgencia switch
     {
-        Urgencia.Alta => "URGENTE",
-        Urgencia.Media => "PENDIENTE",
-        Urgencia.Info => "PARA HOY",
-        _ => "AL DÍA",
+        Urgencia.Alta => "Urgente",
+        Urgencia.Media => "Pendiente",
+        Urgencia.Info => "Para hoy",
+        _ => "Al día",
     };
     public bool TieneBoton { get; } = ir is not null;
     public string TextoBoton { get; } = textoBoton ?? "";
@@ -69,6 +69,11 @@ public sealed partial class PanelViewModel(Sesion sesion, Func<string, Task> irA
     [ObservableProperty] private IReadOnlyList<IndicadorPanel> _indicadores = [];
     [ObservableProperty] private string _actualizado = "";
 
+    public bool VerVentas => sesion.Puede("ventas.ver");
+    public bool VerAgenda => sesion.Puede("citas.gestionar");
+    [ObservableProperty] private IReadOnlyList<VentaResumen> _ventasRecientes = [];
+    [ObservableProperty] private IReadOnlyList<CitaAgenda> _citasHoy = [];
+    [ObservableProperty] private IReadOnlyList<PuntoSerie> _evolucion = [];
     public Task ActivarAsync() => ActualizarAsync();
 
     [RelayCommand]
@@ -88,6 +93,14 @@ public sealed partial class PanelViewModel(Sesion sesion, Func<string, Task> irA
                 destino is null ? null : NombresPantalla.GetValueOrDefault(destino, "Ir"),
                 destino is null ? null : new AsyncRelayCommand(() => irA(destino)));
         }).ToList();
+        var hoy = DateOnly.FromDateTime(DateTime.UtcNow.AddHours(-4));
+        if (VerVentas)
+        {
+            var ventas = await sesion.Api.VentasAsync(hoy.AddDays(-6), hoy);
+            VentasRecientes = ventas.Datos.OrderByDescending(v => v.CreadoEn).Take(5).ToList();
+            Evolucion = SeriesVisuales.VentasDiarias(ventas.Datos, hoy);
+        }
+        if (VerAgenda) CitasHoy = (await sesion.Api.CitasAsync(hoy, hoy)).OrderBy(c => c.Hora).ToList();
         Actualizado = $"Actualizado a las {DateTime.Now:HH:mm}";
     });
 }

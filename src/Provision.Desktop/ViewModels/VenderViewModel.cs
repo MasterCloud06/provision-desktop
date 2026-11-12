@@ -29,6 +29,7 @@ public sealed partial class LineaCarrito : ObservableObject
     [RelayCommand]
     private void Sumar()
     {
+        if (_venta.CobrarCommand.IsRunning) return;
         if (Producto.ControlaStock && Cantidad >= Producto.Stock)
         {
             _venta.MostrarError($"Solo hay {Producto.Stock} unidades de \"{Producto.Nombre}\"");
@@ -40,6 +41,7 @@ public sealed partial class LineaCarrito : ObservableObject
     [RelayCommand]
     private void Restar()
     {
+        if (_venta.CobrarCommand.IsRunning) return;
         if (Cantidad > 1) Cantidad--;
         else _venta.Quitar(this);
     }
@@ -84,16 +86,55 @@ public sealed partial class VenderViewModel : ViewModelBase, ISeccion
 
     public Task ActivarAsync() => BuscarAsync();
 
-    [RelayCommand]
-    private Task BuscarAsync() => IntentarAsync(async () =>
+    [ObservableProperty] private int _pagina = 1;
+    [ObservableProperty] private int _totalResultados;
+    public string ResumenProductos => $"{TotalResultados} productos · página {Pagina}";
+    public bool HayAnterior => Pagina > 1;
+    public bool HaySiguiente => Pagina * 30 < TotalResultados;
+
+    partial void OnPaginaChanged(int value) => ActualizarPaginacion();
+    partial void OnTotalResultadosChanged(int value) => ActualizarPaginacion();
+    private void ActualizarPaginacion()
     {
-        var r = await _sesion.Api.ProductosAsync(buscar: Busqueda, activo: true, porPagina: 50);
+        OnPropertyChanged(nameof(ResumenProductos));
+        OnPropertyChanged(nameof(HayAnterior));
+        OnPropertyChanged(nameof(HaySiguiente));
+    }
+
+    [RelayCommand]
+    private async Task AnteriorAsync() { if (HayAnterior) { Pagina--; await CargarProductosAsync(); } }
+    [RelayCommand]
+    private async Task SiguienteAsync() { if (HaySiguiente) { Pagina++; await CargarProductosAsync(); } }
+
+    [RelayCommand]
+    private async Task EscanearAsync()
+    {
+        if (CobrarCommand.IsRunning) return;
+        await BuscarAsync();
+        var codigo = Busqueda.Trim();
+        var exactos = Resultados.Where(p => string.Equals(p.Sku, codigo, StringComparison.OrdinalIgnoreCase)
+            || (!string.IsNullOrWhiteSpace(p.CodigoBarras) && p.CodigoBarras == codigo)).ToList();
+        if (Error is null && codigo.Length > 0 && exactos.Count == 1)
+        {
+            Agregar(exactos[0]);
+            if (Error is null) Busqueda = "";
+        }
+    }
+
+    [RelayCommand]
+    private Task BuscarAsync() { Pagina = 1; return CargarProductosAsync(); }
+
+    private Task CargarProductosAsync() => IntentarAsync(async () =>
+    {
+        var r = await _sesion.Api.ProductosAsync(buscar: Busqueda, activo: true, pagina: Pagina, porPagina: 30);
         Resultados = r.Datos;
+        TotalResultados = r.Total;
     });
 
     [RelayCommand]
     private void Agregar(Producto producto)
     {
+        if (CobrarCommand.IsRunning) return;
         Error = null;
         var existente = Carrito.FirstOrDefault(l => l.Producto.Id == producto.Id);
         if (existente is not null)
@@ -126,6 +167,7 @@ public sealed partial class VenderViewModel : ViewModelBase, ISeccion
 
     internal void Quitar(LineaCarrito linea)
     {
+        if (CobrarCommand.IsRunning) return;
         Carrito.Remove(linea);
         Recalcular();
     }
@@ -134,13 +176,14 @@ public sealed partial class VenderViewModel : ViewModelBase, ISeccion
 
     internal void Recalcular()
     {
+        var anterior = Saldo;
         Subtotal = Carrito.Sum(l => l.Total);
         Descuento = Dinero.TryLeer(DescuentoTexto, out var d) ? Math.Clamp(d, 0, Subtotal) : 0;
         Total = Subtotal - Descuento;
         Pagado = Pagos.Sum(p => p.Monto);
         Saldo = Total - Pagado;
         LlevaLentes = Carrito.Any(l => l.Producto.Tipo == TipoProducto.LenteOftalmico);
-        if (OperaCaja && (string.IsNullOrWhiteSpace(MontoPagoTexto) || Saldo > 0)) MontoPagoTexto = Saldo > 0 ? Dinero.ParaEditar(Saldo) : "";
+        if (OperaCaja && (string.IsNullOrWhiteSpace(MontoPagoTexto) || MontoPagoTexto == Dinero.ParaEditar(anterior))) MontoPagoTexto = Saldo > 0 ? Dinero.ParaEditar(Saldo) : "";
         CobrarCommand.NotifyCanExecuteChanged();
     }
 
@@ -204,6 +247,7 @@ public sealed partial class VenderViewModel : ViewModelBase, ISeccion
     [RelayCommand]
     private void AgregarPago()
     {
+        if (CobrarCommand.IsRunning || !OperaCaja) return;
         if (!Dinero.TryLeer(MontoPagoTexto, out var monto) || monto <= 0) { Falla("Monto de pago inválido"); return; }
         if (monto > Saldo)
         {
@@ -225,6 +269,7 @@ public sealed partial class VenderViewModel : ViewModelBase, ISeccion
 
     internal void QuitarPago(PagoAgregado pago)
     {
+        if (CobrarCommand.IsRunning) return;
         Pagos.Remove(pago);
         Recalcular();
     }
@@ -238,7 +283,9 @@ public sealed partial class VenderViewModel : ViewModelBase, ISeccion
 
     [ObservableProperty] private VentaRegistrada? _ultimaVenta;
 
-    private bool PuedeCobrar() => Carrito.Count > 0 && (Saldo == 0 || Cliente is not null);
+    private bool PuedeCobrar() => !Ocupado && _sesion.Puede("ventas.crear") && Carrito.Count > 0 && Saldo >= 0 && (Saldo == 0 || Cliente is not null);
+
+    protected override void AlCambiarOcupado(bool ocupado) => CobrarCommand.NotifyCanExecuteChanged();
 
     [RelayCommand(CanExecute = nameof(PuedeCobrar))]
     private async Task CobrarAsync()
@@ -271,9 +318,14 @@ public sealed partial class VenderViewModel : ViewModelBase, ISeccion
         Aviso = resumen;
     }
 
-    [RelayCommand]
+    [ObservableProperty] private bool _confirmandoNuevaVenta;
+    [RelayCommand] private void NuevaVenta() { if (Carrito.Count > 0) ConfirmandoNuevaVenta = true; else Limpiar(); }
+    [RelayCommand] private void CancelarNuevaVenta() => ConfirmandoNuevaVenta = false;
+    [RelayCommand] private void ConfirmarNuevaVenta() { if (!CobrarCommand.IsRunning) Limpiar(); }
+
     private void Limpiar()
     {
+        ConfirmandoNuevaVenta = false;
         Carrito.Clear();
         Pagos.Clear();
         Cliente = null;

@@ -3,7 +3,7 @@
 using Provision.Core;
 using Provision.Core.Api;
 
-var url = args.ElementAtOrDefault(0) ?? "http://localhost:3000/api/v1";
+var url = args.ElementAtOrDefault(0) ?? "http://localhost:5080/api/optica/provision/v1";
 var email = args.ElementAtOrDefault(1) ?? "admin@provision.local";
 var password = args.ElementAtOrDefault(2) ?? "CambiaEsto123";
 
@@ -56,19 +56,15 @@ Comprobar(conFicha.Descripcion == "Liviana, acetato italiano" && conFicha.Medida
     $"ficha del producto: {conFicha.Medidas}, {conFicha.Atributos.Genero}, oculto en la tienda");
 await api.ActualizarProductoAsync(producto.Id, new CambiosProducto { VisibleTienda = true });
 
-// Foto: un JPG mínimo. Sin Cloudinary configurado, el servidor responde FOTOS_NO_CONFIGURADAS.
-byte[] jpg = [0xFF, 0xD8, 0xFF, 0xE0, 0, 0x10, 0x4A, 0x46, 0x49, 0x46, 0, 1, .. new byte[200]];
-try
-{
-    var conFoto = await api.SubirFotoAsync(producto.Id, jpg, "image/jpeg");
-    Comprobar(conFoto.ImagenUrl is not null, $"foto subida: {conFoto.ImagenUrl}");
-    var sinFoto = await api.QuitarFotoAsync(producto.Id);
-    Comprobar(sinFoto.ImagenUrl is null, "foto quitada");
-}
-catch (ApiException ex) when (ex.Codigo == "FOTOS_NO_CONFIGURADAS")
-{
-    Comprobar(true, "foto: el servidor avisa que falta configurar Cloudinary");
-}
+// Foto local: PNG valido, lectura autenticada y eliminacion.
+byte[] png = Convert.FromBase64String("iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAIAAAAmkwkpAAAAEUlEQVR4nGNQmHAAjhiI4wAATFIXAWG4OKoAAAAASUVORK5CYII=");
+var conFoto = await api.SubirFotoAsync(producto.Id, png, "image/png", nombre: "prueba.png");
+Comprobar(conFoto.ImagenUrl?.StartsWith("imagenes/") == true, "foto almacenada en ENAI");
+Comprobar((await http.DescargarFotoAsync(conFoto.ImagenUrl!)).SequenceEqual(png), "foto recuperada desde Desktop");
+var sinFoto = await api.QuitarFotoAsync(producto.Id);
+Comprobar(sinFoto.ImagenUrl is null, "foto quitada");
+if (args.Contains("--fotos-only")) return fallos == 0 ? 0 : 1;
+
 var lente = await api.CrearProductoAsync(new NuevoProducto
 {
     Sku = "LEN-" + sufijo, Nombre = "Lente de prueba " + sufijo, Tipo = TipoProducto.LenteOftalmico,

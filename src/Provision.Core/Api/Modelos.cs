@@ -148,7 +148,7 @@ public sealed record Producto
     public string Nombre { get; init; } = "";
     public string? Descripcion { get; init; }
     public AtributosProducto Atributos { get; init; } = new();
-    /// <summary>Foto pública (Cloudinary). Null = sin foto.</summary>
+    /// <summary>Foto pública (ENAI). Null = sin foto.</summary>
     public string? ImagenUrl { get; init; }
     /// <summary>Si aparece en la tienda web para los clientes.</summary>
     public bool VisibleTienda { get; init; } = true;
@@ -172,23 +172,35 @@ public sealed record Producto
         : null;
 }
 
-/// <summary>Edición de producto: solo se envían los campos que no son null.</summary>
+/// <summary>Edición de producto: campos ausentes se conservan; null explícito borra el valor.</summary>
 public sealed record CambiosProducto
 {
-    public string? Sku { get; init; }
-    public string? CodigoBarras { get; init; }
-    public string? Nombre { get; init; }
-    public TipoProducto? Tipo { get; init; }
-    public Guid? MarcaId { get; init; }
-    public string? Modelo { get; init; }
-    public long? PrecioVenta { get; init; }
-    public int? StockMinimo { get; init; }
-    public bool? Activo { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public CampoPatch<string?> Sku { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public CampoPatch<string?> CodigoBarras { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public CampoPatch<string?> Nombre { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public CampoPatch<TipoProducto?> Tipo { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public CampoPatch<Guid?> MarcaId { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public CampoPatch<string?> Modelo { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public CampoPatch<long?> PrecioVenta { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public CampoPatch<int?> StockMinimo { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public CampoPatch<bool?> Activo { get; init; }
     /// <summary>"" la deja vacía.</summary>
-    public string? Descripcion { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public CampoPatch<string?> Descripcion { get; init; }
     /// <summary>Reemplaza todas las características.</summary>
-    public AtributosProducto? Atributos { get; init; }
-    public bool? VisibleTienda { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public CampoPatch<AtributosProducto?> Atributos { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public CampoPatch<bool?> VisibleTienda { get; init; }
 }
 
 public sealed record ResultadoEliminar
@@ -952,6 +964,9 @@ public sealed record VersionPublicada
     public long? Tamano { get; init; }
     public string? Notas { get; init; }
     public DateTimeOffset PublicadaEn { get; init; }
+
+    /// <summary>SHA-256 en hexadecimal del archivo (ENAI lo publica; el backend antiguo no).</summary>
+    public string? Sha256 { get; init; }
 }
 
 public sealed record InfoActualizaciones
@@ -959,4 +974,26 @@ public sealed record InfoActualizaciones
     public bool Obligatoria { get; init; }
     public VersionPublicada? Escritorio { get; init; }
     public VersionPublicada? Android { get; init; }
+}
+
+public sealed record CambiosCliente
+{
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public CampoPatch<string?> Nombre { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public CampoPatch<string?> Ci { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public CampoPatch<string?> Telefono { get; init; }
+}
+
+public sealed record MovimientoInventario
+{
+    public Guid Id { get; init; }
+    public string Tipo { get; init; } = "";
+    public int Cantidad { get; init; }
+    public int StockResultante { get; init; }
+    public string? Motivo { get; init; }
+    public string? Usuario { get; init; }
+    public DateTimeOffset CreadoEn { get; init; }
+    public DateTime CreadoLocal => CreadoEn.LocalDateTime;
 }

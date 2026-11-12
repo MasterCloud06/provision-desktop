@@ -5,6 +5,7 @@ namespace Provision.Desktop.ViewModels;
 
 public abstract partial class ViewModelBase : ObservableObject
 {
+    private int _operaciones;
     [ObservableProperty] private bool _ocupado;
     [ObservableProperty] private string? _error;
     [ObservableProperty] private string? _aviso;
@@ -17,6 +18,7 @@ public abstract partial class ViewModelBase : ObservableObject
     {
         Error = null;
         Aviso = mensajeEspera;
+        _operaciones++;
         Ocupado = true;
         try
         {
@@ -36,7 +38,7 @@ public abstract partial class ViewModelBase : ObservableObject
         }
         finally
         {
-            Ocupado = false;
+            Ocupado = --_operaciones > 0;
         }
     }
 

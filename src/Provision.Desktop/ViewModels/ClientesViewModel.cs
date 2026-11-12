@@ -37,7 +37,9 @@ public sealed partial class ClientesViewModel(Sesion sesion) : ViewModelBase, IS
 
     private Task CargarFichaAsync(Guid id) => IntentarAsync(async () =>
     {
-        Ficha = await sesion.Api.ClienteAsync(id);
+        var ficha = await sesion.Api.ClienteAsync(id);
+        if (Seleccionado?.Id != id) return;
+        Ficha = ficha;
         EditNombre = Ficha.Nombre;
         EditCi = Ficha.Ci ?? "";
         EditTelefono = Ficha.Telefono ?? "";
@@ -83,7 +85,7 @@ public sealed partial class ClientesViewModel(Sesion sesion) : ViewModelBase, IS
         if (Ficha is null) return;
         if (EditNombre.Trim().Length < 2) { Falla("El nombre es muy corto"); return; }
         var id = Ficha.Id;
-        var cambios = new NuevoCliente { Nombre = EditNombre.Trim(), Ci = Vacio(EditCi), Telefono = Vacio(EditTelefono) };
+        var cambios = new CambiosCliente { Nombre = EditNombre.Trim(), Ci = Vacio(EditCi), Telefono = Vacio(EditTelefono) };
         if (!await IntentarAsync(() => sesion.Api.ActualizarClienteAsync(id, cambios))) return;
         await BuscarAsync();
         Seleccionado = Clientes.FirstOrDefault(x => x.Id == id);

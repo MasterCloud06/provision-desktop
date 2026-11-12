@@ -1,4 +1,4 @@
-<UserControl xmlns="https://github.com/avaloniaui"
+﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Provision.Desktop.ViewModels"
              xmlns:ui="using:Provision.Desktop.Controles"
@@ -10,7 +10,7 @@
 
       <Grid ColumnDefinitions="*,Auto">
         <StackPanel Spacing="2">
-          <TextBlock Classes="titulo" Text="{Binding Saludo}" />
+          <TextBlock Classes="titulo" Text="Indicadores del negocio" />
           <TextBlock Classes="etiqueta" Text="{Binding Fecha}" FontSize="14" />
         </StackPanel>
         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
@@ -38,14 +38,14 @@
       <ItemsControl ItemsSource="{Binding Indicadores}">
         <ItemsControl.ItemsPanel>
           <ItemsPanelTemplate>
-            <UniformGrid Columns="5" />
+            <UniformGrid Columns="3" />
           </ItemsPanelTemplate>
         </ItemsControl.ItemsPanel>
         <ItemsControl.ItemTemplate>
           <DataTemplate x:DataType="vm:Indicador">
-            <Border Classes="tarjeta" Margin="0,0,12,0">
+            <Border Classes="superficie" Margin="0,0,12,12">
               <StackPanel Spacing="6">
-                <TextBlock Classes="etiqueta" Text="{Binding Titulo}" />
+                <TextBlock Classes="etiqueta" Text="{Binding Titulo}" TextWrapping="Wrap" />
                 <TextBlock Classes="cifra" Text="{Binding Valor}" />
                 <TextBlock Classes="etiqueta" Text="{Binding Detalle}" TextWrapping="Wrap" />
               </StackPanel>
@@ -54,9 +54,10 @@
         </ItemsControl.ItemTemplate>
       </ItemsControl>
 
+      <Border Classes="superficie" IsVisible="{Binding VerTendencia}"><StackPanel Spacing="12"><Grid ColumnDefinitions="*,Auto"><TextBlock Text="Ventas · últimos 7 días" Classes="subtitulo"/><TextBlock Grid.Column="1" Text="Bolivianos (Bs)" Classes="etiqueta"/></Grid><ui:GraficoBarras Height="220" Datos="{Binding Evolucion}"/><TextBlock Text="{Binding Comparacion}" Classes="etiqueta"/></StackPanel></Border>
       <Grid ColumnDefinitions="2*,16,*">
         <!-- Más vendidos -->
-        <Border Classes="tarjeta">
+        <Border Classes="superficie">
           <StackPanel Spacing="10">
             <TextBlock Classes="subtitulo" Text="Más vendidos del mes" />
             <TextBlock Classes="etiqueta" Text="Aún no hay ventas este mes."
@@ -78,14 +79,14 @@
         </Border>
 
         <!-- Laboratorio -->
-        <Border Grid.Column="2" Classes="tarjeta">
+        <Border Grid.Column="2" Classes="superficie">
           <StackPanel Spacing="10">
             <TextBlock Classes="subtitulo" Text="Laboratorio" />
             <ItemsControl ItemsSource="{Binding Laboratorio}">
               <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="vm:Indicador">
                   <Grid ColumnDefinitions="*,Auto" Margin="0,4">
-                    <TextBlock Text="{Binding Titulo}" />
+                    <TextBlock Text="{Binding Titulo}" TextWrapping="Wrap" />
                     <TextBlock Grid.Column="1" Text="{Binding Valor}" FontWeight="SemiBold" />
                   </Grid>
                 </DataTemplate>

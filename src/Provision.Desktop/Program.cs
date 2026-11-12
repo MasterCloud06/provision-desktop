@@ -9,7 +9,6 @@ internal static class Program
     {
         // Cada petición dice qué compilación es: el backend bloquea las que ya no son la última.
         Core.Api.ApiClient.IdentificacionApp = $"escritorio/{Servicios.Actualizador.Compilacion}";
-        Servicios.Actualizador.LimpiarAnterior();
         BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
     }
 

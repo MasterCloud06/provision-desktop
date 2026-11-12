@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Provision.Core.Api;
 using Provision.Desktop.Servicios;
@@ -47,6 +47,7 @@ public sealed partial class LaboratorioViewModel : ViewModelBase, ISeccion
     [ObservableProperty] private IReadOnlyList<AccionTrabajo> _acciones = [];
     [ObservableProperty] private string _nota = "";
 
+    [RelayCommand] private void FiltrarEtapa(string clave) => Filtro = Filtros.First(x => x.Valor == clave);
     public Task ActivarAsync() => CargarAsync();
 
     partial void OnFiltroChanged(Opcion<string> value) => _ = CargarAsync();
@@ -75,7 +76,9 @@ public sealed partial class LaboratorioViewModel : ViewModelBase, ISeccion
 
     private Task CargarDetalleAsync(Guid id) => IntentarAsync(async () =>
     {
-        Detalle = await _sesion.Api.OrdenTrabajoAsync(id);
+        var detalle = await _sesion.Api.OrdenTrabajoAsync(id);
+        if (Seleccionada?.Id != id) return;
+        Detalle = detalle;
         Acciones = AccionesPara(Detalle.Estado);
     });
 
@@ -110,7 +113,7 @@ public sealed partial class LaboratorioViewModel : ViewModelBase, ISeccion
 
     private async Task MoverAsync(EstadoTrabajo destino)
     {
-        if (Seleccionada is not { } orden) return;
+        if (Ocupado || Seleccionada is not { } orden) return;
         var nota = string.IsNullOrWhiteSpace(Nota) ? null : Nota.Trim();
         if (!await IntentarAsync(() => _sesion.Api.CambiarEstadoTrabajoAsync(orden.Id, destino, nota))) return;
         Nota = "";

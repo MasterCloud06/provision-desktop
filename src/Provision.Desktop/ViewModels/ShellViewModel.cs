@@ -30,14 +30,25 @@ public sealed partial class OpcionMenu(string clave, string titulo, Geometry ico
     public IRelayCommand? Seleccionar { get; set; }
 }
 
+public sealed record GrupoMenu(string Titulo, IReadOnlyList<OpcionMenu> Opciones);
+
 public sealed partial class ShellViewModel : ViewModelBase
 {
     private readonly Action _alSalir;
+    private IReadOnlyList<Core.Api.Sucursal>? _sucursales;
 
     public ShellViewModel(Sesion sesion, Action alSalir)
     {
         Sesion = sesion;
         _alSalir = alSalir;
+        sesion.PermisosCambiados += (_, _) => ReconstruirMenu();
+        ReconstruirMenu();
+        _ = IrAAsync(Menu[0]);
+    }
+
+    private void ReconstruirMenu()
+    {
+        var sesion = Sesion;
         // Cada pantalla aparece solo si el rol tiene el permiso que la habilita (null = todos).
         var opciones = new (string clave, string titulo, Geometry icono, string? permiso, Func<ViewModelBase> crear)[]
         {
@@ -64,11 +75,41 @@ public sealed partial class ShellViewModel : ViewModelBase
             var o = opcion;
             o.Seleccionar = new AsyncRelayCommand(() => IrAAsync(o));
         }
-        _ = IrAAsync(Menu[0]);
+        Grupos = new[] {
+            new GrupoMenu("Visión del negocio", Menu.Where(x => x.Clave is "panel" or "indicadores" or "auditoria").ToList()),
+            new GrupoMenu("Operación comercial", Menu.Where(x => x.Clave is "vender" or "ventas" or "pedidos" or "caja").ToList()),
+            new GrupoMenu("Atención óptica", Menu.Where(x => x.Clave is "agenda" or "laboratorio" or "clientes").ToList()),
+            new GrupoMenu("Administración", Menu.Where(x => x.Clave is "inventario" or "usuarios" or "finanzas").ToList())
+        }.Where(x => x.Opciones.Count > 0).ToList();
+        OnPropertyChanged(nameof(Grupos));
+        OnPropertyChanged(nameof(PuedeVender));
+        OnPropertyChanged(nameof(Menu));
+        OnPropertyChanged(nameof(NombreUsuario));
+        OnPropertyChanged(nameof(ContextoOperacion));
+        OnPropertyChanged(nameof(RolUsuario));
+        OnPropertyChanged(nameof(Iniciales));
+        TituloSeccion = Menu[0].Titulo;
+        CategoriaSeccion = Grupos[0].Titulo;
+        _sucursales = null;
+        SeccionActual = Menu[0].Vista;
+        Menu[0].Activo = true;
     }
 
+    public IReadOnlyList<GrupoMenu> Grupos { get; private set; } = [];
+    [ObservableProperty] private string _tituloSeccion = "Mi panel";
+    [ObservableProperty] private string _categoriaSeccion = "Visión del negocio";
+    [ObservableProperty] private string _sucursalActual = "Sin sucursal asignada";
+    public bool PuedeVender => Sesion.Puede("ventas.crear");
+    [RelayCommand] private Task IrAVenderAsync() => IrAAsync("vender");
+    [RelayCommand] private async Task ActualizarSeccionAsync()
+    {
+        await RefrescarSesionAsync();
+        if (SeccionActual is ISeccion seccion) await seccion.ActivarAsync();
+    }
     public Sesion Sesion { get; }
-    public IReadOnlyList<OpcionMenu> Menu { get; }
+    public IReadOnlyList<OpcionMenu> Menu { get; private set; } = [];
+
+    public string ContextoOperacion => $"Provisión · {RolUsuario} · {Sesion.Entorno.Nombre}";
 
     public string NombreUsuario => Sesion.Usuario.Nombre;
 
@@ -96,10 +137,23 @@ public sealed partial class ShellViewModel : ViewModelBase
 
     private async Task IrAAsync(OpcionMenu opcion)
     {
+        if (!await IntentarAsync(() => Sesion.RefrescarAsync())) return;
+        opcion = Menu.FirstOrDefault(o => o.Clave == opcion.Clave) ?? Menu[0];
         foreach (var o in Menu) o.Activo = o == opcion;
+        TituloSeccion = opcion.Titulo;
+        CategoriaSeccion = Grupos.First(g => g.Opciones.Contains(opcion)).Titulo;
+        SucursalActual = "Sin sucursal asignada";
+        if (Sesion.Usuario.SucursalId is { } id)
+        {
+            // El nombre es contexto auxiliar: una falla no debe impedir abrir la sección.
+            if (_sucursales is null) await IntentarAsync(async () => _sucursales = await Sesion.Api.SucursalesAsync());
+            SucursalActual = _sucursales?.FirstOrDefault(s => s.Id == id)?.Nombre ?? "Sucursal asignada";
+        }
         SeccionActual = opcion.Vista;
         if (opcion.Vista is ISeccion s) await s.ActivarAsync();
     }
+
+    public Task RefrescarSesionAsync() => IntentarAsync(() => Sesion.RefrescarAsync());
 
     [RelayCommand]
     private void CerrarSesion() => _alSalir();

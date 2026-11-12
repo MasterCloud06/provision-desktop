@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Provision.Core;
@@ -41,6 +41,7 @@ public sealed partial class FinanzasViewModel : ViewModelBase, ISeccion
     /* Datos */
 
     [ObservableProperty] private ResumenFinanzas? _resumen;
+    [ObservableProperty] private IReadOnlyList<PuntoSerie> _balanceVisual = [];
     [ObservableProperty] private IReadOnlyList<CuentaPersonal> _cuentas = [];
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(SinMovimientos))]
@@ -59,6 +60,7 @@ public sealed partial class FinanzasViewModel : ViewModelBase, ISeccion
         var cuentas = await _sesion.Api.CuentasAsync();
         Cuentas = cuentas.Lista.Where(c => !c.Archivada).ToList();
         Resumen = await _sesion.Api.ResumenFinanzasAsync(MesApi);
+        BalanceVisual = [new("Ingresos", Resumen.Ingresos / 100d), new("Gastos", Resumen.Gastos / 100d)];
         Presupuesto = Resumen.Presupuesto;
         GastosPorCategoria = Resumen.PorCategoria.Where(c => c.Tipo == TipoCategoria.Gasto).ToList();
         var nombres = Cuentas.ToDictionary(c => c.Id, c => c.Nombre);

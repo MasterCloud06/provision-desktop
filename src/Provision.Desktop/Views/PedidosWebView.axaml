@@ -1,16 +1,16 @@
-<UserControl xmlns="https://github.com/avaloniaui"
+﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Provision.Desktop.ViewModels"
              xmlns:ui="using:Provision.Desktop.Controles"
              xmlns:api="using:Provision.Core.Api"
              x:Class="Provision.Desktop.Views.PedidosWebView"
              x:DataType="vm:PedidosWebViewModel">
-  <Grid Margin="24" RowDefinitions="Auto,Auto,*" ColumnDefinitions="*,16,380">
+  <Grid Margin="{StaticResource MargenPagina}" RowDefinitions="Auto,Auto,Auto,*" ColumnDefinitions="*,16,320">
 
     <Grid Grid.ColumnSpan="3" ColumnDefinitions="*,Auto,Auto,Auto" Margin="0,0,0,12">
       <StackPanel>
         <TextBlock Classes="titulo" Text="Pedidos web" />
-        <TextBlock Classes="etiqueta" Text="{Binding Resumen}" FontSize="14" />
+        <TextBlock Classes="etiqueta" Text="{Binding Resumen}" FontSize="14" TextWrapping="Wrap" />
       </StackPanel>
       <TextBox Grid.Column="1" Width="220" Text="{Binding Busqueda}" Watermark="Número, nombre o correo + Enter"
                VerticalAlignment="Center" Margin="0,0,8,0">
@@ -38,16 +38,14 @@
       </Border>
     </StackPanel>
 
+    <Border Grid.Row="2" Grid.ColumnSpan="3" Classes="banda" Margin="0,0,0,16"><Grid ColumnDefinitions="*,24,*,24,*"><StackPanel><TextBlock Text="Preparación" FontWeight="SemiBold"/><TextBlock Text="Pago y productos" Classes="etiqueta"/></StackPanel><ui:Icono Grid.Column="1" Data="{x:Static ui:Iconos.Siguiente}" Width="14"/><StackPanel Grid.Column="2"><TextBlock Text="Despacho" FontWeight="SemiBold"/><TextBlock Text="Retiro o envío" Classes="etiqueta"/></StackPanel><ui:Icono Grid.Column="3" Data="{x:Static ui:Iconos.Siguiente}" Width="14"/><StackPanel Grid.Column="4"><TextBlock Text="Entrega" FontWeight="SemiBold"/><TextBlock Text="Venta registrada" Classes="etiqueta"/></StackPanel></Grid></Border>
     <!-- Lista -->
-    <Border Grid.Row="2" Classes="tarjeta" Padding="8">
+    <Border Grid.Row="3" Classes="superficie" Padding="8">
       <DockPanel>
-        <Grid DockPanel.Dock="Top" ColumnDefinitions="104,*,112,80,96,80" Margin="8,4,8,8">
-          <TextBlock Classes="etiqueta" Text="Número" />
-          <TextBlock Grid.Column="1" Classes="etiqueta" Text="Cliente" />
-          <TextBlock Grid.Column="2" Classes="etiqueta" Text="Estado" />
-          <TextBlock Grid.Column="3" Classes="etiqueta" Text="Entrega" />
-          <TextBlock Grid.Column="4" Classes="etiqueta" Text="Total" TextAlignment="Right" />
-          <TextBlock Grid.Column="5" Classes="etiqueta" Text="Fecha" TextAlignment="Right" />
+        <Grid DockPanel.Dock="Top" ColumnDefinitions="*,110,105" Margin="8,4,8,8">
+          <TextBlock Classes="etiqueta" Text="Pedido / cliente" />
+          <TextBlock Grid.Column="1" Classes="etiqueta" Text="Estado / entrega" />
+          <TextBlock Grid.Column="2" Classes="etiqueta" Text="Total / fecha" TextAlignment="Right" />
         </Grid>
         <StackPanel DockPanel.Dock="Top" Classes="vacio" IsVisible="{Binding SinPedidos}">
           <ui:Icono Data="{x:Static ui:Iconos.Pedidos}" />
@@ -56,17 +54,20 @@
         <ListBox Classes="tabla" ItemsSource="{Binding Pedidos}" SelectedItem="{Binding Seleccionado}">
           <ListBox.ItemTemplate>
             <DataTemplate x:DataType="api:PedidoWebResumen">
-              <Grid ColumnDefinitions="104,*,112,80,96,80">
-                <TextBlock Text="{Binding Numero}" FontWeight="SemiBold" />
-                <StackPanel Grid.Column="1">
-                  <TextBlock Text="{Binding NombreContacto}" TextTrimming="CharacterEllipsis" />
-                  <TextBlock Classes="etiqueta" FontSize="12" Text="{Binding Unidades, StringFormat='{}{0} unidades'}" />
+              <Grid ColumnDefinitions="*,110,105">
+                <StackPanel Spacing="3" Margin="0,0,8,0">
+                  <TextBlock Text="{Binding Numero}" FontWeight="SemiBold" />
+                  <TextBlock Text="{Binding NombreContacto}" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding NombreContacto}" />
+                  <TextBlock Classes="etiqueta" Text="{Binding Unidades, StringFormat='{}{0} unidades'}" />
                 </StackPanel>
-                <TextBlock Grid.Column="2" Text="{Binding EstadoTexto}" />
-                <TextBlock Grid.Column="3" Text="{Binding EntregaTexto}" />
-                <TextBlock Grid.Column="4" Text="{Binding Total, Converter={StaticResource Bs}}" TextAlignment="Right" FontWeight="SemiBold" />
-                <TextBlock Grid.Column="5" Classes="etiqueta" TextAlignment="Right"
-                           Text="{Binding CreadoLocal, StringFormat='{}{0:dd/MM HH:mm}'}" />
+                <StackPanel Grid.Column="1" Spacing="3">
+                  <TextBlock Text="{Binding EstadoTexto}" TextWrapping="Wrap" />
+                  <TextBlock Classes="etiqueta" Text="{Binding EntregaTexto}" />
+                </StackPanel>
+                <StackPanel Grid.Column="2" Spacing="3">
+                  <TextBlock Text="{Binding Total, Converter={StaticResource Bs}}" TextAlignment="Right" FontWeight="SemiBold" />
+                  <TextBlock Classes="etiqueta" TextAlignment="Right" Text="{Binding CreadoLocal, StringFormat='{}{0:dd/MM HH:mm}'}" />
+                </StackPanel>
               </Grid>
             </DataTemplate>
           </ListBox.ItemTemplate>
@@ -75,8 +76,8 @@
     </Border>
 
     <!-- Detalle -->
-    <ScrollViewer Grid.Row="2" Grid.Column="2">
-      <Border Classes="tarjeta" VerticalAlignment="Top">
+    <ScrollViewer Grid.Row="3" Grid.Column="2">
+      <Border Classes="superficie" VerticalAlignment="Top">
         <StackPanel Spacing="10">
           <TextBlock Classes="etiqueta" TextWrapping="Wrap" IsVisible="{Binding !HayDetalle}"
                      Text="Elige un pedido para ver qué compró el cliente, prepararlo, avisarle y entregarlo." />

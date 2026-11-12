@@ -1,3 +1,6 @@
+using System.Text.Json;
+using System.Text.Json.Nodes;
+
 namespace Provision.Core.Api;
 
 /// <summary>
@@ -6,6 +9,36 @@ namespace Provision.Core.Api;
 public sealed class ProvisionApi(ApiClient http)
 {
     public ApiClient Http { get; } = http;
+
+    // Los listados completos se consumen por páginas del servidor, nunca con un tope silencioso.
+    private async Task<T> TodasAsync<T>(string ruta, CancellationToken ct)
+    {
+        var datos = new JsonArray();
+        var vistos = new HashSet<string>();
+        JsonObject? sobre = null;
+        for (var pagina = 1; ; pagina++)
+        {
+            var respuesta = await Http.GetAsync<JsonNode>(ruta + (ruta.Contains('?') ? "&" : "?") + $"pagina={pagina}&porPagina=100", ct);
+            var lista = respuesta is JsonArray;
+            var lote = (lista ? respuesta : respuesta["datos"]) as JsonArray
+                ?? throw new ApiException(0, "CONTRATO_INVALIDO", "El servidor devolvió un listado inválido.");
+            if (!lista) sobre ??= (JsonObject)respuesta.DeepClone();
+            foreach (var item in lote)
+            {
+                var id = item?["id"]?.ToString();
+                if (id is not null && !vistos.Add(id))
+                    throw new ApiException(0, "PAGINACION_INCONSISTENTE", "La lista cambió mientras se cargaba. Actualiza para volver a consultar.");
+                datos.Add(item?.DeepClone());
+            }
+            var total = lista ? null : respuesta["total"]?.GetValue<int>();
+            if (lote.Count == 0 || (total is { } t ? datos.Count >= t : lote.Count < 100))
+            {
+                if (lista) return datos.Deserialize<T>(ApiClient.Json)!;
+                sobre!["datos"] = datos;
+                return sobre.Deserialize<T>(ApiClient.Json)!;
+            }
+        }
+    }
 
     private static string Q(params (string clave, object? valor)[] ps)
     {
@@ -68,9 +101,9 @@ public sealed class ProvisionApi(ApiClient http)
     public Task<ResultadoEliminar> EliminarProductoAsync(Guid id, CancellationToken ct = default) =>
         Http.EnviarDeleteAsync<ResultadoEliminar>($"catalogo/productos/{id}", ct);
 
-    /// <summary>Sube (o reemplaza) la foto del producto. tipo: image/jpeg, image/png, image/webp o image/heic.</summary>
-    public Task<Producto> SubirFotoAsync(Guid id, byte[] imagen, string tipo, CancellationToken ct = default) =>
-        Http.PutArchivoAsync<Producto>($"catalogo/productos/{id}/foto", imagen, tipo, ct);
+    /// <summary>Sube (o reemplaza) la foto del producto. tipo: image/jpeg, image/png, image/webp.</summary>
+    public Task<Producto> SubirFotoAsync(Guid id, byte[] imagen, string tipo, CancellationToken ct = default, string? nombre = null) =>
+        Http.PutArchivoAsync<Producto>($"catalogo/productos/{id}/foto", imagen, tipo, ct, nombre);
 
     public Task<Producto> QuitarFotoAsync(Guid id, CancellationToken ct = default) =>
         Http.EnviarDeleteAsync<Producto>($"catalogo/productos/{id}/foto", ct);
@@ -81,15 +114,11 @@ public sealed class ProvisionApi(ApiClient http)
         ".jpg" or ".jpeg" => "image/jpeg",
         ".png" => "image/png",
         ".webp" => "image/webp",
-        ".heic" or ".heif" => "image/heic",
         _ => null,
     };
 
-    /// <summary>URL de una versión reducida de la foto (Cloudinary la genera al vuelo).</summary>
-    public static string? Miniatura(string? url, int ancho = 600) =>
-        url is not null && url.Contains("res.cloudinary.com") && url.Contains("/upload/")
-            ? url.Replace("/upload/", $"/upload/c_limit,w_{ancho},f_jpg,q_auto/")
-            : url;
+    /// <summary>Ruta de la foto administrada por ENAI.</summary>
+    public static string? Miniatura(string? url, int ancho = 600) => url;
 
     /// <summary>Última versión publicada de cada app (no requiere sesión).</summary>
     public Task<InfoActualizaciones> ActualizacionesAsync(CancellationToken ct = default) =>
@@ -117,7 +146,7 @@ public sealed class ProvisionApi(ApiClient http)
 
     /// <summary>estado: un valor de la API (PAGADO, LISTO…) o POR_ATENDER; null = todos.</summary>
     public Task<PaginaPedidosWeb> PedidosWebAsync(string? estado = null, string? buscar = null, int porPagina = 100, CancellationToken ct = default) =>
-        Http.GetAsync<PaginaPedidosWeb>("pedidos-web" + Q(("estado", estado), ("q", buscar), ("porPagina", porPagina)), ct);
+        TodasAsync<PaginaPedidosWeb>("pedidos-web" + Q(("estado", estado), ("q", buscar)), ct);
 
     public Task<PedidoWeb> PedidoWebAsync(Guid id, CancellationToken ct = default) =>
         Http.GetAsync<PedidoWeb>($"pedidos-web/{id}", ct);
@@ -146,7 +175,7 @@ public sealed class ProvisionApi(ApiClient http)
     /* Clientes */
 
     public async Task<List<Cliente>> BuscarClientesAsync(string? q, CancellationToken ct = default) =>
-        (await Http.GetAsync<Pagina<Cliente>>("clientes" + Q(("q", q), ("porPagina", 30)), ct)).Datos;
+        (await TodasAsync<Pagina<Cliente>>("clientes" + Q(("q", q)), ct)).Datos;
 
     public Task<Cliente> CrearClienteAsync(NuevoCliente c, CancellationToken ct = default) =>
         Http.PostAsync<Cliente>("clientes", c, ct);
@@ -154,7 +183,7 @@ public sealed class ProvisionApi(ApiClient http)
     public Task<ClienteDetalle> ClienteAsync(Guid id, CancellationToken ct = default) =>
         Http.GetAsync<ClienteDetalle>($"clientes/{id}", ct);
 
-    public Task<Cliente> ActualizarClienteAsync(Guid id, NuevoCliente c, CancellationToken ct = default) =>
+    public Task<Cliente> ActualizarClienteAsync(Guid id, CambiosCliente c, CancellationToken ct = default) =>
         Http.PatchAsync<Cliente>($"clientes/{id}", c, ct);
 
     public Task<Receta> CrearRecetaAsync(Guid clienteId, NuevaReceta r, CancellationToken ct = default) =>
@@ -164,9 +193,8 @@ public sealed class ProvisionApi(ApiClient http)
 
     public Task<List<OrdenTrabajoFila>> OrdenesTrabajoAsync(EstadoTrabajo? estado = null, bool? atrasadas = null,
         CancellationToken ct = default) =>
-        Http.GetAsync<List<OrdenTrabajoFila>>("ordenes-trabajo" + Q(
-            ("estado", estado is null ? null : Enumeraciones.ApiValor(estado.Value)), ("atrasadas", atrasadas),
-            ("porPagina", 200)), ct);
+        TodasAsync<List<OrdenTrabajoFila>>("ordenes-trabajo" + Q(
+            ("estado", estado is null ? null : Enumeraciones.ApiValor(estado.Value)), ("atrasadas", atrasadas)), ct);
 
     public Task<OrdenTrabajoDetalle> OrdenTrabajoAsync(Guid id, CancellationToken ct = default) =>
         Http.GetAsync<OrdenTrabajoDetalle>($"ordenes-trabajo/{id}", ct);
@@ -199,9 +227,21 @@ public sealed class ProvisionApi(ApiClient http)
 
     public Task<ListaVentas> VentasAsync(DateOnly? desde = null, DateOnly? hasta = null, bool? conSaldo = null,
         CancellationToken ct = default) =>
-        Http.GetAsync<ListaVentas>("ventas" + Q(
+        TodasAsync<ListaVentas>("ventas" + Q(
             ("desde", desde?.ToString("yyyy-MM-dd")), ("hasta", hasta?.ToString("yyyy-MM-dd")),
-            ("conSaldo", conSaldo), ("porPagina", 200)), ct);
+            ("conSaldo", conSaldo)), ct);
+
+    public Task AnularVentaAsync(Guid ventaId, string motivo, CancellationToken ct = default) =>
+        Http.PostAsync<object>($"ventas/{ventaId}/anular", new { motivo }, ct);
+
+    public Task<List<MovimientoInventario>> KardexAsync(Guid productoId, CancellationToken ct = default) =>
+        TodasAsync<List<MovimientoInventario>>($"inventario/kardex/{productoId}", ct);
+
+    public Task RegistrarConteoAsync(Guid productoId, int cantidadContada, string motivo, CancellationToken ct = default) =>
+        Http.PostAsync<object>("inventario/ajustes", new { motivo, items = new[] { new { productoId, cantidadContada } } }, ct);
+
+    public Task RegistrarBajaAsync(Guid productoId, int cantidad, string motivo, CancellationToken ct = default) =>
+        Http.PostAsync<object>("inventario/salidas", new { motivo, items = new[] { new { productoId, cantidad } } }, ct);
 
     public Task RegistrarPagosAsync(Guid ventaId, IEnumerable<Pago> pagos, CancellationToken ct = default) =>
         Http.PostAsync<object>($"ventas/{ventaId}/pagos", new { pagos }, ct);
@@ -244,7 +284,7 @@ public sealed class ProvisionApi(ApiClient http)
         Http.GetAsync<List<CategoriaPersonal>>("finanzas/categorias", ct);
 
     public Task<List<TransaccionPersonal>> TransaccionesAsync(string mes, CancellationToken ct = default) =>
-        Http.GetAsync<List<TransaccionPersonal>>("finanzas/transacciones" + Q(("mes", mes), ("porPagina", 200)), ct);
+        TodasAsync<List<TransaccionPersonal>>("finanzas/transacciones" + Q(("mes", mes)), ct);
 
     public Task<TransaccionPersonal> CrearTransaccionAsync(NuevaTransaccion t, CancellationToken ct = default) =>
         Http.PostAsync<TransaccionPersonal>("finanzas/transacciones", t, ct);

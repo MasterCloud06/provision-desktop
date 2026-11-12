@@ -37,7 +37,7 @@ public sealed partial class ActualizacionViewModel(VersionPublicada? ultima) : V
         Estado = "Descargando la versión nueva…";
         try
         {
-            await Actualizador.DescargarEInstalarAsync(Ultima.Url, new Progress<double>(p =>
+            await Actualizador.DescargarEInstalarAsync(Ultima, new Progress<double>(p =>
             {
                 Progreso = p * 100;
                 Estado = $"Descargando… {p * 100:0}%";

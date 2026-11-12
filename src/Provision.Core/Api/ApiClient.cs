@@ -99,11 +99,22 @@ public sealed class ApiClient : IDisposable
         EnviarAsync<T>(HttpMethod.Delete, ruta, null, ct);
 
     /// <summary>Envía un archivo tal cual (por ejemplo una foto) con su tipo, p. ej. image/jpeg.</summary>
-    public Task<T> PutArchivoAsync<T>(string ruta, byte[] contenido, string tipo, CancellationToken ct = default)
+    public Task<T> PutArchivoAsync<T>(string ruta, byte[] contenido, string tipo, CancellationToken ct = default, string? nombre = null)
     {
         var cuerpo = new ByteArrayContent(contenido);
         cuerpo.Headers.ContentType = new MediaTypeHeaderValue(tipo);
+        if (nombre is not null) cuerpo.Headers.Add("X-Filename", Uri.EscapeDataString(nombre));
         return EnviarAsync<T>(HttpMethod.Put, ruta, cuerpo, ct);
+    }
+
+    public async Task<byte[]> DescargarFotoAsync(string ruta, CancellationToken ct = default)
+    {
+        // Only API-relative photo paths; credentials never travel to an external image host.
+        if (!System.Text.RegularExpressions.Regex.IsMatch(ruta, @"\Aimagenes/[a-fA-F0-9-]+(?:\?v=[a-fA-F0-9]+)?\z"))
+            throw new ArgumentException("Ruta de foto ENAI no valida", nameof(ruta));
+        using var response = await _http.GetAsync(ruta, ct).ConfigureAwait(false);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadAsByteArrayAsync(ct).ConfigureAwait(false);
     }
 
     private async Task<T> EnviarAsync<T>(HttpMethod metodo, string ruta, object? cuerpo, CancellationToken ct)

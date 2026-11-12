@@ -1,4 +1,4 @@
-<UserControl xmlns="https://github.com/avaloniaui"
+﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Provision.Desktop.ViewModels"
              xmlns:ui="using:Provision.Desktop.Controles"
@@ -25,12 +25,12 @@
       <Border Classes="aviso-ok" IsVisible="{Binding Aviso, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
         <TextBlock Classes="ok" Text="{Binding Aviso}" />
       </Border>
-      <Border Classes="tarjeta" IsVisible="{Binding ResultadoCierre, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+      <Border Classes="superficie" IsVisible="{Binding ResultadoCierre, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
         <TextBlock Classes="subtitulo" Text="{Binding ResultadoCierre}" TextWrapping="Wrap" />
       </Border>
 
       <!-- Caja cerrada: apertura -->
-      <Border Classes="tarjeta" IsVisible="{Binding Cerrada}" MaxWidth="480" HorizontalAlignment="Left">
+      <Grid IsVisible="{Binding Cerrada}" ColumnDefinitions="*,24,*"><Border Background="{StaticResource Barra}" CornerRadius="16" Padding="28"><StackPanel Spacing="18"><ui:Icono Data="{x:Static ui:Iconos.Caja}" Width="44" Height="44" Foreground="{StaticResource Cristal}" HorizontalAlignment="Left"/><TextBlock Text="Empieza tu jornada" FontSize="28" Foreground="White" FontWeight="SemiBold" TextWrapping="Wrap"/><TextBlock Text="Registra el fondo inicial para recibir cobros y seguir cada movimiento del turno." Foreground="{StaticResource BarraTexto}" TextWrapping="Wrap"/><TextBlock Text="Apertura  →  Operaciones  →  Arqueo" Foreground="{StaticResource Cristal}" TextWrapping="Wrap"/></StackPanel></Border><Border Classes="superficie" Grid.Column="2">
         <StackPanel Spacing="10">
           <TextBlock Classes="subtitulo" Text="La caja está cerrada" />
           <TextBlock Classes="etiqueta" TextWrapping="Wrap"
@@ -38,20 +38,20 @@
           <TextBox Text="{Binding MontoApertura}" Watermark="Fondo inicial en Bs, ej. 200" />
           <Button Classes="primario" Content="Abrir caja" Command="{Binding AbrirCommand}" />
         </StackPanel>
-      </Border>
+      </Border></Grid>
 
       <!-- Caja abierta -->
       <StackPanel Spacing="16" IsVisible="{Binding Abierta}">
 
         <Grid ColumnDefinitions="*,16,*,16,*">
-          <Border Classes="tarjeta">
+          <Border Classes="superficie">
             <StackPanel Spacing="4">
               <TextBlock Classes="etiqueta" Text="Fondo de apertura" />
               <TextBlock Classes="cifra" Text="{Binding Resumen.Sesion.MontoApertura, Converter={StaticResource Bs}}" />
               <TextBlock Classes="etiqueta" Text="{Binding Resumen.Sesion.AbiertaLocal, StringFormat='Abierta {0:dd/MM/yyyy HH:mm}'}" />
             </StackPanel>
           </Border>
-          <Border Grid.Column="2" Classes="tarjeta">
+          <Border Grid.Column="2" Classes="superficie">
             <StackPanel Spacing="4">
               <TextBlock Classes="etiqueta" Text="Efectivo que debería haber" />
               <TextBlock Classes="cifra" Foreground="{StaticResource Primario}"
@@ -59,7 +59,7 @@
               <TextBlock Classes="etiqueta" Text="apertura + entradas − salidas en efectivo" />
             </StackPanel>
           </Border>
-          <Border Grid.Column="4" Classes="tarjeta">
+          <Border Grid.Column="4" Classes="superficie">
             <StackPanel Spacing="4">
               <TextBlock Classes="etiqueta" Text="Ingresos / egresos del turno" />
               <TextBlock Classes="cifra" Text="{Binding Resumen.TotalIngresos, Converter={StaticResource Bs}}" />
@@ -68,13 +68,13 @@
           </Border>
         </Grid>
 
-        <Grid ColumnDefinitions="*,16,380">
+        <Grid ColumnDefinitions="*,20,300">
           <StackPanel Spacing="16">
             <!-- Por método -->
-            <Border Classes="tarjeta">
+            <Border Classes="superficie">
               <StackPanel Spacing="8">
                 <TextBlock Classes="subtitulo" Text="Por método de pago" />
-                <Grid ColumnDefinitions="*,120,120,120">
+                <Grid ColumnDefinitions="*,80,80,80">
                   <TextBlock Classes="etiqueta" Text="Método" />
                   <TextBlock Grid.Column="1" Classes="etiqueta" Text="Ingresos" TextAlignment="Right" />
                   <TextBlock Grid.Column="2" Classes="etiqueta" Text="Egresos" TextAlignment="Right" />
@@ -83,7 +83,7 @@
                 <ItemsControl ItemsSource="{Binding Totales}">
                   <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="vm:TotalMetodo">
-                      <Grid ColumnDefinitions="*,120,120,120" Margin="0,3">
+                      <Grid ColumnDefinitions="*,80,80,80" Margin="0,3">
                         <TextBlock Text="{Binding Metodo}" />
                         <TextBlock Grid.Column="1" Text="{Binding Ingresos, Converter={StaticResource Bs}}" TextAlignment="Right" />
                         <TextBlock Grid.Column="2" Text="{Binding Egresos, Converter={StaticResource Bs}}" TextAlignment="Right" />
@@ -99,7 +99,7 @@
             </Border>
 
             <!-- Movimientos -->
-            <Border Classes="tarjeta">
+            <Border Classes="superficie">
               <StackPanel Spacing="8">
                 <TextBlock Classes="subtitulo" Text="Movimientos del turno" />
                 <ItemsControl ItemsSource="{Binding Movimientos}">
@@ -127,7 +127,7 @@
 
           <StackPanel Grid.Column="2" Spacing="16">
             <!-- Movimiento manual -->
-            <Border Classes="tarjeta">
+            <Border Classes="superficie">
               <StackPanel Spacing="8">
                 <TextBlock Classes="subtitulo" Text="Registrar movimiento" />
                 <ComboBox ItemsSource="{Binding Conceptos}" SelectedItem="{Binding Concepto}" HorizontalAlignment="Stretch" />
@@ -151,7 +151,7 @@
             </Border>
 
             <!-- Cierre -->
-            <Border Classes="tarjeta">
+            <Border Classes="superficie">
               <StackPanel Spacing="8">
                 <TextBlock Classes="subtitulo" Text="Cerrar caja (arqueo)" />
                 <TextBlock Classes="etiqueta" TextWrapping="Wrap"

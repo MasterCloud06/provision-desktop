@@ -1,13 +1,13 @@
-# Provisión · Escritorio
+﻿# Provisión · Escritorio
 
-Aplicación de escritorio de Provisión para ópticas: **vender, cobrar saldos, caja, inventario y finanzas personales**. Se conecta a la API de [`provision-backend`](https://github.com/MasterCloud06/provision-backend).
+Aplicación de escritorio de Provisión para ópticas: **vender, cobrar saldos, caja, inventario y finanzas personales**. Se conecta a la API de [`backend-enai`](https://github.com/MasterCloud06/backend-enai).
 
 **Stack:** .NET 10 · C# · Avalonia 11.3 · CommunityToolkit.Mvvm. Corre en Windows (y también en Mac y Linux).
 
 ## Requisitos
 
 - **.NET 10 SDK**: `winget install Microsoft.DotNet.SDK.10`
-- Para el entorno **local**, el backend corriendo en tu PC (`npm run dev` en `provision-backend`).
+- Para el entorno **local**, el backend corriendo en tu PC (host ASP.NET de `backend-enai`, puerto 5080).
 
 ## Uso con PowerShell
 
@@ -32,8 +32,8 @@ En la pantalla de ingreso eliges el entorno, igual que en el backend:
 
 | Entorno | API |
 |---|---|
-| **Local** | `http://localhost:3000/api/v1` |
-| **Desarrollo** | `https://provision-backend-ib50.onrender.com/api/v1` |
+| **Local** | `http://localhost:5080/api/optica/provision/v1` |
+| **Desarrollo** | `https://enai-api.onrender.com/api/optica/provision/v1` |
 
 Cuando estás en Desarrollo, el menú lateral lo muestra con una etiqueta amarilla para no confundirlo. El servidor de desarrollo (plan gratuito de Render) se duerme sin uso: el primer ingreso puede tardar hasta un minuto.
 
@@ -41,7 +41,7 @@ Si tu backend local usa otro puerto, edita `UrlLocal` en `%APPDATA%\Provision\pr
 
 ## Roles y pantallas
 
-Cada usuario ve solo las pantallas que su rol permite. Los permisos los define el backend (`src/lib/permisos.ts` en `provision-backend`) y los vuelve a validar en cada operación, así que ocultar un botón aquí es comodidad, no seguridad.
+Cada usuario ve solo las pantallas que su rol permite. Los permisos los define el backend (módulo Optica de `backend-enai`) y los vuelve a validar en cada operación, así que ocultar un botón aquí es comodidad, no seguridad.
 
 | Pantalla | Super admin | Administrador | Encargado | Cajero | Ejecutivo de ventas | Optometrista | Laboratorio |
 |---|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
@@ -70,7 +70,7 @@ El retiro del dueño en Caja lo ven el super administrador y el administrador. E
 - **Caja**: abrir con fondo, totales por método, efectivo esperado, gastos, depósitos, retiro del dueño hacia una cuenta personal y cierre con arqueo.
 - **Laboratorio**: tablero de órdenes por estado y atrasadas; graduación, productos e instrucciones; botones solo para los pasos que tu rol puede hacer (enviar, listo, entregar, cancelar) e historial de cada orden.
 - **Clientes**: búsqueda, ficha con datos, saldo pendiente y compras; recetas OD/OI (esfera, cilindro, eje, adición, DNP) y registro de nuevas recetas.
-- **Inventario**: CRUD de productos (crear, editar, eliminar —o desactivar si tiene historial— y reactivar) con **foto** (se sube a Cloudinary), **descripción**, **características** (para quién, medidas de montura `52□18 140`, material, forma, color; índice y tratamiento en lentes) y si se **muestra en la tienda web**; marcas, filtros por tipo, estado y bajo stock, y entrada de mercadería.
+- **Inventario**: CRUD de productos (crear, editar, eliminar —o desactivar si tiene historial— y reactivar) con **foto** (se sube a ENAI), **descripción**, **características** (para quién, medidas de montura `52□18 140`, material, forma, color; índice y tratamiento en lentes) y si se **muestra en la tienda web**; marcas, filtros por tipo, estado y bajo stock, y entrada de mercadería.
 - **Agenda** (optometrista, cajero, ejecutivo de ventas, encargado y administradores): las citas de examen de la vista del día (reservadas en la tienda web o tomadas por el personal), con día anterior/siguiente; confirmar, **confirmar por WhatsApp**, marcar atendida o no asistió, cancelar; y **nueva cita** eligiendo un turno libre.
 - **Pedidos web** (cajero, ejecutivo de ventas, encargado y administradores): los pedidos de la tienda en línea, por atender, esperando pago, entregados o cancelados. Para cada uno: qué compró, cómo lo recibe y cómo paga; botones para cada paso (preparar → listo para retirar o enviado → entregado); **avisar al cliente por WhatsApp**; notas internas y cancelar (devuelve el stock y, si pagó con tarjeta, el dinero). **Al entregar queda registrado como venta**, y si paga al retirar se **cobra en la caja abierta**.
 - **Usuarios**: crear usuarios con su rol y sucursal (muestra qué puede hacer cada rol), cambiar rol, sucursal o contraseña, y activar/desactivar. Nadie puede quitarse su propio rol ni desactivarse.
@@ -101,7 +101,7 @@ Montos: la API trabaja en **centavos** (Bs 150,50 = 15050). `Dinero.Formatear` l
 
 ## Instalar y actualizar
 
-Cada cambio en `main` se compila en GitHub Actions y se publica como **versión nueva** en [Releases](https://github.com/MasterCloud06/provision-desktop/releases/latest) (`Provision.exe`, versión `0.1.<número de compilación>`).
+Cada cambio en `main` y cada PR se compilan y prueban en GitHub Actions. **Solo se publica una versión nueva al subir un tag** `escritorio-N`, con N mayor que el de la última publicada (por ejemplo `git tag escritorio-7 && git push origin escritorio-7`). Queda en [Releases](https://github.com/MasterCloud06/provision-desktop/releases/latest) como `Provision.exe`, versión `0.1.N`. El actualizador solo descarga desde las Releases de este repo por HTTPS y verifica el SHA-256 cuando el backend lo publica.
 
 - **Primera vez:** descarga `Provision.exe` y guárdalo en una carpeta tuya (por ejemplo `Documentos\Provision`). No lo pongas en "Archivos de programa": ahí Windows no deja que se actualice solo.
 - **Actualizar es obligatorio.** Al abrir, cada 15 minutos y en cada operación, la app compara su versión con la última publicada. Si hay una nueva, se bloquea con la pantalla **"Hay una versión nueva"**: *Actualizar ahora* la descarga, reemplaza el `.exe` y la vuelve a abrir. El backend también rechaza a las versiones viejas, así que no se puede seguir trabajando con una desactualizada.

@@ -1,254 +1,1011 @@
-<UserControl xmlns="https://github.com/avaloniaui"
+﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Provision.Desktop.ViewModels"
              xmlns:ui="using:Provision.Desktop.Controles"
              xmlns:api="using:Provision.Core.Api"
+             xmlns:views="using:Provision.Desktop.Views"
              x:Class="Provision.Desktop.Views.InventarioView"
              x:DataType="vm:InventarioViewModel">
-  <Grid Margin="24" RowDefinitions="Auto,Auto,Auto,*" ColumnDefinitions="*,16,360">
+  <Panel>
 
-    <Grid Grid.ColumnSpan="3" ColumnDefinitions="*,Auto" Margin="0,0,0,12">
-      <StackPanel>
-        <TextBlock Classes="titulo" Text="Inventario" />
-        <TextBlock Classes="etiqueta" Text="{Binding Resumen}" FontSize="14" />
-      </StackPanel>
-      <Button Grid.Column="1" Classes="primario" VerticalAlignment="Center"
-              IsVisible="{Binding PuedeGestionar}" Command="{Binding NuevoCommand}">
-        <StackPanel Orientation="Horizontal" Spacing="8">
-          <ui:Icono Data="{x:Static ui:Iconos.Mas}" Width="16" Height="16" />
-          <TextBlock Text="Nuevo producto" />
-        </StackPanel>
-      </Button>
-    </Grid>
+    <!-- ═══════════════ Pantalla: encabezado, indicadores, filtros y catálogo ═══════════════ -->
+    <Grid Margin="28,22,28,18" RowDefinitions="Auto,Auto,Auto,Auto,*" ColumnDefinitions="190,20,*">
 
-    <!-- Filtros -->
-    <Grid Grid.Row="1" Grid.ColumnSpan="3" ColumnDefinitions="*,8,190,8,150,8,Auto,8,Auto" Margin="0,0,0,12">
-      <TextBox Text="{Binding Busqueda}" Watermark="Buscar por nombre, SKU, modelo o código de barras + Enter">
-        <TextBox.KeyBindings>
-          <KeyBinding Gesture="Enter" Command="{Binding BuscarCommand}" />
-        </TextBox.KeyBindings>
-      </TextBox>
-      <ComboBox Grid.Column="2" ItemsSource="{Binding TiposFiltro}" SelectedItem="{Binding FiltroTipo}"
-                HorizontalAlignment="Stretch" />
-      <ComboBox Grid.Column="4" ItemsSource="{Binding Estados}" SelectedItem="{Binding FiltroEstado}"
-                HorizontalAlignment="Stretch" />
-      <CheckBox Grid.Column="6" Content="Solo bajo stock" IsChecked="{Binding SoloBajoStock}" />
-      <Button Grid.Column="8" Content="Buscar" Command="{Binding BuscarCommand}" />
-    </Grid>
-
-    <StackPanel Grid.Row="2" Grid.ColumnSpan="3" Spacing="6" Margin="0,0,0,12">
-      <ProgressBar IsIndeterminate="True" IsVisible="{Binding Ocupado}" />
-      <Border Classes="aviso-error" IsVisible="{Binding Error, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-        <TextBlock Classes="error" Text="{Binding Error}" />
-      </Border>
-      <Border Classes="aviso-ok" IsVisible="{Binding Aviso, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-        <TextBlock Classes="ok" Text="{Binding Aviso}" />
-      </Border>
-    </StackPanel>
-
-    <!-- Lista de productos -->
-    <Border Grid.Row="3" Classes="tarjeta" Padding="8">
-      <DockPanel>
-        <!-- Columnas: la marca va bajo el nombre para que "Producto" tenga espacio aun con el panel lateral abierto -->
-        <Grid DockPanel.Dock="Top" ColumnDefinitions="110,*,64,104,104" Margin="8,4,8,8">
-          <TextBlock Classes="etiqueta" Text="SKU" />
-          <TextBlock Grid.Column="1" Classes="etiqueta" Text="Producto" />
-          <TextBlock Grid.Column="2" Classes="etiqueta" Text="Stock" TextAlignment="Right" />
-          <TextBlock Grid.Column="3" Classes="etiqueta" Text="Costo prom." TextAlignment="Right" />
-          <TextBlock Grid.Column="4" Classes="etiqueta" Text="Precio" TextAlignment="Right" />
-        </Grid>
-        <Panel>
-          <StackPanel Classes="vacio">
-            <StackPanel.IsVisible>
-              <MultiBinding Converter="{x:Static BoolConverters.And}">
-                <Binding Path="!Ocupado" />
-                <Binding Path="!Productos.Count" />
-              </MultiBinding>
-            </StackPanel.IsVisible>
-            <ui:Icono Data="{x:Static ui:Iconos.Inventario}" />
-            <TextBlock Text="No hay productos con estos filtros. Cambia la búsqueda o crea un producto nuevo." />
+      <!-- Encabezado -->
+      <Grid Grid.ColumnSpan="3" ColumnDefinitions="*,Auto" Margin="0,0,0,16">
+        <StackPanel Spacing="4">
+          <StackPanel Orientation="Horizontal" Spacing="12">
+            <TextBlock Classes="titulo" Text="Inventario" />
+            <TextBlock Classes="etiqueta" Text="{Binding Resumen}" VerticalAlignment="Bottom" Margin="0,0,0,5" />
           </StackPanel>
-        <ListBox Classes="tabla" ItemsSource="{Binding Productos}" SelectedItem="{Binding Seleccionado}">
-          <ListBox.ItemTemplate>
-            <DataTemplate x:DataType="api:Producto">
-              <Grid ColumnDefinitions="110,*,64,104,104">
-                <TextBlock Text="{Binding Sku}" Classes="etiqueta" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
-                <StackPanel Grid.Column="1" Spacing="2" Margin="0,0,8,0">
-                  <Grid ColumnDefinitions="*,Auto">
-                    <TextBlock Text="{Binding Nombre}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
-                    <Border Grid.Column="1" Classes="chip" IsVisible="{Binding !Activo}" Margin="6,0,0,0">
-                      <TextBlock Text="Desactivado" Foreground="{StaticResource Aviso}" />
-                    </Border>
-                  </Grid>
-                  <TextBlock Classes="etiqueta" TextTrimming="CharacterEllipsis">
-                    <Run Text="{Binding Marca}" />
-                    <Run Text="{Binding Modelo}" />
-                  </TextBlock>
+          <TextBlock Classes="etiqueta" FontSize="14"
+                     Text="Productos, existencias y movimientos de tu óptica." />
+        </StackPanel>
+        <Button Grid.Column="1" Classes="primario" VerticalAlignment="Center"
+                IsVisible="{Binding PuedeGestionar}" Command="{Binding NuevoCommand}" AutomationProperties.Name="Nuevo producto">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <ui:Icono Data="{x:Static ui:Iconos.Mas}" Width="16" Height="16" />
+            <TextBlock Text="Nuevo producto" />
+          </StackPanel>
+        </Button>
+      </Grid>
+
+      <!-- Indicadores: cifras reales; cada una filtra el catálogo -->
+      <Border Grid.Row="1" Grid.ColumnSpan="3" Classes="tarjeta" Padding="0" Margin="0,0,0,16" IsVisible="{Binding Cargado}">
+        <Grid ColumnDefinitions="*,1,*,1,*,1,*">
+          <Button Classes="indicador" Command="{Binding FiltrarPorIndicadorCommand}" CommandParameter=""
+                  ToolTip.Tip="Mostrar todos" AutomationProperties.Name="Productos">
+            <StackPanel Classes="indicador">
+              <TextBlock Classes="etiqueta" Text="Productos" />
+              <TextBlock Classes="cifra" Text="{Binding TotalProductos}" />
+            </StackPanel>
+          </Button>
+          <Rectangle Grid.Column="1" Classes="divisor" Margin="0,14" />
+          <Button Grid.Column="2" Classes="indicador" Command="{Binding FiltrarPorIndicadorCommand}" CommandParameter="CON_STOCK"
+                  ToolTip.Tip="Ver solo los disponibles" AutomationProperties.Name="Disponibles">
+            <StackPanel Classes="indicador">
+              <TextBlock Classes="etiqueta" Text="Disponibles" />
+              <TextBlock Classes="cifra" Text="{Binding Disponibles}" />
+            </StackPanel>
+          </Button>
+          <Rectangle Grid.Column="3" Classes="divisor" Margin="0,14" />
+          <Button Grid.Column="4" Classes="indicador" Command="{Binding FiltrarPorIndicadorCommand}" CommandParameter="BAJO"
+                  ToolTip.Tip="Ver los que tienen stock bajo" AutomationProperties.Name="Stock bajo">
+            <StackPanel Classes="indicador" Classes.alerta="{Binding !!ConStockBajo}">
+              <TextBlock Classes="etiqueta" Text="Stock bajo" />
+              <TextBlock Classes="cifra" Text="{Binding ConStockBajo}" />
+            </StackPanel>
+          </Button>
+          <Rectangle Grid.Column="5" Classes="divisor" Margin="0,14" />
+          <Button Grid.Column="6" Classes="indicador" Command="{Binding FiltrarPorIndicadorCommand}" CommandParameter="AGOTADO"
+                  ToolTip.Tip="Ver los agotados" AutomationProperties.Name="Agotados">
+            <StackPanel Classes="indicador" Classes.critico="{Binding !!Agotados}">
+              <TextBlock Classes="etiqueta" Text="Agotados" />
+              <TextBlock Classes="cifra" Text="{Binding Agotados}" />
+            </StackPanel>
+          </Button>
+        </Grid>
+      </Border>
+
+      <!-- Búsqueda, filtros y modo de vista -->
+      <ScrollViewer Grid.Row="2" Grid.RowSpan="3"><Border Classes="superficie" Padding="14"><StackPanel Spacing="14"><TextBlock Text="Filtrar catálogo" Classes="subtitulo"/>
+          <TextBox Text="{Binding Busqueda}" HorizontalAlignment="Stretch"
+                   Watermark="Nombre o código"
+                   AutomationProperties.Name="Buscar productos">
+            <TextBox.InnerLeftContent>
+              <ui:Icono Data="{x:Static ui:Iconos.Buscar}" Width="16" Height="16" Margin="12,0,0,0"
+                        Foreground="{StaticResource TextoSuave}" />
+            </TextBox.InnerLeftContent>
+            <TextBox.KeyBindings>
+              <KeyBinding Gesture="Enter" Command="{Binding BuscarCommand}" />
+            </TextBox.KeyBindings>
+          </TextBox>
+          <TextBlock Text="Categoría" Classes="etiqueta" Margin="0,0,0,-10"/><ComboBox ItemsSource="{Binding TiposFiltro}" SelectedItem="{Binding FiltroTipo}" HorizontalAlignment="Stretch"
+                    AutomationProperties.Name="Filtrar por categoría" ToolTip.Tip="{Binding FiltroTipo.Texto}"><ComboBox.ItemTemplate><DataTemplate x:CompileBindings="False"><TextBlock Text="{Binding Texto}" TextWrapping="Wrap" MaxWidth="120"/></DataTemplate></ComboBox.ItemTemplate></ComboBox>
+          <TextBlock Text="Marca" Classes="etiqueta" Margin="0,0,0,-10"/><ComboBox ItemsSource="{Binding OpcionesMarca}" SelectedItem="{Binding FiltroMarca}" HorizontalAlignment="Stretch"
+                    AutomationProperties.Name="Filtrar por marca" ToolTip.Tip="{Binding FiltroMarca.Texto}" />
+          <TextBlock Text="Disponibilidad" Classes="etiqueta" Margin="0,0,0,-10"/><ComboBox ItemsSource="{Binding Disponibilidades}" SelectedItem="{Binding FiltroDisponibilidad}" HorizontalAlignment="Stretch"
+                    AutomationProperties.Name="Filtrar por disponibilidad" ToolTip.Tip="Disponibilidad" />
+          <TextBlock Text="Estado" Classes="etiqueta" Margin="0,0,0,-10"/><ComboBox ItemsSource="{Binding Estados}" SelectedItem="{Binding FiltroEstado}" HorizontalAlignment="Stretch"
+                    AutomationProperties.Name="Filtrar por estado" ToolTip.Tip="Activos o desactivados" />
+          <TextBlock Text="Tienda web" Classes="etiqueta" Margin="0,0,0,-10"/><ComboBox ItemsSource="{Binding FiltrosTienda}" SelectedItem="{Binding FiltroTienda}" HorizontalAlignment="Stretch"
+                    AutomationProperties.Name="Filtrar por tienda web" ToolTip.Tip="Publicación en la tienda web" />
+          <Button Classes="fantasma" Command="{Binding LimpiarFiltrosCommand}" IsVisible="{Binding HayFiltros}" AutomationProperties.Name="Limpiar filtros">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <ui:Icono Data="{x:Static ui:Iconos.Cerrar}" Width="14" Height="14" />
+              <TextBlock Text="Limpiar filtros" />
+            </StackPanel>
+          </Button>
+        </StackPanel></Border></ScrollViewer><Panel Grid.Row="2" Grid.Column="2"><StackPanel  Orientation="Horizontal" Spacing="8" VerticalAlignment="Top" Margin="0,0,0,12">
+          <Border Classes="segmentado">
+            <StackPanel Orientation="Horizontal" Spacing="2">
+              <Button Classes="segmento" Classes.activo="{Binding VistaCatalogo}" Command="{Binding VerCatalogoCommand}"
+                      ToolTip.Tip="Catálogo con fotos" AutomationProperties.Name="Vista catálogo">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <ui:Icono Data="{x:Static ui:Iconos.Catalogo}" Width="16" Height="16" />
+                  <TextBlock Text="Catálogo" />
                 </StackPanel>
-                <StackPanel Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Center">
-                  <TextBlock Text="{Binding Stock}" TextAlignment="Right" FontWeight="SemiBold"
-                             Classes.error="{Binding BajoStock}" IsVisible="{Binding ControlaStock}" />
-                  <TextBlock Text="—" Classes="etiqueta" IsVisible="{Binding !ControlaStock}" />
+              </Button>
+              <Button Classes="segmento" Classes.activo="{Binding VistaLista}" Command="{Binding VerListaCommand}"
+                      ToolTip.Tip="Lista detallada" AutomationProperties.Name="Vista lista">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <ui:Icono Data="{x:Static ui:Iconos.Lista}" Width="16" Height="16" />
+                  <TextBlock Text="Lista" />
                 </StackPanel>
-                <TextBlock Grid.Column="3" Text="{Binding CostoPromedio, Converter={StaticResource Bs}}"
-                           TextAlignment="Right" VerticalAlignment="Center" Classes="etiqueta monto" />
-                <TextBlock Grid.Column="4" Text="{Binding PrecioVenta, Converter={StaticResource Bs}}"
-                           TextAlignment="Right" VerticalAlignment="Center" Classes="monto" FontWeight="SemiBold" />
-              </Grid>
-            </DataTemplate>
-          </ListBox.ItemTemplate>
-        </ListBox>
+              </Button>
+            </StackPanel>
+          </Border>
+          <Button Classes="fantasma icono" Command="{Binding BuscarCommand}"
+                  ToolTip.Tip="Actualizar" AutomationProperties.Name="Actualizar">
+            <ui:Icono Data="{x:Static ui:Iconos.Recargar}" Width="16" Height="16" />
+          </Button>
+        </StackPanel></Panel>
+
+      <!-- Carga y mensajes -->
+      <StackPanel Grid.Row="3" Grid.Column="2" Spacing="6" Margin="0,0,0,8">
+        <Panel Height="2">
+          <ProgressBar IsIndeterminate="True" IsVisible="{Binding Ocupado}" MinHeight="2" Height="2" CornerRadius="1" />
         </Panel>
-      </DockPanel>
+        <StackPanel Spacing="6">
+          <StackPanel.IsVisible>
+            <MultiBinding Converter="{x:Static BoolConverters.And}">
+              <Binding Path="!MostrandoFormulario" />
+              <Binding Path="!EntradaAbierta" />
+              <Binding Path="!FichaAbierta" />
+            </MultiBinding>
+          </StackPanel.IsVisible>
+          <Border Classes="aviso-error" IsVisible="{Binding Error, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+            <Grid ColumnDefinitions="Auto,10,*">
+              <ui:Icono Data="{x:Static ui:Iconos.Alerta}" Width="16" Height="16" Foreground="{StaticResource Peligro}" VerticalAlignment="Top" Margin="0,1,0,0" />
+              <TextBlock Grid.Column="2" Classes="error" Text="{Binding Error}" />
+            </Grid>
+          </Border>
+          <Border Classes="aviso-ok" IsVisible="{Binding Aviso, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+            <Grid ColumnDefinitions="Auto,10,*">
+              <ui:Icono Data="{x:Static ui:Iconos.Check}" Width="16" Height="16" Foreground="{StaticResource Exito}" VerticalAlignment="Top" Margin="0,1,0,0" />
+              <TextBlock Grid.Column="2" Classes="ok" Text="{Binding Aviso}" />
+            </Grid>
+          </Border>
+        </StackPanel>
+      </StackPanel>
+
+      <Panel Grid.Row="4" Grid.Column="2">
+
+        <!-- ─────────── Catálogo: carrusel horizontal ─────────── -->
+        <Grid RowDefinitions="*,Auto" IsVisible="{Binding VistaCatalogo}">
+          <Panel>
+            <ScrollViewer x:Name="Carrusel" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled"
+                          AllowAutoHide="True" Background="Transparent" Focusable="False">
+              <ItemsControl x:Name="Tarjetas" ItemsSource="{Binding Filas}" VerticalAlignment="Top">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate>
+                    <StackPanel Orientation="Horizontal" Spacing="20" Margin="0,4,0,18" />
+                  </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:FilaProducto">
+                    <Border Classes="producto" Width="{Binding $parent[views:InventarioView].AnchoTarjeta}"
+                            Focusable="True" Cursor="Hand" AutomationProperties.Name="{Binding Producto.Nombre}">
+                      <Grid RowDefinitions="Auto,Auto">
+
+                        <!-- Foto protagonista: proporción respetada, sin recortar la montura -->
+                        <Panel Height="{Binding $parent[views:InventarioView].AltoFoto}" Background="{StaticResource Superficie}">
+                          <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="8" IsVisible="{Binding !TieneFoto}">
+                            <ui:Icono Data="{x:Static ui:Iconos.Foto}" Width="30" Height="30" HorizontalAlignment="Center"
+                                      Foreground="{StaticResource BordeFuerte}" Grosor="1.5" />
+                            <TextBlock Text="Sin fotografía" FontSize="12" Foreground="{StaticResource TextoDeshabilitado}"
+                                       HorizontalAlignment="Center" />
+                          </StackPanel>
+                          <ui:ImagenRemota Url="{Binding Foto}" AnchoDecodificado="640" Stretch="Uniform" Margin="18" />
+                          <Border Classes="estado" Margin="12" VerticalAlignment="Top"
+                                  Classes.bajo="{Binding EsBajo}" Classes.agotado="{Binding EsAgotado}" Classes.inactivo="{Binding EsInactivo}">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                              <Ellipse />
+                              <TextBlock Text="{Binding Estado}" />
+                            </StackPanel>
+                          </Border>
+                          <Border Classes="estado inactivo" Margin="12" VerticalAlignment="Top" HorizontalAlignment="Right"
+                                  IsVisible="{Binding OcultoEnTienda}" ToolTip.Tip="No se muestra en la tienda web">
+                            <TextBlock Text="Oculto en tienda" Margin="2,0,0,0" />
+                          </Border>
+                        </Panel>
+
+                        <!-- Textos debajo de la foto -->
+                        <StackPanel Grid.Row="1" Margin="16,14,16,16" Spacing="3">
+                          <TextBlock Text="{Binding Producto.Marca, TargetNullValue='Sin marca'}" FontSize="12" FontWeight="Medium" Foreground="{StaticResource TextoSuave}"
+                                     TextTrimming="CharacterEllipsis" />
+                          <TextBlock Text="{Binding Producto.Nombre}" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap"
+                                     MaxLines="2" TextTrimming="CharacterEllipsis" Height="40" LineHeight="20" />
+                          <TextBlock Text="{Binding ModeloSku}" Classes="etiqueta monto" FontSize="12" TextTrimming="CharacterEllipsis" />
+                          <Grid ColumnDefinitions="*,Auto" Margin="0,10,0,0">
+                            <TextBlock Text="{Binding Producto.PrecioVenta, Converter={StaticResource Bs}}" Classes="monto"
+                                       FontSize="19" FontWeight="SemiBold" LetterSpacing="-0.2" VerticalAlignment="Bottom" />
+                            <TextBlock Grid.Column="1" Text="{Binding StockTexto}" Classes="etiqueta monto" FontSize="12"
+                                       VerticalAlignment="Bottom" Margin="8,0,0,2"
+                                       Classes.error="{Binding EsAgotado}" />
+                          </Grid>
+                        </StackPanel>
+                      </Grid>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </ScrollViewer>
+
+            <!-- Flechas -->
+            <Button Classes="flecha" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="{Binding $parent[views:InventarioView].MargenFlechaIzquierda}" Click="Atras_Click"
+                    IsVisible="{Binding $parent[views:InventarioView].PuedeAtras}"
+                    ToolTip.Tip="Anteriores" AutomationProperties.Name="Productos anteriores">
+              <ui:Icono Data="{x:Static ui:Iconos.Anterior}" Width="20" Height="20" />
+            </Button>
+            <Button Classes="flecha" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="{Binding $parent[views:InventarioView].MargenFlechaDerecha}" Click="Adelante_Click"
+                    IsVisible="{Binding $parent[views:InventarioView].PuedeAdelante}"
+                    ToolTip.Tip="Siguientes" AutomationProperties.Name="Productos siguientes">
+              <ui:Icono Data="{x:Static ui:Iconos.Siguiente}" Width="20" Height="20" />
+            </Button>
+
+            <!-- Vacío -->
+            <StackPanel Classes="vacio" VerticalAlignment="Center" IsVisible="{Binding SinResultados}">
+              <ui:Icono Data="{x:Static ui:Iconos.Inventario}" />
+              <TextBlock Classes="subtitulo" Text="No hay productos que mostrar" />
+              <TextBlock IsVisible="{Binding HayFiltros}" Text="Ningún producto coincide con la búsqueda o los filtros actuales." />
+              <TextBlock IsVisible="{Binding !HayFiltros}"
+                         Text="Crea el primer producto con «Nuevo producto»; podrás cargar su foto, precio y stock inicial." />
+              <Button Content="Limpiar filtros" HorizontalAlignment="Center" Margin="0,6,0,0"
+                      Command="{Binding LimpiarFiltrosCommand}" IsVisible="{Binding HayFiltros}" />
+            </StackPanel>
+          </Panel>
+
+          <!-- Posición -->
+          <Grid Grid.Row="1" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto" IsVisible="{Binding !SinResultados}">
+            <TextBlock Classes="etiqueta monto" FontSize="12" VerticalAlignment="Center"
+                       Text="{Binding $parent[views:InventarioView].TextoPosicion}" />
+            <StackPanel Grid.Column="1" x:Name="Puntos" Orientation="Horizontal" Spacing="2" VerticalAlignment="Center" />
+            <TextBlock Grid.Row="1" Grid.ColumnSpan="2" Classes="etiqueta" FontSize="12" Margin="0,8,0,0" TextWrapping="Wrap"
+                       Text="Arrastra, usa la rueda o las flechas ← →" />
+          </Grid>
+        </Grid>
+
+        <!-- ─────────── Lista: tabla detallada ─────────── -->
+        <Border Classes="tarjeta" Padding="0" IsVisible="{Binding VistaLista}">
+          <Grid RowDefinitions="Auto,*,Auto">
+              <!-- Encabezados de columna -->
+              <Border Grid.Row="0" Background="{StaticResource Fondo}" BorderBrush="{StaticResource Borde}" BorderThickness="0,0,0,1"
+                      Padding="16,9">
+                <Grid ColumnDefinitions="100,*,128,104,56,104,108,120,36">
+                  <TextBlock Classes="th" Text="SKU" />
+                  <TextBlock Grid.Column="1" Classes="th" Text="Producto" />
+                  <TextBlock Grid.Column="2" Classes="th" Text="Tipo" Margin="12,0,0,0" />
+                  <TextBlock Grid.Column="3" Classes="th" Text="Marca" />
+                  <TextBlock Grid.Column="4" Classes="th" Text="Stock" TextAlignment="Right" HorizontalAlignment="Right" />
+                  <TextBlock Grid.Column="5" Classes="th" Text="Costo prom." HorizontalAlignment="Right" />
+                  <TextBlock Grid.Column="6" Classes="th" Text="Precio venta" HorizontalAlignment="Right" />
+                  <TextBlock Grid.Column="7" Classes="th" Text="Estado" Margin="16,0,0,0" />
+                </Grid>
+              </Border>
+
+              <!-- Filas -->
+              <Panel Grid.Row="1">
+                <ListBox x:Name="Tabla" Classes="tabla densa" ItemsSource="{Binding Filas}" SelectedItem="{Binding FilaSeleccionada}"
+                         DoubleTapped="Tabla_DoubleTapped" AutomationProperties.Name="Productos">
+                  <ListBox.ContextMenu>
+                    <ContextMenu Opening="MenuFila_Opening">
+                      <MenuItem Header="Editar producto" Command="{Binding EditarCommand}" IsVisible="{Binding PuedeEditarSeleccion}">
+                        <MenuItem.Icon>
+                          <ui:Icono Data="{x:Static ui:Iconos.Editar}" />
+                        </MenuItem.Icon>
+                      </MenuItem>
+                      <MenuItem Header="Registrar entrada de mercadería…" Command="{Binding AbrirEntradaCommand}"
+                                IsVisible="{Binding PuedeRecibirSeleccion}">
+                        <MenuItem.Icon>
+                          <ui:Icono Data="{x:Static ui:Iconos.Entrada}" />
+                        </MenuItem.Icon>
+                      </MenuItem>
+                      <Separator IsVisible="{Binding PuedeGestionar}" />
+                      <MenuItem Header="Reactivar" Command="{Binding ReactivarCommand}" IsVisible="{Binding PuedeReactivarSeleccion}">
+                        <MenuItem.Icon>
+                          <ui:Icono Data="{x:Static ui:Iconos.Recargar}" />
+                        </MenuItem.Icon>
+                      </MenuItem>
+                      <MenuItem Classes="peligro" Header="Eliminar…" Command="{Binding PedirEliminarCommand}"
+                                IsVisible="{Binding PuedeEliminarSeleccion}">
+                        <MenuItem.Icon>
+                          <ui:Icono Data="{x:Static ui:Iconos.Eliminar}" />
+                        </MenuItem.Icon>
+                      </MenuItem>
+                    </ContextMenu>
+                  </ListBox.ContextMenu>
+                  <ListBox.ItemTemplate>
+                    <DataTemplate x:DataType="vm:FilaProducto">
+                      <Grid ColumnDefinitions="100,*,128,104,56,104,108,120,36" Background="Transparent">
+                        <TextBlock Text="{Binding Producto.Sku}" Classes="etiqueta monto" VerticalAlignment="Center"
+                                   TextTrimming="CharacterEllipsis" Margin="0,0,8,0" ToolTip.Tip="{Binding Producto.Sku}" />
+
+                        <!-- Producto: miniatura, nombre y una línea de detalle -->
+                        <Grid Grid.Column="1" ColumnDefinitions="36,12,*" ToolTip.Tip="{Binding Producto.Descripcion}">
+                          <Border Width="36" Height="36" CornerRadius="6" Background="{StaticResource Superficie}" ClipToBounds="True"
+                                  VerticalAlignment="Center">
+                            <Panel>
+                              <ui:Icono Data="{x:Static ui:Iconos.Foto}" Width="16" Height="16"
+                                        Foreground="{StaticResource TextoDeshabilitado}" HorizontalAlignment="Center" />
+                              <ui:ImagenRemota Url="{Binding Miniatura}" Stretch="UniformToFill" />
+                            </Panel>
+                          </Border>
+                          <StackPanel Grid.Column="2" VerticalAlignment="Center" Spacing="2" Margin="0,0,12,0">
+                            <TextBlock Text="{Binding Producto.Nombre}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                              <TextBlock Classes="etiqueta" FontSize="12" TextTrimming="CharacterEllipsis" Text="{Binding Detalle}"
+                                         IsVisible="{Binding Detalle, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                              <TextBlock Classes="etiqueta" FontSize="12" Text="Oculto en la tienda" IsVisible="{Binding OcultoEnTienda}" />
+                            </StackPanel>
+                          </StackPanel>
+                        </Grid>
+
+                        <TextBlock Grid.Column="2" Text="{Binding TipoTexto}" FontSize="13" VerticalAlignment="Center"
+                                   TextTrimming="CharacterEllipsis" Margin="12,0,8,0" />
+                        <TextBlock Grid.Column="3" Text="{Binding Marca}" FontSize="13" VerticalAlignment="Center"
+                                   TextTrimming="CharacterEllipsis" Margin="0,0,8,0" />
+
+                        <Panel Grid.Column="4" VerticalAlignment="Center" HorizontalAlignment="Right">
+                          <TextBlock Text="{Binding Producto.Stock}" Classes="monto" FontWeight="SemiBold"
+                                     IsVisible="{Binding Producto.ControlaStock}" />
+                          <TextBlock Text="—" Foreground="{StaticResource TextoDeshabilitado}" IsVisible="{Binding !Producto.ControlaStock}"
+                                     ToolTip.Tip="No lleva control de stock" />
+                        </Panel>
+                        <TextBlock Grid.Column="5" Text="{Binding Producto.CostoPromedio, Converter={StaticResource Bs}}"
+                                   Classes="monto" Foreground="{StaticResource TextoSuave}"
+                                   HorizontalAlignment="Right" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="6" Text="{Binding Producto.PrecioVenta, Converter={StaticResource Bs}}"
+                                   Classes="monto" FontWeight="SemiBold"
+                                   HorizontalAlignment="Right" VerticalAlignment="Center" />
+
+                        <Border Grid.Column="7" Classes="estado" Margin="16,0,0,0"
+                                Classes.bajo="{Binding EsBajo}" Classes.agotado="{Binding EsAgotado}" Classes.inactivo="{Binding EsInactivo}">
+                          <StackPanel Orientation="Horizontal" Spacing="6">
+                            <Ellipse />
+                            <TextBlock Text="{Binding Estado}" />
+                          </StackPanel>
+                        </Border>
+
+                        <Button Grid.Column="8" Classes="fantasma icono" Width="32" Height="32" MinHeight="32" MinWidth="32" Padding="0"
+                                HorizontalAlignment="Right" Click="Opciones_Click"
+                                ToolTip.Tip="Acciones" AutomationProperties.Name="Acciones del producto">
+                          <ui:Icono Data="{x:Static ui:Iconos.Opciones}" Width="16" Height="16" Foreground="{StaticResource TextoSuave}" />
+                        </Button>
+                      </Grid>
+                    </DataTemplate>
+                  </ListBox.ItemTemplate>
+                </ListBox>
+
+                <!-- Vacío: explica qué hacer -->
+                <StackPanel Classes="vacio" VerticalAlignment="Center" IsVisible="{Binding SinResultados}">
+                  <ui:Icono Data="{x:Static ui:Iconos.Inventario}" />
+                  <TextBlock Classes="subtitulo" Text="No hay productos que mostrar" />
+                  <TextBlock IsVisible="{Binding HayFiltros}"
+                             Text="Ningún producto coincide con la búsqueda o los filtros actuales." />
+                  <TextBlock IsVisible="{Binding !HayFiltros}"
+                             Text="Crea el primer producto con «Nuevo producto»; podrás cargar su stock inicial y su foto." />
+                  <Button Content="Limpiar filtros" HorizontalAlignment="Center" Margin="0,6,0,0"
+                          Command="{Binding LimpiarFiltrosCommand}" IsVisible="{Binding HayFiltros}" />
+                </StackPanel>
+              </Panel>
+
+            <Border Grid.Row="2" BorderBrush="{StaticResource Borde}" BorderThickness="0,1,0,0" Padding="16,10">
+              <TextBlock Classes="etiqueta monto" Text="{Binding Resumen}" />
+            </Border>
+          </Grid>
+        </Border>
+      </Panel>
+    </Grid>
+
+    <!-- ═══════════════ Ficha del producto ═══════════════ -->
+    <Border Classes="velo" IsVisible="{Binding FichaAbierta}">
+      <Border Classes="dialogo" MaxWidth="1080" Margin="32,24" VerticalAlignment="Center">
+        <Grid RowDefinitions="*,Auto">
+          <Grid ColumnDefinitions="5*,6*">
+
+            <!-- Foto grande -->
+            <Panel Background="{StaticResource Superficie}" MinHeight="300">
+              <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="10" Margin="24"
+                          IsVisible="{Binding !TieneFotoSeleccionado}">
+                <ui:Icono Data="{x:Static ui:Iconos.Foto}" Width="40" Height="40" HorizontalAlignment="Center"
+                          Foreground="{StaticResource BordeFuerte}" Grosor="1.5" />
+                <TextBlock Text="Este producto no tiene fotografía" Foreground="{StaticResource TextoSuave}" HorizontalAlignment="Center" />
+                <TextBlock Classes="etiqueta" FontSize="12" HorizontalAlignment="Center" IsVisible="{Binding PuedeGestionar}"
+                           Text="Agrégala desde «Editar producto»." />
+                <TextBlock Classes="etiqueta" FontSize="12" HorizontalAlignment="Center"
+                           IsVisible="{Binding Ficha.TieneFoto, FallbackValue=False}" Text="Cargando la foto…" />
+              </StackPanel>
+              <Button Classes="foto" Command="{Binding AbrirVisorCommand}" IsVisible="{Binding TieneFotoSeleccionado}"
+                      ToolTip.Tip="Ver la foto ampliada" AutomationProperties.Name="Ver la foto ampliada">
+                <Image Source="{Binding FotoSeleccionado}" Stretch="Uniform" />
+              </Button>
+              <Border Classes="estado inactivo" Margin="16" VerticalAlignment="Bottom" HorizontalAlignment="Right"
+                      IsVisible="{Binding TieneFotoSeleccionado}" IsHitTestVisible="False">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <ui:Icono Data="{x:Static ui:Iconos.Buscar}" Width="12" Height="12" Foreground="{StaticResource TextoSuave}" />
+                  <TextBlock Text="Clic para ampliar" />
+                </StackPanel>
+              </Border>
+            </Panel>
+
+            <!-- Información -->
+            <Grid Grid.Column="1" RowDefinitions="Auto,*">
+              <Button Classes="fantasma icono" HorizontalAlignment="Right" Margin="0,12,12,0" Command="{Binding CerrarFichaCommand}"
+                      ToolTip.Tip="Cerrar (Esc)" AutomationProperties.Name="Cerrar ficha">
+                <ui:Icono Data="{x:Static ui:Iconos.Cerrar}" Width="18" Height="18" />
+              </Button>
+              <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled">
+                <StackPanel Margin="32,0,32,28" Spacing="20">
+
+                  <StackPanel Spacing="6">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                      <Border Classes="estado" Classes.bajo="{Binding Ficha.EsBajo, FallbackValue=False}"
+                              Classes.agotado="{Binding Ficha.EsAgotado, FallbackValue=False}"
+                              Classes.inactivo="{Binding Ficha.EsInactivo, FallbackValue=False}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                          <Ellipse />
+                          <TextBlock Text="{Binding Ficha.Estado}" />
+                        </StackPanel>
+                      </Border>
+                      <TextBlock Classes="etiqueta" VerticalAlignment="Center" Text="{Binding Ficha.TipoTexto}" />
+                    </StackPanel>
+                    <TextBlock Text="{Binding Ficha.Marca}" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextoSuave}"
+                               Margin="0,6,0,0" IsVisible="{Binding Ficha.TieneMarca, FallbackValue=False}" />
+                    <TextBlock Text="{Binding Ficha.Producto.Nombre}" FontSize="24" FontWeight="SemiBold" LetterSpacing="-0.3"
+                               TextWrapping="Wrap" />
+                    <TextBlock Classes="etiqueta monto" Text="{Binding Ficha.ModeloSku}" />
+                    <TextBlock Text="{Binding Ficha.Producto.PrecioVenta, Converter={StaticResource Bs}}" Classes="cifra"
+                               FontSize="28" Margin="0,8,0,0" />
+                  </StackPanel>
+
+                  <!-- Datos -->
+                  <Border BorderBrush="{StaticResource Borde}" BorderThickness="0,1,0,1" Padding="0,14">
+                    <Grid ColumnDefinitions="*,24,*" RowDefinitions="Auto,14,Auto,14,Auto">
+                      <StackPanel Spacing="2">
+                        <TextBlock Classes="etiqueta" FontSize="12" Text="Stock en esta sucursal" />
+                        <TextBlock FontWeight="SemiBold" Classes="monto" Text="{Binding Ficha.StockTexto}"
+                                   Classes.error="{Binding Ficha.EsAgotado, FallbackValue=False}" />
+                        <TextBlock Classes="etiqueta monto" FontSize="12" Text="{Binding Ficha.StockMinimoTexto}" />
+                      </StackPanel>
+                      <StackPanel Grid.Column="2" Spacing="2">
+                        <TextBlock Classes="etiqueta" FontSize="12" Text="Costo promedio" />
+                        <TextBlock FontWeight="SemiBold" Classes="monto" Text="{Binding Ficha.Producto.CostoPromedio, Converter={StaticResource Bs}}" />
+                      </StackPanel>
+                      <StackPanel Grid.Row="2" Spacing="2">
+                        <TextBlock Classes="etiqueta" FontSize="12" Text="SKU" />
+                        <TextBlock Classes="monto" Text="{Binding Ficha.Producto.Sku}" TextWrapping="Wrap" />
+                      </StackPanel>
+                      <StackPanel Grid.Row="2" Grid.Column="2" Spacing="2">
+                        <TextBlock Classes="etiqueta" FontSize="12" Text="Código de barras" />
+                        <TextBlock Classes="monto" Text="{Binding Ficha.Producto.CodigoBarras, TargetNullValue='—'}" TextWrapping="Wrap" />
+                      </StackPanel>
+                      <StackPanel Grid.Row="4" Spacing="2">
+                        <TextBlock Classes="etiqueta" FontSize="12" Text="Modelo" />
+                        <TextBlock Text="{Binding Ficha.Producto.Modelo, TargetNullValue='—'}" TextWrapping="Wrap" />
+                      </StackPanel>
+                      <StackPanel Grid.Row="4" Grid.Column="2" Spacing="2">
+                        <TextBlock Classes="etiqueta" FontSize="12" Text="Categoría" />
+                        <TextBlock Text="{Binding Ficha.TipoTexto}" />
+                      </StackPanel>
+                    </Grid>
+                  </Border>
+
+                  <Button Content="Kardex y movimientos" Command="{Binding AbrirMovimientosCommand}" IsVisible="{Binding PuedeVerMovimientos}" />
+                  <!-- Características ópticas -->
+                  <StackPanel Spacing="10">
+                    <TextBlock Classes="subtitulo" FontSize="15" Text="Características ópticas" />
+                    <ItemsControl ItemsSource="{Binding Ficha.Caracteristicas}" IsVisible="{Binding Ficha.TieneCaracteristicas, FallbackValue=False}">
+                      <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                          <UniformGrid Columns="2" />
+                        </ItemsPanelTemplate>
+                      </ItemsControl.ItemsPanel>
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:Dato">
+                          <StackPanel Spacing="2" Margin="0,0,16,12">
+                            <TextBlock Classes="etiqueta" FontSize="12" Text="{Binding Etiqueta}" />
+                            <TextBlock Text="{Binding Valor}" TextWrapping="Wrap" />
+                          </StackPanel>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <TextBlock Classes="etiqueta" IsVisible="{Binding !Ficha.TieneCaracteristicas, FallbackValue=True}"
+                               Text="Sin características cargadas. Se agregan desde «Editar producto»." TextWrapping="Wrap" />
+                  </StackPanel>
+
+                  <!-- Descripción -->
+                  <StackPanel Spacing="8" IsVisible="{Binding Ficha.Producto.Descripcion, Converter={x:Static StringConverters.IsNotNullOrEmpty}, FallbackValue=False}">
+                    <TextBlock Classes="subtitulo" FontSize="15" Text="Descripción" />
+                    <TextBlock Text="{Binding Ficha.Producto.Descripcion}" TextWrapping="Wrap" LineHeight="21" />
+                  </StackPanel>
+
+                  <!-- Tienda web -->
+                  <Border BorderBrush="{StaticResource Borde}" BorderThickness="1" CornerRadius="{StaticResource RadioControl}" Padding="14,12">
+                    <Grid ColumnDefinitions="*,Auto">
+                      <StackPanel Spacing="2" VerticalAlignment="Center">
+                        <TextBlock FontWeight="Medium" Text="Visible en la tienda web" IsVisible="{Binding !SeleccionOculta}" />
+                        <TextBlock FontWeight="Medium" Text="Oculto en la tienda web" IsVisible="{Binding SeleccionOculta}" />
+                        <TextBlock Classes="etiqueta" FontSize="12" TextWrapping="Wrap"
+                                   Text="Los clientes lo ven con su foto, precio, descripción y características." />
+                      </StackPanel>
+                      <Panel Grid.Column="1" Margin="12,0,0,0" IsVisible="{Binding PuedeGestionar}">
+                        <Button Content="Ocultar" Command="{Binding CambiarVisibilidadTiendaCommand}" IsVisible="{Binding !SeleccionOculta}" />
+                        <Button Content="Publicar" Command="{Binding CambiarVisibilidadTiendaCommand}" IsVisible="{Binding SeleccionOculta}" />
+                      </Panel>
+                    </Grid>
+                  </Border>
+
+                  <Grid ColumnDefinitions="Auto,8,*" IsVisible="{Binding Error, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                    <ui:Icono Data="{x:Static ui:Iconos.Alerta}" Width="16" Height="16" Foreground="{StaticResource Peligro}" VerticalAlignment="Top" Margin="0,1,0,0" />
+                    <TextBlock Grid.Column="2" Classes="error" Text="{Binding Error}" />
+                  </Grid>
+                  <TextBlock Classes="ok" Text="{Binding Aviso}" IsVisible="{Binding Aviso, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                </StackPanel>
+              </ScrollViewer>
+            </Grid>
+          </Grid>
+
+          <!-- Acciones -->
+          <Border Grid.Row="1" Classes="pie-dialogo">
+            <Grid ColumnDefinitions="*,Auto">
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button Classes="fantasma" Foreground="{StaticResource Peligro}" Command="{Binding PedirEliminarCommand}"
+                        IsVisible="{Binding PuedeEliminarSeleccion}">
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <ui:Icono Data="{x:Static ui:Iconos.Eliminar}" Width="16" Height="16" />
+                    <TextBlock Text="Eliminar" />
+                  </StackPanel>
+                </Button>
+                <Button Content="Reactivar" Command="{Binding ReactivarCommand}" IsVisible="{Binding PuedeReactivarSeleccion}" />
+              </StackPanel>
+              <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                <Button Command="{Binding AbrirEntradaCommand}" IsVisible="{Binding PuedeRecibirSeleccion}" AutomationProperties.Name="Registrar entrada">
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <ui:Icono Data="{x:Static ui:Iconos.Entrada}" Width="16" Height="16" />
+                    <TextBlock Text="Registrar entrada" />
+                  </StackPanel>
+                </Button>
+                <Button Classes="primario" Command="{Binding EditarCommand}" IsVisible="{Binding PuedeEditarSeleccion}" AutomationProperties.Name="Editar producto">
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <ui:Icono Data="{x:Static ui:Iconos.Editar}" Width="16" Height="16" />
+                    <TextBlock Text="Editar producto" />
+                  </StackPanel>
+                </Button>
+              </StackPanel>
+            </Grid>
+          </Border>
+        </Grid>
+      </Border>
     </Border>
 
-    <!-- Panel derecho -->
-    <ScrollViewer Grid.Row="3" Grid.Column="2">
-      <StackPanel Spacing="16">
+    <!-- Foto ampliada -->
+    <Border Background="#F21D2733" IsVisible="{Binding VisorAbierto}" PointerPressed="Visor_PointerPressed">
+      <Grid RowDefinitions="Auto,*">
+        <Grid ColumnDefinitions="*,Auto" Margin="28,18">
+          <TextBlock Text="{Binding Ficha.Producto.Nombre}" Foreground="White" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center" />
+          <Button Grid.Column="1" Classes="icono visor" Command="{Binding CerrarVisorCommand}"
+                  ToolTip.Tip="Cerrar (Esc)" AutomationProperties.Name="Cerrar foto">
+            <ui:Icono Data="{x:Static ui:Iconos.Cerrar}" Width="20" Height="20" />
+          </Button>
+        </Grid>
+        <Image Grid.Row="1" Source="{Binding FotoAmpliada}" Stretch="Uniform" Margin="48,0,48,48" />
+      </Grid>
+    </Border>
+    <!-- ═══════════════ Modal: nuevo / editar producto ═══════════════ -->
+    <Border Classes="velo" IsVisible="{Binding MostrandoFormulario}">
+      <Border Classes="dialogo" MaxWidth="1100" Margin="32,24" VerticalAlignment="Center">
+        <Grid RowDefinitions="Auto,*,Auto">
 
-        <!-- Formulario nuevo / editar -->
-        <Border Classes="tarjeta" IsVisible="{Binding MostrandoFormulario}">
-          <StackPanel Spacing="8">
-            <TextBlock Classes="subtitulo" Text="{Binding TituloFormulario}" />
-            <TextBox Text="{Binding FormSku}" Watermark="Código interno (SKU), ej. MON-RB-001" />
-            <TextBox Text="{Binding FormNombre}" Watermark="Nombre" />
-            <ComboBox ItemsSource="{Binding Tipos}" SelectedItem="{Binding FormTipo}" HorizontalAlignment="Stretch" />
-            <ComboBox ItemsSource="{Binding Marcas}" SelectedItem="{Binding FormMarca}"
-                      PlaceholderText="Marca (opcional)" HorizontalAlignment="Stretch">
-              <ComboBox.ItemTemplate>
-                <DataTemplate x:DataType="api:Marca">
-                  <TextBlock Text="{Binding Nombre}" />
-                </DataTemplate>
-              </ComboBox.ItemTemplate>
-            </ComboBox>
-            <Grid ColumnDefinitions="*,8,Auto">
-              <TextBox Text="{Binding NombreMarcaNueva}" Watermark="¿Marca nueva? Escríbela" />
-              <Button Grid.Column="2" Content="Crear" Command="{Binding CrearMarcaCommand}" />
+          <!-- Cabecera -->
+          <Border BorderBrush="{StaticResource Borde}" BorderThickness="0,0,0,1" Padding="28,20,16,18">
+            <Grid ColumnDefinitions="*,Auto">
+              <StackPanel Spacing="4">
+                <TextBlock Classes="subtitulo" FontSize="20" Text="{Binding TituloFormulario}" />
+                <TextBlock Classes="etiqueta" IsVisible="{Binding EsNuevo}"
+                           Text="Completa los datos del producto. Los campos marcados con * son obligatorios." />
+                <TextBlock Classes="etiqueta" IsVisible="{Binding !EsNuevo}" TextTrimming="CharacterEllipsis">
+                  <Run Text="{Binding FormSku}" />
+                  <Run Text="·" />
+                  <Run Text="{Binding FormNombre}" />
+                </TextBlock>
+              </StackPanel>
+              <Button Grid.Column="1" Classes="fantasma icono" VerticalAlignment="Top" Command="{Binding CancelarFormularioCommand}"
+                      ToolTip.Tip="Cerrar (Esc)" AutomationProperties.Name="Cerrar">
+                <ui:Icono Data="{x:Static ui:Iconos.Cerrar}" Width="18" Height="18" />
+              </Button>
             </Grid>
-            <TextBox Text="{Binding FormModelo}" Watermark="Modelo (opcional)" />
-            <TextBox Text="{Binding FormCodigoBarras}" Watermark="Código de barras (opcional)" />
-            <TextBlock Classes="etiqueta" Text="Precio de venta Bs" />
-            <TextBox Text="{Binding FormPrecio}" Watermark="0,00" />
+          </Border>
 
-            <!-- Foto -->
-            <TextBlock Classes="etiqueta" Text="Foto (se ve en la tienda web)" Margin="0,8,0,0" />
-            <Border Height="180" CornerRadius="8" Background="{StaticResource Superficie}" ClipToBounds="True"
-                    IsVisible="{Binding FormFoto, Converter={x:Static ObjectConverters.IsNotNull}}">
-              <Image Source="{Binding FormFoto}" Stretch="Uniform" />
-            </Border>
-            <TextBlock Classes="etiqueta" Text="{Binding FormFotoTexto}" TextWrapping="Wrap" />
-            <StackPanel Orientation="Horizontal" Spacing="8">
-              <Button Content="Elegir foto…" Click="ElegirFoto_Click" />
-              <Button Content="Quitar foto" Command="{Binding QuitarFotoCommand}" IsVisible="{Binding FormTieneFoto}" />
-            </StackPanel>
+          <!-- Cuerpo con desplazamiento -->
+          <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled">
+            <Grid ColumnDefinitions="*,32,320" Margin="28,24,28,28">
 
-            <!-- Descripción -->
-            <TextBlock Classes="etiqueta" Text="Descripción (opcional)" Margin="0,8,0,0" />
-            <TextBox Text="{Binding FormDescripcion}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="70" MaxLength="2000"
-                     Watermark="Qué lo hace especial: material, comodidad, para qué uso…" />
+              <!-- Columna principal -->
+              <StackPanel Spacing="32">
 
-            <!-- Características según el tipo -->
-            <TextBlock Classes="subtitulo" Text="Características" Margin="0,8,0,0" FontSize="15" />
-            <StackPanel Spacing="8" IsVisible="{Binding FormEsMontura}">
-              <TextBlock Classes="etiqueta" Text="Para quién" />
-              <ComboBox ItemsSource="{Binding Generos}" SelectedItem="{Binding FormGenero}" HorizontalAlignment="Stretch" />
-              <TextBlock Classes="etiqueta" TextWrapping="Wrap"
-                         Text="Medidas en mm (vienen impresas en la varilla, p. ej. 52□18 140)" />
-              <Grid ColumnDefinitions="*,6,*,6,*">
-                <NumericUpDown Value="{Binding FormCalibre}" Minimum="0" Maximum="100" Increment="1" FormatString="0.#"
-                               Watermark="Lente" ToolTip.Tip="Ancho del lente (calibre)" />
-                <NumericUpDown Grid.Column="2" Value="{Binding FormPuente}" Minimum="0" Maximum="50" Increment="1" FormatString="0.#"
-                               Watermark="Puente" ToolTip.Tip="Puente" />
-                <NumericUpDown Grid.Column="4" Value="{Binding FormVarilla}" Minimum="0" Maximum="200" Increment="1" FormatString="0.#"
-                               Watermark="Varilla" ToolTip.Tip="Largo de la varilla" />
-              </Grid>
-              <TextBox Text="{Binding FormForma}" Watermark="Forma (aviador, redonda, cat-eye…)" />
-            </StackPanel>
-            <TextBox Text="{Binding FormMaterial}" Watermark="Material (acetato, metal, TR90, policarbonato…)" IsVisible="{Binding FormLlevaMaterial}" />
-            <TextBox Text="{Binding FormColor}" Watermark="Color" />
-            <StackPanel Spacing="8" IsVisible="{Binding FormEsLente}">
-              <NumericUpDown Value="{Binding FormIndice}" Minimum="0" Maximum="2" Increment="0.01" FormatString="0.00"
-                             Watermark="Índice (1.50, 1.56, 1.67…)" />
-              <TextBox Text="{Binding FormTratamiento}" Watermark="Tratamiento (antirreflejo, filtro azul, fotocromático…)" />
-            </StackPanel>
-            <CheckBox Content="Mostrar en la tienda web" IsChecked="{Binding FormVisibleTienda}" Margin="0,4,0,0" />
-            <TextBlock Classes="etiqueta" Text="Stock mínimo (avisa cuando llegue a este número)" />
-            <NumericUpDown Value="{Binding FormStockMinimo}" Minimum="0" Increment="1" FormatString="0" />
-            <StackPanel Spacing="4" IsVisible="{Binding EsNuevo}">
-              <TextBlock Classes="etiqueta" Text="Stock inicial (opcional) y su costo unitario" />
-              <Grid ColumnDefinitions="*,8,*">
-                <NumericUpDown Value="{Binding FormStockInicial}" Minimum="0" Increment="1" FormatString="0" />
-                <TextBox Grid.Column="2" Text="{Binding FormCosto}" Watermark="Costo unit. Bs" />
-              </Grid>
-            </StackPanel>
-            <TextBlock Classes="etiqueta" TextWrapping="Wrap" IsVisible="{Binding !EsNuevo}"
-                       Text="El stock no se edita aquí: usa Entrada de mercadería o un ajuste de inventario." />
-            <StackPanel Orientation="Horizontal" Spacing="8">
-              <Button Classes="primario" Content="Guardar" Command="{Binding GuardarProductoCommand}" />
-              <Button Content="Cancelar" Command="{Binding CancelarFormularioCommand}" />
-            </StackPanel>
-          </StackPanel>
-        </Border>
-
-        <!-- Producto seleccionado -->
-        <Border Classes="tarjeta">
-          <StackPanel Spacing="8">
-            <TextBlock Classes="etiqueta" TextWrapping="Wrap" IsVisible="{Binding !HaySeleccion}"
-                       Text="Selecciona un producto de la lista para verlo, editarlo o registrar unidades que llegaron." />
-
-            <StackPanel Spacing="8" IsVisible="{Binding HaySeleccion}">
-              <Border Height="200" CornerRadius="8" Background="{StaticResource Superficie}" ClipToBounds="True" IsVisible="{Binding TieneFotoSeleccionado}">
-                <Image Source="{Binding FotoSeleccionado}" Stretch="Uniform" />
-              </Border>
-              <TextBlock Classes="subtitulo" Text="{Binding Seleccionado.Nombre}" TextWrapping="Wrap" />
-              <TextBlock Classes="etiqueta" Text="{Binding Seleccionado.Sku}" />
-              <TextBlock Classes="etiqueta" Text="{Binding Seleccionado.Medidas, StringFormat='Medidas: {0}'}"
-                         IsVisible="{Binding Seleccionado.Medidas, Converter={x:Static ObjectConverters.IsNotNull}}" />
-              <TextBlock Text="{Binding Seleccionado.Descripcion}" TextWrapping="Wrap"
-                         IsVisible="{Binding Seleccionado.Descripcion, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
-              <TextBlock Classes="etiqueta" Text="No se muestra en la tienda web" IsVisible="{Binding SeleccionOculta}" />
-              <TextBlock Classes="etiqueta" Text="{Binding Seleccionado.Stock, StringFormat='Stock en esta sucursal: {0}'}" />
-
-              <!-- Acciones de catálogo -->
-              <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding PuedeGestionar}">
-                <Button Content="Editar" Command="{Binding EditarCommand}" />
-                <Button Content="Eliminar" Command="{Binding PedirEliminarCommand}" IsVisible="{Binding !SeleccionInactiva}" />
-                <Button Content="Reactivar" Command="{Binding ReactivarCommand}" IsVisible="{Binding SeleccionInactiva}" />
-              </StackPanel>
-              <Border Classes="aviso-error" IsVisible="{Binding ConfirmandoEliminar}">
-                <StackPanel Spacing="8">
-                  <TextBlock Classes="error" TextWrapping="Wrap"
-                             Text="¿Eliminar este producto? Si ya tuvo movimientos o ventas, se desactivará en lugar de borrarse." />
-                  <StackPanel Orientation="Horizontal" Spacing="8">
-                    <Button Classes="peligro" Content="Sí, eliminar" Command="{Binding EliminarCommand}" />
-                    <Button Content="No" Command="{Binding CancelarEliminarCommand}" />
-                  </StackPanel>
+                <!-- A. Información general -->
+                <StackPanel Spacing="16">
+                  <TextBlock Classes="subtitulo" Text="Información general" />
+                  <Grid ColumnDefinitions="*,16,*" RowDefinitions="Auto,16,Auto,16,Auto,16,Auto,16,Auto">
+                    <StackPanel Grid.ColumnSpan="3">
+                      <TextBlock Classes="campo" Text="Nombre *" />
+                      <TextBox Text="{Binding FormNombre}" Watermark="Ej. Ray-Ban Aviator Classic" MaxLength="200" />
+                    </StackPanel>
+                    <StackPanel Grid.Row="2">
+                      <TextBlock Classes="campo" Text="SKU (código interno) *" />
+                      <TextBox Text="{Binding FormSku}" Watermark="Ej. MON-RB-001" MaxLength="60" />
+                    </StackPanel>
+                    <StackPanel Grid.Row="2" Grid.Column="2">
+                      <TextBlock Classes="campo" Text="Tipo *" />
+                      <ComboBox ItemsSource="{Binding Tipos}" SelectedItem="{Binding FormTipo}" HorizontalAlignment="Stretch" />
+                    </StackPanel>
+                    <StackPanel Grid.Row="4">
+                      <TextBlock Classes="campo" Text="Marca" />
+                      <ComboBox ItemsSource="{Binding Marcas}" SelectedItem="{Binding FormMarca}"
+                                PlaceholderText="Sin marca" HorizontalAlignment="Stretch">
+                        <ComboBox.ItemTemplate>
+                          <DataTemplate x:DataType="api:Marca">
+                            <TextBlock Text="{Binding Nombre}" />
+                          </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                      </ComboBox>
+                    </StackPanel>
+                    <StackPanel Grid.Row="4" Grid.Column="2">
+                      <TextBlock Classes="campo" Text="¿Marca nueva?" />
+                      <Grid ColumnDefinitions="*,8,Auto">
+                        <TextBox Text="{Binding NombreMarcaNueva}" Watermark="Escribe el nombre" />
+                        <Button Grid.Column="2" Content="Crear" MinHeight="38" Command="{Binding CrearMarcaCommand}" />
+                      </Grid>
+                    </StackPanel>
+                    <StackPanel Grid.Row="6">
+                      <TextBlock Classes="campo" Text="Modelo" />
+                      <TextBox Text="{Binding FormModelo}" Watermark="Ej. RB3025" />
+                    </StackPanel>
+                    <StackPanel Grid.Row="6" Grid.Column="2">
+                      <TextBlock Classes="campo" Text="Código de barras" />
+                      <TextBox Text="{Binding FormCodigoBarras}" Watermark="Escanea o escribe el código" />
+                    </StackPanel>
+                    <StackPanel Grid.Row="8" Grid.ColumnSpan="3">
+                      <TextBlock Classes="campo" Text="Descripción" />
+                      <TextBox Text="{Binding FormDescripcion}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="88"
+                               VerticalContentAlignment="Top" MaxLength="2000"
+                               Watermark="Qué lo hace especial: material, comodidad, para qué uso…" />
+                      <TextBlock Classes="ayuda" Text="Se muestra en la ficha del producto de la tienda web." />
+                    </StackPanel>
+                  </Grid>
                 </StackPanel>
-              </Border>
 
-              <!-- Entrada de mercadería -->
-              <StackPanel Spacing="8" IsVisible="{Binding PuedeRecibirSeleccion}" Margin="0,8,0,0">
-                <TextBlock Classes="subtitulo" Text="Entrada de mercadería" />
-                <Grid ColumnDefinitions="*,8,*">
-                  <StackPanel Spacing="4">
-                    <TextBlock Classes="etiqueta" Text="Cantidad" />
-                    <NumericUpDown Value="{Binding EntradaCantidad}" Minimum="1" Increment="1" FormatString="0" />
+                <!-- B. Precios -->
+                <StackPanel Spacing="16">
+                  <TextBlock Classes="subtitulo" Text="Precios" />
+                  <Grid ColumnDefinitions="*,16,*">
+                    <StackPanel>
+                      <TextBlock Classes="campo" Text="Precio de venta (Bs) *" />
+                      <TextBox Text="{Binding FormPrecio}" Watermark="0,00" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="2" IsVisible="{Binding !EsNuevo}">
+                      <TextBlock Classes="campo" Text="Costo promedio" />
+                      <Border Classes="valor-fijo">
+                        <TextBlock Text="{Binding FormCostoPromedio}" />
+                      </Border>
+                      <TextBlock Classes="ayuda" Text="Se recalcula solo con cada entrada de mercadería." />
+                    </StackPanel>
+                  </Grid>
+                </StackPanel>
+
+                <!-- C. Inventario -->
+                <StackPanel Spacing="16" IsVisible="{Binding !FormEsServicio}">
+                  <TextBlock Classes="subtitulo" Text="Inventario" />
+                  <Grid ColumnDefinitions="*,16,*,16,*" IsVisible="{Binding EsNuevo}">
+                    <StackPanel>
+                      <TextBlock Classes="campo" Text="Stock inicial" />
+                      <NumericUpDown Value="{Binding FormStockInicial}" Minimum="0" Increment="1" FormatString="0" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                      <TextBlock Classes="campo" Text="Costo unitario (Bs)" />
+                      <TextBox Text="{Binding FormCosto}" Watermark="0,00" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="4">
+                      <TextBlock Classes="campo" Text="Stock mínimo" />
+                      <NumericUpDown Value="{Binding FormStockMinimo}" Minimum="0" Increment="1" FormatString="0" />
+                    </StackPanel>
+                  </Grid>
+                  <TextBlock Classes="ayuda" Margin="0" IsVisible="{Binding EsNuevo}"
+                             Text="El stock inicial es opcional; si lo indicas, pon también lo que costó cada unidad. El stock mínimo activa el aviso de stock bajo." />
+                  <Grid ColumnDefinitions="*,16,*" IsVisible="{Binding !EsNuevo}">
+                    <StackPanel>
+                      <TextBlock Classes="campo" Text="Stock actual en esta sucursal" />
+                      <Border Classes="valor-fijo">
+                        <TextBlock Text="{Binding FormStockActual}" FontWeight="SemiBold" />
+                      </Border>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                      <TextBlock Classes="campo" Text="Stock mínimo" />
+                      <NumericUpDown Value="{Binding FormStockMinimo}" Minimum="0" Increment="1" FormatString="0" />
+                    </StackPanel>
+                  </Grid>
+                  <Border Background="{StaticResource Superficie}" CornerRadius="{StaticResource RadioControl}" Padding="12,10"
+                          IsVisible="{Binding !EsNuevo}">
+                    <Grid ColumnDefinitions="Auto,10,*">
+                      <ui:Icono Data="{x:Static ui:Iconos.Entrada}" Width="16" Height="16" Foreground="{StaticResource TextoSuave}"
+                                VerticalAlignment="Top" Margin="0,1,0,0" />
+                      <TextBlock Grid.Column="2" Classes="etiqueta" TextWrapping="Wrap"
+                                 Text="El stock no se edita a mano: cambia con las ventas y con «Registrar entrada de mercadería» (menú de la fila) o un ajuste de inventario." />
+                    </Grid>
+                  </Border>
+                </StackPanel>
+                <StackPanel Spacing="16" IsVisible="{Binding FormEsServicio}">
+                  <TextBlock Classes="subtitulo" Text="Inventario" />
+                  <TextBlock Classes="etiqueta" TextWrapping="Wrap" Text="Los servicios no llevan stock." />
+                </StackPanel>
+
+                <!-- E. Características ópticas -->
+                <StackPanel Spacing="16">
+                  <StackPanel Spacing="2">
+                    <TextBlock Classes="subtitulo" Text="Características ópticas" />
+                    <TextBlock Classes="etiqueta" Text="Cambian según el tipo de producto. Ayudan a los clientes a filtrar en la tienda." />
                   </StackPanel>
-                  <StackPanel Grid.Column="2" Spacing="4">
-                    <TextBlock Classes="etiqueta" Text="Costo unitario Bs" />
-                    <TextBox Text="{Binding EntradaCosto}" />
-                  </StackPanel>
-                </Grid>
-                <TextBox Text="{Binding EntradaDocumento}" Watermark="Nro. de factura o remito (opcional)" />
-                <Button Classes="primario" Content="Registrar entrada" HorizontalAlignment="Stretch"
-                        HorizontalContentAlignment="Center" Command="{Binding RegistrarEntradaCommand}" />
-                <TextBlock Classes="etiqueta" TextWrapping="Wrap"
-                           Text="El costo promedio se recalcula solo con cada entrada." />
+
+                  <!-- Monturas y gafas de sol -->
+                  <Grid ColumnDefinitions="*,16,*" RowDefinitions="Auto,16,Auto" IsVisible="{Binding FormEsMontura}">
+                    <StackPanel>
+                      <TextBlock Classes="campo" Text="Para quién" />
+                      <ComboBox ItemsSource="{Binding Generos}" SelectedItem="{Binding FormGenero}" HorizontalAlignment="Stretch" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                      <TextBlock Classes="campo" Text="Forma" />
+                      <TextBox Text="{Binding FormForma}" Watermark="Aviador, redonda, cat-eye…" />
+                    </StackPanel>
+                    <StackPanel Grid.Row="2" Grid.ColumnSpan="3">
+                      <TextBlock Classes="campo" Text="Medidas (mm)" />
+                      <Grid ColumnDefinitions="*,12,*,12,*">
+                        <NumericUpDown Value="{Binding FormCalibre}" Minimum="0" Maximum="100" Increment="1" FormatString="0.#"
+                                       Watermark="Lente (calibre)" ToolTip.Tip="Ancho del lente (calibre)" />
+                        <NumericUpDown Grid.Column="2" Value="{Binding FormPuente}" Minimum="0" Maximum="50" Increment="1" FormatString="0.#"
+                                       Watermark="Puente" ToolTip.Tip="Puente" />
+                        <NumericUpDown Grid.Column="4" Value="{Binding FormVarilla}" Minimum="0" Maximum="200" Increment="1" FormatString="0.#"
+                                       Watermark="Varilla" ToolTip.Tip="Largo de la varilla" />
+                      </Grid>
+                      <TextBlock Classes="ayuda" Text="Vienen impresas en la varilla, p. ej. 52□18 140: lente, puente y varilla." />
+                    </StackPanel>
+                  </Grid>
+
+                  <!-- Lentes oftálmicos -->
+                  <Grid ColumnDefinitions="*,16,*" IsVisible="{Binding FormEsLente}">
+                    <StackPanel>
+                      <TextBlock Classes="campo" Text="Índice de refracción" />
+                      <NumericUpDown Value="{Binding FormIndice}" Minimum="0" Maximum="2" Increment="0.01" FormatString="0.00"
+                                     Watermark="1.50, 1.56, 1.67…" />
+                      <TextBlock Classes="ayuda" Text="Entre 1.40 y 2.00." />
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                      <TextBlock Classes="campo" Text="Tratamiento" />
+                      <TextBox Text="{Binding FormTratamiento}" Watermark="Antirreflejo, filtro azul, fotocromático…" />
+                    </StackPanel>
+                  </Grid>
+
+                  <!-- Comunes -->
+                  <Grid ColumnDefinitions="*,16,*">
+                    <StackPanel IsVisible="{Binding FormLlevaMaterial}">
+                      <TextBlock Classes="campo" Text="Material" />
+                      <TextBox Text="{Binding FormMaterial}" Watermark="Acetato, metal, TR90, policarbonato…" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                      <TextBlock Classes="campo" Text="Color" />
+                      <TextBox Text="{Binding FormColor}" Watermark="Ej. Negro mate" />
+                    </StackPanel>
+                  </Grid>
+                </StackPanel>
               </StackPanel>
-            </StackPanel>
+
+              <!-- Columna lateral: foto y tienda web -->
+              <StackPanel Grid.Column="2" Spacing="32">
+
+                <!-- D. Fotografía -->
+                <StackPanel Spacing="12">
+                  <TextBlock Classes="subtitulo" Text="Fotografía" />
+                  <Border Height="280" CornerRadius="{StaticResource RadioTarjeta}" Background="{StaticResource Superficie}"
+                          BorderBrush="{StaticResource Borde}" BorderThickness="1" ClipToBounds="True">
+                    <Panel>
+                      <StackPanel Classes="vacio" VerticalAlignment="Center" Margin="16"
+                                  IsVisible="{Binding FormFoto, Converter={x:Static ObjectConverters.IsNull}}">
+                        <ui:Icono Data="{x:Static ui:Iconos.Foto}" />
+                        <TextBlock Text="{Binding FormFotoTexto}" />
+                      </StackPanel>
+                      <Image Source="{Binding FormFoto}" Stretch="Uniform" Margin="8" />
+                    </Panel>
+                  </Border>
+                  <TextBlock Classes="ayuda" Margin="0" Text="{Binding FormFotoTexto}"
+                             IsVisible="{Binding FormFoto, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                  <Grid ColumnDefinitions="*,8,Auto">
+                    <Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Click="ElegirFoto_Click">
+                      <StackPanel Orientation="Horizontal" Spacing="8">
+                        <ui:Icono Data="{x:Static ui:Iconos.Foto}" Width="16" Height="16" />
+                        <TextBlock Text="Elegir foto…" IsVisible="{Binding !FormTieneFoto}" />
+                        <TextBlock Text="Cambiar foto…" IsVisible="{Binding FormTieneFoto}" />
+                      </StackPanel>
+                    </Button>
+                    <Button Grid.Column="2" Classes="fantasma" Command="{Binding QuitarFotoCommand}" IsVisible="{Binding FormTieneFoto}"
+                            Foreground="{StaticResource Peligro}">
+                      <StackPanel Orientation="Horizontal" Spacing="6">
+                        <ui:Icono Data="{x:Static ui:Iconos.Eliminar}" Width="16" Height="16" />
+                        <TextBlock Text="Quitar" />
+                      </StackPanel>
+                    </Button>
+                  </Grid>
+                  <TextBlock Classes="ayuda" Margin="0" Text="JPG, PNG, WEBP de hasta 12 MB. Se sube al guardar." />
+                </StackPanel>
+
+                <!-- F. Tienda web -->
+                <StackPanel Spacing="12">
+                  <TextBlock Classes="subtitulo" Text="Tienda web" />
+                  <Border BorderBrush="{StaticResource Borde}" BorderThickness="1" CornerRadius="{StaticResource RadioControl}" Padding="14,12">
+                    <Grid ColumnDefinitions="*,Auto">
+                      <StackPanel Spacing="2" VerticalAlignment="Center">
+                        <TextBlock Text="Mostrar en la tienda web" FontWeight="Medium" />
+                        <TextBlock Classes="etiqueta" FontSize="12" TextWrapping="Wrap"
+                                   Text="Se publica con su nombre, precio, foto, descripción y características." />
+                      </StackPanel>
+                      <ToggleSwitch Grid.Column="1" IsChecked="{Binding FormVisibleTienda}" OnContent="" OffContent=""
+                                    MinWidth="0" Margin="12,0,-12,0" AutomationProperties.Name="Mostrar en la tienda web" />
+                    </Grid>
+                  </Border>
+                  <TextBlock Classes="ayuda" Margin="0" IsVisible="{Binding !FormTieneFoto}"
+                             Text="Sin foto el producto se ve con un marcador genérico en la tienda." />
+                </StackPanel>
+              </StackPanel>
+            </Grid>
+          </ScrollViewer>
+
+          <!-- Pie fijo -->
+          <Border Grid.Row="2" Classes="pie-dialogo">
+            <Grid ColumnDefinitions="*,Auto">
+              <StackPanel VerticalAlignment="Center" Margin="0,0,16,0">
+                <Grid ColumnDefinitions="Auto,8,*" IsVisible="{Binding Error, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                  <ui:Icono Data="{x:Static ui:Iconos.Alerta}" Width="16" Height="16" Foreground="{StaticResource Peligro}" VerticalAlignment="Top" Margin="0,1,0,0" />
+                  <TextBlock Grid.Column="2" Classes="error" Text="{Binding Error}" />
+                </Grid>
+                <TextBlock Classes="etiqueta" Text="{Binding Aviso}" IsVisible="{Binding Ocupado}" />
+              </StackPanel>
+              <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                <Button Content="Cancelar" Command="{Binding CancelarFormularioCommand}" />
+                <Button Classes="primario" Command="{Binding GuardarProductoCommand}" MinWidth="150" HorizontalContentAlignment="Center">
+                  <Panel>
+                    <TextBlock Text="Crear producto" IsVisible="{Binding EsNuevo}" />
+                    <TextBlock Text="Guardar cambios" IsVisible="{Binding !EsNuevo}" />
+                  </Panel>
+                </Button>
+              </StackPanel>
+            </Grid>
+          </Border>
+        </Grid>
+      </Border>
+    </Border>
+
+    <!-- Confirmación: descartar cambios sin guardar -->
+    <Border Classes="velo" IsVisible="{Binding ConfirmandoDescartar}">
+      <Border Classes="dialogo" Width="440" Margin="24" VerticalAlignment="Center" HorizontalAlignment="Center">
+        <Grid RowDefinitions="Auto,Auto">
+          <StackPanel Spacing="8" Margin="24,22,24,20">
+            <TextBlock Classes="subtitulo" Text="¿Descartar los cambios?" />
+            <TextBlock Classes="etiqueta" FontSize="14" TextWrapping="Wrap"
+                       Text="Hay datos sin guardar en este producto. Si cierras ahora, se pierden." />
           </StackPanel>
-        </Border>
-      </StackPanel>
-    </ScrollViewer>
-  </Grid>
+          <Border Grid.Row="1" Classes="pie-dialogo">
+            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+              <Button Classes="peligro" Content="Descartar" Command="{Binding DescartarCambiosCommand}" />
+              <Button Classes="primario" Content="Seguir editando" Command="{Binding SeguirEditandoCommand}" />
+            </StackPanel>
+          </Border>
+        </Grid>
+      </Border>
+    </Border>
+
+    <!-- ═══════════════ Diálogo: entrada de mercadería ═══════════════ -->
+    <Border Classes="velo" IsVisible="{Binding EntradaAbierta}">
+      <Border Classes="dialogo" Width="520" Margin="24" VerticalAlignment="Center" HorizontalAlignment="Center">
+        <Grid RowDefinitions="Auto,Auto,Auto">
+          <Border BorderBrush="{StaticResource Borde}" BorderThickness="0,0,0,1" Padding="24,18,12,16">
+            <Grid ColumnDefinitions="*,Auto">
+              <StackPanel Spacing="4">
+                <TextBlock Classes="subtitulo" FontSize="18" Text="Registrar entrada de mercadería" />
+                <TextBlock Classes="etiqueta" TextTrimming="CharacterEllipsis">
+                  <Run Text="{Binding Seleccionado.Nombre}" />
+                  <Run Text="· stock actual" />
+                  <Run Text="{Binding Seleccionado.Stock}" FontWeight="SemiBold" />
+                </TextBlock>
+              </StackPanel>
+              <Button Grid.Column="1" Classes="fantasma icono" VerticalAlignment="Top" Command="{Binding CerrarEntradaCommand}"
+                      ToolTip.Tip="Cerrar (Esc)" AutomationProperties.Name="Cerrar">
+                <ui:Icono Data="{x:Static ui:Iconos.Cerrar}" Width="18" Height="18" />
+              </Button>
+            </Grid>
+          </Border>
+          <StackPanel Grid.Row="1" Spacing="16" Margin="24,20">
+            <Grid ColumnDefinitions="*,16,*">
+              <StackPanel>
+                <TextBlock Classes="campo" Text="Cantidad recibida *" />
+                <NumericUpDown Value="{Binding EntradaCantidad}" Minimum="1" Increment="1" FormatString="0" />
+              </StackPanel>
+              <StackPanel Grid.Column="2">
+                <TextBlock Classes="campo" Text="Costo unitario (Bs) *" />
+                <TextBox Text="{Binding EntradaCosto}" Watermark="0,00" />
+              </StackPanel>
+            </Grid>
+            <StackPanel>
+              <TextBlock Classes="campo" Text="Factura o remito" />
+              <TextBox Text="{Binding EntradaDocumento}" Watermark="Número del documento (opcional)" />
+              <TextBlock Classes="ayuda" Text="El costo promedio del producto se recalcula con esta entrada." />
+            </StackPanel>
+            <Grid ColumnDefinitions="Auto,8,*" IsVisible="{Binding Error, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+              <ui:Icono Data="{x:Static ui:Iconos.Alerta}" Width="16" Height="16" Foreground="{StaticResource Peligro}" VerticalAlignment="Top" Margin="0,1,0,0" />
+              <TextBlock Grid.Column="2" Classes="error" Text="{Binding Error}" />
+            </Grid>
+          </StackPanel>
+          <Border Grid.Row="2" Classes="pie-dialogo">
+            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+              <Button Content="Cancelar" Command="{Binding CerrarEntradaCommand}" />
+              <Button Classes="primario" Content="Registrar entrada" Command="{Binding RegistrarEntradaCommand}" />
+            </StackPanel>
+          </Border>
+        </Grid>
+      </Border>
+    </Border>
+
+    <!-- ═══════════════ Confirmación: eliminar ═══════════════ -->
+    <Border Classes="velo" IsVisible="{Binding ConfirmandoEliminar}">
+      <Border Classes="dialogo" Width="460" Margin="24" VerticalAlignment="Center" HorizontalAlignment="Center">
+        <Grid RowDefinitions="Auto,Auto">
+          <StackPanel Spacing="8" Margin="24,22,24,20">
+            <TextBlock Classes="subtitulo" TextWrapping="Wrap">
+              <Run Text="¿Eliminar" />
+              <Run Text="{Binding Seleccionado.Nombre}" />
+              <Run Text="?" />
+            </TextBlock>
+            <TextBlock Classes="etiqueta" FontSize="14" TextWrapping="Wrap"
+                       Text="Si ya tuvo movimientos o ventas, se desactivará en lugar de borrarse, y podrás reactivarlo después." />
+            <Grid ColumnDefinitions="Auto,8,*" Margin="0,4,0,0"
+                  IsVisible="{Binding Error, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+              <ui:Icono Data="{x:Static ui:Iconos.Alerta}" Width="16" Height="16" Foreground="{StaticResource Peligro}" VerticalAlignment="Top" Margin="0,1,0,0" />
+              <TextBlock Grid.Column="2" Classes="error" Text="{Binding Error}" />
+            </Grid>
+          </StackPanel>
+          <Border Grid.Row="1" Classes="pie-dialogo">
+            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+              <Button Content="Cancelar" Command="{Binding CancelarEliminarCommand}" />
+              <Button Classes="peligro" Content="Sí, eliminar" Command="{Binding EliminarCommand}" />
+            </StackPanel>
+          </Border>
+        </Grid>
+      </Border>
+    </Border>
+    <Border Classes="velo" IsVisible="{Binding MovimientosAbiertos}">
+      <Border Classes="dialogo" MaxWidth="900" Margin="32" Padding="24">
+        <Grid RowDefinitions="Auto,Auto,*,Auto" IsEnabled="{Binding !Ocupado}">
+          <Grid ColumnDefinitions="*,Auto">
+            <StackPanel Spacing="4">
+              <TextBlock Classes="subtitulo" Text="Kardex y movimientos" />
+              <TextBlock Text="{Binding Seleccionado.Nombre}" />
+            </StackPanel>
+            <Button Grid.Column="1" Content="Cerrar" Command="{Binding CerrarMovimientosCommand}" />
+          </Grid>
+          <TextBlock Grid.Row="1" Classes="error" Text="{Binding Error}" Margin="0,8" />
+          <ListBox Grid.Row="2" Classes="tabla" ItemsSource="{Binding Movimientos}" MinHeight="160">
+            <ListBox.ItemTemplate>
+              <DataTemplate x:DataType="api:MovimientoInventario">
+                <Grid ColumnDefinitions="120,140,70,80,*" Margin="0,4">
+                  <TextBlock Text="{Binding CreadoLocal, StringFormat='{}{0:dd/MM HH:mm}'}" />
+                  <TextBlock Grid.Column="1" Text="{Binding Tipo}" TextTrimming="CharacterEllipsis" />
+                  <TextBlock Grid.Column="2" Text="{Binding Cantidad, StringFormat='Mov. {0}'}" />
+                  <TextBlock Grid.Column="3" Text="{Binding StockResultante, StringFormat='Stock {0}'}" FontWeight="SemiBold" />
+                  <TextBlock Grid.Column="4" Text="{Binding Motivo}" TextWrapping="Wrap" />
+                </Grid>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+          <StackPanel Grid.Row="3" Spacing="10" Margin="0,16,0,0">
+            <TextBlock Classes="etiqueta" Text="Conteo: existencias físicas finales. Baja: unidades que se retiran del stock." TextWrapping="Wrap" />
+            <Grid ColumnDefinitions="140,12,*">
+              <TextBox Text="{Binding CantidadMovimiento}" Watermark="Cantidad" AutomationProperties.Name="Cantidad del movimiento" />
+              <TextBox Grid.Column="2" Text="{Binding MotivoMovimiento}" Watermark="Motivo del movimiento" MaxLength="200" AutomationProperties.Name="Motivo del movimiento" />
+            </Grid>
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <Button Content="Registrar conteo" Command="{Binding PrepararMovimientoCommand}" CommandParameter="conteo" IsVisible="{Binding PuedeAjustar}" />
+              <Button Content="Registrar baja" Command="{Binding PrepararMovimientoCommand}" CommandParameter="baja" IsVisible="{Binding PuedeBaja}" />
+            </StackPanel>
+            <Border Classes="aviso-error" IsVisible="{Binding OperacionPendiente, Converter={x:Static ObjectConverters.IsNotNull}}">
+              <StackPanel Spacing="8">
+                <TextBlock Text="Confirma la cantidad y el motivo: esta operación cambiará las existencias." TextWrapping="Wrap" />
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <Button Content="Cancelar" Command="{Binding CancelarMovimientoCommand}" />
+                  <Button Classes="peligro" Content="Confirmar movimiento" Command="{Binding ConfirmarMovimientoCommand}" />
+                </StackPanel>
+              </StackPanel>
+            </Border>
+          </StackPanel>
+        </Grid>
+      </Border>
+    </Border>
+  </Panel>
 </UserControl>

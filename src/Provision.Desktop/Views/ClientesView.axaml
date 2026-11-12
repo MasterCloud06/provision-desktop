@@ -1,14 +1,14 @@
-<UserControl xmlns="https://github.com/avaloniaui"
+﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Provision.Desktop.ViewModels"
              xmlns:ui="using:Provision.Desktop.Controles"
              xmlns:api="using:Provision.Core.Api"
              x:Class="Provision.Desktop.Views.ClientesView"
              x:DataType="vm:ClientesViewModel">
-  <Grid Margin="24" RowDefinitions="Auto,Auto,*" ColumnDefinitions="340,16,*">
+  <Grid Margin="{StaticResource MargenPagina}" RowDefinitions="Auto,Auto,*" ColumnDefinitions="280,20,*">
 
     <Grid Grid.ColumnSpan="3" ColumnDefinitions="*,Auto" Margin="0,0,0,12">
-      <TextBlock Classes="titulo" Text="Clientes" />
+      <TextBlock Classes="titulo" Text="Clientes y salud visual" />
       <Button Grid.Column="1" Classes="primario" VerticalAlignment="Center"
               IsVisible="{Binding PuedeGestionar}" Command="{Binding AlternarNuevoCommand}">
         <StackPanel Orientation="Horizontal" Spacing="8">
@@ -29,10 +29,10 @@
     </StackPanel>
 
     <!-- Búsqueda y lista -->
-    <Border Grid.Row="2" Classes="tarjeta">
+    <Border Grid.Row="2" Classes="superficie">
       <DockPanel>
         <StackPanel DockPanel.Dock="Top" Spacing="8" Margin="0,0,0,8">
-          <TextBox Text="{Binding Busqueda}" Watermark="Nombre, CI, NIT o teléfono + Enter">
+          <TextBlock Text="Directorio de clientes" Classes="subtitulo"/><TextBox Text="{Binding Busqueda}" Watermark="Nombre, CI, NIT o teléfono + Enter">
             <TextBox.KeyBindings>
               <KeyBinding Gesture="Enter" Command="{Binding BuscarCommand}" />
             </TextBox.KeyBindings>
@@ -79,13 +79,13 @@
     <!-- Ficha -->
     <ScrollViewer Grid.Row="2" Grid.Column="2">
       <StackPanel Spacing="16">
-        <Border Classes="tarjeta" IsVisible="{Binding !HayFicha}">
-          <TextBlock Classes="etiqueta" Text="Busca y selecciona un cliente para ver su ficha, recetas y compras." />
-        </Border>
+        <Border Classes="superficie" IsVisible="{Binding !HayFicha}" Padding="32"><StackPanel Spacing="16"><ui:Icono Data="{x:Static ui:Iconos.Clientes}" Width="40" Height="40" Foreground="{StaticResource Primario}" HorizontalAlignment="Left"/><TextBlock Text="Una ficha, toda su historia" FontSize="24" FontWeight="SemiBold"/><TextBlock Classes="etiqueta" Text="Selecciona un cliente del directorio para consultar sus datos, recetas y compras." TextWrapping="Wrap"/><Border Classes="banda"><TextBlock Text="Datos personales     ·     Recetas ópticas     ·     Historial comercial" TextWrapping="Wrap"/></Border></StackPanel></Border>
 
         <StackPanel Spacing="16" IsVisible="{Binding HayFicha}">
-          <Grid ColumnDefinitions="*,16,220">
-            <Border Classes="tarjeta">
+          <TextBlock Text="{Binding Ficha.Nombre}" FontSize="24" FontWeight="SemiBold" TextWrapping="Wrap"/>
+          <TabControl><TabControl.Styles><Style Selector="TabItem"><Setter Property="FontSize" Value="14"/><Setter Property="Padding" Value="12,8"/></Style></TabControl.Styles><TabItem Header="Datos personales">
+          <Grid ColumnDefinitions="*,16,150">
+            <Border Classes="superficie">
               <StackPanel Spacing="8">
                 <TextBlock Classes="subtitulo" Text="Datos" />
                 <TextBox Text="{Binding EditNombre}" Watermark="Nombre" IsReadOnly="{Binding !PuedeGestionar}" />
@@ -96,7 +96,7 @@
                 <Button Content="Guardar datos" Command="{Binding GuardarClienteCommand}" IsVisible="{Binding PuedeGestionar}" />
               </StackPanel>
             </Border>
-            <Border Grid.Column="2" Classes="tarjeta">
+            <Border Grid.Column="2" Classes="superficie">
               <StackPanel Spacing="4">
                 <TextBlock Classes="etiqueta" Text="Saldo pendiente" />
                 <TextBlock Classes="cifra" Text="{Binding Ficha.SaldoPendiente, Converter={StaticResource Bs}}" />
@@ -104,8 +104,9 @@
             </Border>
           </Grid>
 
+          </TabItem><TabItem Header="Recetas ópticas">
           <!-- Recetas -->
-          <Border Classes="tarjeta">
+          <Border Classes="superficie">
             <StackPanel Spacing="10">
               <Grid ColumnDefinitions="*,Auto">
                 <TextBlock Classes="subtitulo" Text="Recetas" />
@@ -175,18 +176,19 @@
             </StackPanel>
           </Border>
 
+          </TabItem><TabItem Header="Historial comercial">
           <!-- Compras -->
-          <Border Classes="tarjeta">
+          <Border Classes="superficie">
             <StackPanel Spacing="8">
               <TextBlock Classes="subtitulo" Text="Compras" />
               <ItemsControl ItemsSource="{Binding Ficha.Compras}">
                 <ItemsControl.ItemTemplate>
                   <DataTemplate x:DataType="api:CompraCliente">
-                    <Grid ColumnDefinitions="140,*,120,120" Margin="0,4">
+                    <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" Margin="0,8">
                       <TextBlock Text="{Binding Numero}" FontWeight="SemiBold" />
                       <TextBlock Grid.Column="1" Classes="etiqueta" Text="{Binding CreadoLocal, StringFormat='{}{0:dd/MM/yyyy}'}" />
-                      <TextBlock Grid.Column="2" Text="{Binding Total, Converter={StaticResource Bs}}" TextAlignment="Right" />
-                      <TextBlock Grid.Column="3" Text="{Binding Saldo, Converter={StaticResource Bs}, StringFormat='saldo {0}'}"
+                      <TextBlock Grid.Row="1" Text="{Binding Total, Converter={StaticResource Bs}}" TextAlignment="Right" />
+                      <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Saldo, Converter={StaticResource Bs}, StringFormat='saldo {0}'}"
                                  TextAlignment="Right" Classes="etiqueta" />
                     </Grid>
                   </DataTemplate>
@@ -194,6 +196,7 @@
               </ItemsControl>
             </StackPanel>
           </Border>
+          </TabItem></TabControl>
         </StackPanel>
       </StackPanel>
     </ScrollViewer>

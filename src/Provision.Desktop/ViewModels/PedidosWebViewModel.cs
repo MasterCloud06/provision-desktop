@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Provision.Core;
@@ -77,7 +77,8 @@ public sealed partial class PedidosWebViewModel : ViewModelBase, ISeccion
         _ => "Paga al retirar",
     };
     public string? DireccionCompleta => Detalle?.Direccion is { } d ? d + (Detalle.Ciudad is { } c ? $", {c}" : "") : null;
-    public bool PuedeCancelar => Detalle is { Estado: not (EstadoPedidoWeb.Entregado or EstadoPedidoWeb.Cancelado) };
+    public bool PuedeCancelar => Detalle is { Estado: not (EstadoPedidoWeb.Entregado or EstadoPedidoWeb.Cancelado) } d
+        && (d.MetodoPago != MetodoPagoWeb.Stripe || d.PagadoEn is null || _sesion.Puede("tienda.reembolsar"));
     /// <summary>Se muestra el cobro cuando el siguiente paso es entregar un pedido que se paga al retirar.</summary>
     public bool MuestraCobro => Detalle is { CobrarAlEntregar: true } d && d.Siguientes.Contains(EstadoPedidoWeb.Entregado) && OperaCaja;
     public bool CobroSinPermiso => Detalle is { CobrarAlEntregar: true } d && d.Siguientes.Contains(EstadoPedidoWeb.Entregado) && !OperaCaja;
@@ -158,7 +159,7 @@ public sealed partial class PedidosWebViewModel : ViewModelBase, ISeccion
     }
 
     [RelayCommand]
-    private void PedirCancelar() => ConfirmandoCancelar = true;
+    private void PedirCancelar() => ConfirmandoCancelar = PuedeCancelar && !Ocupado;
 
     [RelayCommand]
     private void NoCancelar() => ConfirmandoCancelar = false;
@@ -166,7 +167,7 @@ public sealed partial class PedidosWebViewModel : ViewModelBase, ISeccion
     [RelayCommand]
     private async Task CancelarPedidoAsync()
     {
-        if (Detalle is not { } p) return;
+        if (Ocupado || !PuedeCancelar || Detalle is not { } p) return;
         if (MotivoCancelacion.Trim().Length < 3) { Falla("Escribe el motivo de la cancelación"); return; }
         if (!await IntentarAsync(() => _sesion.Api.CancelarPedidoWebAsync(p.Id, MotivoCancelacion.Trim()))) return;
         var reembolso = p is { MetodoPago: MetodoPagoWeb.Stripe, PagadoEn: not null } ? " Se devolvió el pago a la tarjeta del cliente." : "";

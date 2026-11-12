@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Provision.Core;
 using Provision.Core.Api;
@@ -30,11 +30,13 @@ public sealed partial class VentasViewModel : ViewModelBase, ISeccion
         Enum.GetValues<MetodoPago>().Select(m => new Opcion<MetodoPago>(m, Enumeraciones.Etiqueta(m))).ToList();
 
     [ObservableProperty] private Opcion<string> _filtro;
-    [ObservableProperty] private IReadOnlyList<VentaResumen> _ventas = [];
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(VentasVisibles))] private IReadOnlyList<VentaResumen> _ventas = [];
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(VentasVisibles))] private string _busqueda = "";
+    public IReadOnlyList<VentaResumen> VentasVisibles => Ventas.Where(v => string.IsNullOrWhiteSpace(Busqueda) || v.Numero.Contains(Busqueda, StringComparison.OrdinalIgnoreCase) || (v.Cliente?.Contains(Busqueda, StringComparison.OrdinalIgnoreCase) ?? false)).ToList();
     [ObservableProperty] private string _resumen = "";
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(PuedeAbonar))]
+    [NotifyPropertyChangedFor(nameof(PuedeAbonar), nameof(PuedeAnular))]
     private VentaResumen? _seleccionada;
 
     [ObservableProperty] private Opcion<MetodoPago> _metodo;
@@ -45,6 +47,32 @@ public sealed partial class VentasViewModel : ViewModelBase, ISeccion
     public bool OperaCaja => _sesion.Puede("caja.operar");
 
     public bool PuedeAbonar => OperaCaja && Seleccionada is { Saldo: > 0, Estado: EstadoVenta.Activa };
+
+    public bool PuedeAnular => _sesion.Puede("ventas.anular") && Seleccionada is { Estado: EstadoVenta.Activa };
+    [ObservableProperty] private bool _confirmandoAnulacion;
+    [ObservableProperty] private string _motivoAnulacion = "";
+    private Guid? _ventaPorAnular;
+
+    [RelayCommand]
+    private void PrepararAnulacion()
+    {
+        if (!PuedeAnular || Ocupado) return;
+        _ventaPorAnular = Seleccionada!.Id;
+        MotivoAnulacion = "";
+        ConfirmandoAnulacion = true;
+    }
+    [RelayCommand] private void CancelarAnulacion() => ConfirmandoAnulacion = false;
+    [RelayCommand]
+    private async Task AnularAsync()
+    {
+        if (!_sesion.Puede("ventas.anular") || _ventaPorAnular is not { } id || Ocupado) return;
+        if (MotivoAnulacion.Trim().Length is < 5 or > 300) { Falla("Escribe un motivo de 5 a 300 caracteres."); return; }
+        if (!await IntentarAsync(() => _sesion.Api.AnularVentaAsync(id, MotivoAnulacion.Trim()))) return;
+        ConfirmandoAnulacion = false;
+        Seleccionada = null;
+        await CargarAsync();
+        Aviso = "Venta anulada. ENAI actualizó las existencias y los reembolsos de caja.";
+    }
 
     public Task ActivarAsync() => CargarAsync();
 
@@ -73,7 +101,7 @@ public sealed partial class VentasViewModel : ViewModelBase, ISeccion
     [RelayCommand]
     private async Task AbonarAsync()
     {
-        if (Seleccionada is not { } venta) return;
+        if (!PuedeAbonar || Ocupado || Seleccionada is not { } venta) return;
         if (!Dinero.TryLeer(MontoAbono, out var monto) || monto <= 0) { Falla("Monto inválido"); return; }
         if (monto > venta.Saldo) { Falla($"El saldo de esta venta es {Dinero.Formatear(venta.Saldo)}"); return; }
         var ok = await IntentarAsync(() => _sesion.Api.RegistrarPagosAsync(venta.Id,

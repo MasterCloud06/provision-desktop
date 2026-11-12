@@ -4,7 +4,7 @@
              xmlns:ui="using:Provision.Desktop.Controles"
              x:Class="Provision.Desktop.Views.AgendaView"
              x:DataType="vm:AgendaViewModel">
-  <Grid Margin="24" RowDefinitions="Auto,Auto,*" ColumnDefinitions="*,16,340">
+  <Grid Margin="{StaticResource MargenPagina}" RowDefinitions="Auto,Auto,*" ColumnDefinitions="*,20,300">
 
     <Grid Grid.ColumnSpan="3" ColumnDefinitions="*,Auto,Auto,Auto,Auto,Auto" Margin="0,0,0,12">
       <StackPanel>
@@ -15,7 +15,7 @@
               ToolTip.Tip="Día anterior" AutomationProperties.Name="Día anterior">
         <ui:Icono Data="{x:Static ui:Iconos.Anterior}" />
       </Button>
-      <TextBlock Grid.Column="2" Text="{Binding TituloDia}" FontWeight="SemiBold" FontSize="16" MinWidth="260"
+      <TextBlock Grid.Column="2" Text="{Binding TituloDia}" FontWeight="SemiBold" FontSize="14" MinWidth="200"
                  TextAlignment="Center" VerticalAlignment="Center" Margin="8,0" />
       <Button Grid.Column="3" Classes="icono" Command="{Binding DiaSiguienteCommand}" VerticalAlignment="Center"
               ToolTip.Tip="Día siguiente" AutomationProperties.Name="Día siguiente">
@@ -43,16 +43,16 @@
     <!-- Citas del día -->
     <ScrollViewer Grid.Row="2">
       <StackPanel Spacing="8">
-        <Border Classes="tarjeta" IsVisible="{Binding SinCitas}">
+        <Border Classes="superficie" IsVisible="{Binding SinCitas}">
           <TextBlock Classes="etiqueta" TextWrapping="Wrap"
                      Text="No hay citas este día. Los clientes reservan desde la tienda web; también puedes agendar una con “+ Nueva cita”." />
         </Border>
         <ItemsControl ItemsSource="{Binding Citas}">
           <ItemsControl.ItemTemplate>
             <DataTemplate x:DataType="vm:FilaCita">
-              <Border Classes="tarjeta" Margin="0,0,0,8">
+              <Border Classes="superficie" Margin="0,0,0,8">
                 <Grid ColumnDefinitions="80,*,Auto">
-                  <StackPanel>
+                  <StackPanel Background="{StaticResource PrimarioSuave}" Margin="0,0,12,0">
                     <TextBlock Text="{Binding Cita.Hora}" FontSize="20" FontWeight="SemiBold" />
                     <TextBlock Classes="etiqueta" Text="{Binding Cita.Duracion, StringFormat='{}{0} min'}" />
                   </StackPanel>
@@ -85,9 +85,10 @@
       </StackPanel>
     </ScrollViewer>
 
+    <ScrollViewer Grid.Row="2" Grid.Column="2" IsVisible="{Binding !MostrandoNueva}"><StackPanel Spacing="16"><Border Classes="superficie" Padding="12"><StackPanel Spacing="12"><TextBlock Text="Calendario" Classes="subtitulo" Margin="8"/><Viewbox Stretch="Uniform" StretchDirection="DownOnly"><Calendar SelectedDate="{Binding FechaCalendario}"/></Viewbox></StackPanel></Border><Border Classes="banda"><StackPanel Spacing="8"><TextBlock Text="Atención del día" Classes="subtitulo"/><TextBlock Text="{Binding Resumen}" TextWrapping="Wrap"/><TextBlock Text="Selecciona una fecha para consultar las citas. Los horarios se asignan según la disponibilidad de la óptica." Classes="etiqueta" TextWrapping="Wrap"/></StackPanel></Border></StackPanel></ScrollViewer>
     <!-- Nueva cita -->
     <ScrollViewer Grid.Row="2" Grid.Column="2" IsVisible="{Binding MostrandoNueva}">
-      <Border Classes="tarjeta" VerticalAlignment="Top">
+      <Border Classes="superficie" VerticalAlignment="Top">
         <StackPanel Spacing="8">
           <TextBlock Classes="subtitulo" Text="Nueva cita" />
           <TextBlock Classes="etiqueta" TextWrapping="Wrap" Text="Para quien llama o viene a la óptica. Queda confirmada." />

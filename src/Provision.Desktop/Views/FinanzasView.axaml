@@ -1,4 +1,4 @@
-<UserControl xmlns="https://github.com/avaloniaui"
+﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Provision.Desktop.ViewModels"
              xmlns:api="using:Provision.Core.Api"
@@ -37,7 +37,7 @@
 
       <!-- Resumen del mes -->
       <Grid ColumnDefinitions="*,12,*,12,*,12,*">
-        <Border Classes="tarjeta">
+        <Border Classes="superficie">
           <StackPanel Spacing="4">
             <TextBlock Classes="etiqueta" Text="Ingresos" />
             <TextBlock Classes="cifra" Foreground="{StaticResource Exito}"
@@ -46,34 +46,35 @@
                        Text="{Binding Resumen.IngresosDesdeNegocio, Converter={StaticResource Bs}, StringFormat='{}{0} desde el negocio'}" />
           </StackPanel>
         </Border>
-        <Border Grid.Column="2" Classes="tarjeta">
+        <Border Grid.Column="2" Classes="superficie">
           <StackPanel Spacing="4">
             <TextBlock Classes="etiqueta" Text="Gastos" />
             <TextBlock Classes="cifra" Foreground="{StaticResource Peligro}"
                        Text="{Binding Resumen.Gastos, Converter={StaticResource Bs}}" />
           </StackPanel>
         </Border>
-        <Border Grid.Column="4" Classes="tarjeta">
+        <Border Grid.Column="4" Classes="superficie">
           <StackPanel Spacing="4">
             <TextBlock Classes="etiqueta" Text="Ahorro del mes" />
             <TextBlock Classes="cifra" Text="{Binding Resumen.Ahorro, Converter={StaticResource Bs}}" />
-            <TextBlock Classes="etiqueta" Text="{Binding Resumen.TasaAhorro, StringFormat='{}{0}% de lo que entró'}" />
+            <TextBlock Classes="etiqueta" IsVisible="{Binding Resumen.TasaAhorro, Converter={x:Static ObjectConverters.IsNotNull}}" Text="{Binding Resumen.TasaAhorro, StringFormat='{}{0}% de lo que entró'}" />
           </StackPanel>
         </Border>
-        <Border Grid.Column="6" Classes="tarjeta">
+        <Border Grid.Column="6" Classes="superficie">
           <StackPanel Spacing="4">
-            <TextBlock Classes="etiqueta" Text="Patrimonio (todas tus cuentas)" />
+            <TextBlock Classes="etiqueta" Text="Patrimonio total" ToolTip.Tip="Todas tus cuentas" />
             <TextBlock Classes="cifra" Foreground="{StaticResource Primario}"
                        Text="{Binding Resumen.Patrimonio, Converter={StaticResource Bs}}" />
           </StackPanel>
         </Border>
       </Grid>
 
-      <Grid ColumnDefinitions="*,16,380">
+      <Border Classes="superficie"><Grid ColumnDefinitions="*,20,*"><StackPanel Spacing="10"><TextBlock Classes="subtitulo" Text="Balance del mes"/><TextBlock Text="Ingresos y gastos registrados en tus cuentas personales." Classes="etiqueta" TextWrapping="Wrap"/><TextBlock Text="{Binding NombreMes}" FontSize="22" FontWeight="SemiBold"/><TextBlock Text="Bolivianos (Bs)" Classes="etiqueta"/></StackPanel><ui:GraficoBarras Grid.Column="2" Datos="{Binding BalanceVisual}" Height="170"/></Grid></Border>
+      <Grid ColumnDefinitions="*,20,300">
         <StackPanel Spacing="16">
 
           <!-- Movimientos -->
-          <Border Classes="tarjeta">
+          <Border Classes="superficie">
             <StackPanel Spacing="8">
               <TextBlock Classes="subtitulo" Text="Movimientos del mes" />
               <TextBlock Classes="etiqueta" Text="Sin movimientos este mes."
@@ -97,7 +98,7 @@
           </Border>
 
           <!-- Presupuesto -->
-          <Border Classes="tarjeta">
+          <Border Classes="superficie">
             <StackPanel Spacing="10">
               <TextBlock Classes="subtitulo" Text="Presupuesto del mes" />
               <ItemsControl ItemsSource="{Binding Presupuesto}">
@@ -118,7 +119,7 @@
                   </DataTemplate>
                 </ItemsControl.ItemTemplate>
               </ItemsControl>
-              <Grid ColumnDefinitions="*,8,120,8,Auto">
+              <Grid ColumnDefinitions="*,8,90,8,Auto">
                 <ComboBox ItemsSource="{Binding CategoriasGasto}" SelectedItem="{Binding CategoriaPresupuesto}"
                           HorizontalAlignment="Stretch">
                   <ComboBox.ItemTemplate>
@@ -137,7 +138,7 @@
         <StackPanel Grid.Column="2" Spacing="16">
 
           <!-- Nuevo movimiento -->
-          <Border Classes="tarjeta">
+          <Border Classes="superficie">
             <StackPanel Spacing="8">
               <TextBlock Classes="subtitulo" Text="Registrar" />
               <ComboBox ItemsSource="{Binding Tipos}" SelectedItem="{Binding Tipo}" HorizontalAlignment="Stretch" />
@@ -179,7 +180,7 @@
           </Border>
 
           <!-- Cuentas -->
-          <Border Classes="tarjeta">
+          <Border Classes="superficie">
             <StackPanel Spacing="8">
               <Grid ColumnDefinitions="*,Auto">
                 <TextBlock Classes="subtitulo" Text="Cuentas" />

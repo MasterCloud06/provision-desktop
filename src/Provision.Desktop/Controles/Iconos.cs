@@ -38,4 +38,11 @@ public static class Iconos
     public static Geometry Alerta { get; } = G("M12 4l9 16H3z M12 10v4 M12 17h0.01");
     public static Geometry Vacio { get; } = G("M4 13l2.5-7h11l2.5 7v6H4z M4 13h5l1 2h4l1-2h5");
     public static Geometry Descargar { get; } = G("M12 4v11 M7 10l5 5l5-5 M5 20h14");
+    public static Geometry Opciones { get; } = G("M13 5.5a1 1 0 1 1 -2 0a1 1 0 1 1 2 0 M13 12a1 1 0 1 1 -2 0a1 1 0 1 1 2 0 M13 18.5a1 1 0 1 1 -2 0a1 1 0 1 1 2 0");
+    public static Geometry Editar { get; } = G("M4 20h4L19 9l-4-4L4 16z M13.5 6.5l4 4");
+    public static Geometry Eliminar { get; } = G("M4 7h16 M9 7V4h6v3 M6 7l1 13h10l1-13 M10 11v5 M14 11v5");
+    public static Geometry Foto { get; } = G("M3 5h18v14H3z M3 16l5-5l4 4l3-3l6 6 M16.5 9a1.5 1.5 0 1 1 -3 0a1.5 1.5 0 1 1 3 0");
+    public static Geometry Catalogo { get; } = G("M3 5h8v8H3z M13 5h8v8h-8z M3 16h8 M3 19h5 M13 16h8 M13 19h5");
+    public static Geometry Lista { get; } = G("M8 6h13 M8 12h13 M8 18h13 M3.5 6h0.5 M3.5 12h0.5 M3.5 18h0.5");
+    public static Geometry Entrada { get; } = G("M12 3v10 M8 9l4 4l4-4 M4 14v6h16v-6");
 }
