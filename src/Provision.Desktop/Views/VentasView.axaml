@@ -7,18 +7,21 @@
              x:DataType="vm:VentasViewModel">
   <Grid Margin="{StaticResource MargenPagina}" RowDefinitions="Auto,Auto,Auto,*" ColumnDefinitions="*,16,310">
 
-    <Grid Grid.ColumnSpan="3" ColumnDefinitions="*,Auto,Auto" Margin="0,0,0,12">
+    <Grid Grid.ColumnSpan="3" ColumnDefinitions="*,Auto,Auto,Auto" Margin="0,0,0,12">
       <StackPanel>
         <TextBlock Classes="titulo" Text="Ventas" />
         <TextBlock Classes="etiqueta" Text="{Binding Resumen}" FontSize="14" />
       </StackPanel>
-      <ComboBox Grid.Column="1" Width="220" ItemsSource="{Binding Filtros}" SelectedItem="{Binding Filtro}"
+      <TextBox Grid.Column="1" Width="260" Text="{Binding Busqueda}" Watermark="Buscar venta o cliente"
+               VerticalAlignment="Center" Margin="16,0,8,0" AutomationProperties.Name="Buscar venta o cliente">
+        <TextBox.InnerLeftContent>
+          <ui:Icono Data="{x:Static ui:Iconos.Buscar}" Width="15" Height="15" Margin="10,0,0,0" Foreground="{StaticResource TextoSuave}" />
+        </TextBox.InnerLeftContent>
+      </TextBox>
+      <ComboBox Grid.Column="2" Width="200" ItemsSource="{Binding Filtros}" SelectedItem="{Binding Filtro}"
                 VerticalAlignment="Center" Margin="0,0,8,0" />
-      <Button Grid.Column="2" Command="{Binding CargarCommand}" VerticalAlignment="Center" ToolTip.Tip="Recargar los datos">
-          <StackPanel Orientation="Horizontal" Spacing="8">
-            <ui:Icono Data="{x:Static ui:Iconos.Recargar}" Width="16" Height="16" />
-            <TextBlock Text="Actualizar" />
-          </StackPanel>
+      <Button Grid.Column="3" Classes="icono" Command="{Binding CargarCommand}" VerticalAlignment="Center" ToolTip.Tip="Actualizar" AutomationProperties.Name="Actualizar">
+          <ui:Icono Data="{x:Static ui:Iconos.Recargar}" Width="16" Height="16" />
         </Button>
     </Grid>
 
@@ -32,7 +35,6 @@
       </Border>
     </StackPanel>
 
-    <Border Grid.Row="2" Grid.ColumnSpan="3" Classes="banda" Margin="0,0,0,16"><Grid ColumnDefinitions="*,20,*"><StackPanel><TextBlock Text="Registro comercial" Classes="subtitulo"/><TextBlock Text="Consulta una venta para cobrar o gestionar su estado." Classes="etiqueta" TextWrapping="Wrap"/></StackPanel><TextBox Grid.Column="2" Text="{Binding Busqueda}" Watermark="Buscar venta o cliente" AutomationProperties.Name="Buscar venta o cliente"/></Grid></Border>
     <!-- Lista -->
     <Border Grid.Row="3" Classes="superficie" Padding="8">
       <DockPanel>

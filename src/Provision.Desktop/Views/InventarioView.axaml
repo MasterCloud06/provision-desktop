@@ -9,7 +9,7 @@
   <Panel>
 
     <!-- ═══════════════ Pantalla: encabezado, indicadores, filtros y catálogo ═══════════════ -->
-    <Grid Margin="28,22,28,18" RowDefinitions="Auto,Auto,Auto,Auto,*" ColumnDefinitions="190,20,*">
+    <Grid Margin="{StaticResource MargenPagina}" RowDefinitions="Auto,Auto,Auto,Auto,*" ColumnDefinitions="190,20,*">
 
       <!-- Encabezado -->
       <Grid Grid.ColumnSpan="3" ColumnDefinitions="*,Auto" Margin="0,0,0,16">

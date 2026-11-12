@@ -50,7 +50,7 @@
   <x:Double x:Key="TextoBase">14</x:Double>
   <x:Double x:Key="TextoTitulo">28</x:Double>
   <x:Double x:Key="TextoSubtitulo">16</x:Double>
-  <Thickness x:Key="MargenPagina">20</Thickness>
+  <Thickness x:Key="MargenPagina">24,22,24,20</Thickness>
   <Thickness x:Key="RellenoPanel">16</Thickness>
   <!-- Formas -->
   <CornerRadius x:Key="RadioControl">8</CornerRadius>

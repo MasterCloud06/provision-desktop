@@ -32,7 +32,7 @@
     <Border Grid.Row="2" Classes="superficie">
       <DockPanel>
         <StackPanel DockPanel.Dock="Top" Spacing="8" Margin="0,0,0,8">
-          <TextBlock Text="Directorio de clientes" Classes="subtitulo"/><TextBox Text="{Binding Busqueda}" Watermark="Nombre, CI, NIT o teléfono + Enter">
+          <TextBlock Text="Directorio de clientes" Classes="subtitulo"/><TextBox Text="{Binding Busqueda}" Watermark="Nombre, CI o teléfono" ToolTip.Tip="Busca por nombre, CI, NIT o teléfono y presiona Enter">
             <TextBox.KeyBindings>
               <KeyBinding Gesture="Enter" Command="{Binding BuscarCommand}" />
             </TextBox.KeyBindings>
@@ -189,8 +189,26 @@
                     <Border BorderBrush="{StaticResource Borde}" BorderThickness="0,0,0,1" Padding="0,8">
                       <StackPanel Spacing="2">
                         <TextBlock Text="{Binding Resumen}" FontWeight="SemiBold" />
-                        <TextBlock FontFamily="Consolas, Menlo, monospace" Text="{Binding TextoOd, StringFormat='OD  {0}'}" />
-                        <TextBlock FontFamily="Consolas, Menlo, monospace" Text="{Binding TextoOi, StringFormat='OI  {0}'}" />
+                        <!-- Graduación como se lee en una receta: una fila por ojo, una columna por valor -->
+                        <Grid ColumnDefinitions="44,84,84,64,84" RowDefinitions="Auto,Auto,Auto" Margin="0,8,0,4" HorizontalAlignment="Left"
+                              ToolTip.Tip="{Binding TextoOd}">
+                          <TextBlock Grid.Column="1" Classes="th" Text="Esfera" HorizontalAlignment="Right" />
+                          <TextBlock Grid.Column="2" Classes="th" Text="Cilindro" HorizontalAlignment="Right" />
+                          <TextBlock Grid.Column="3" Classes="th" Text="Eje" HorizontalAlignment="Right" />
+                          <TextBlock Grid.Column="4" Classes="th" Text="Adición" HorizontalAlignment="Right" />
+
+                          <TextBlock Grid.Row="1" Text="OD" FontWeight="SemiBold" Margin="0,6,0,0" ToolTip.Tip="Ojo derecho" />
+                          <TextBlock Grid.Row="1" Grid.Column="1" Classes="monto" Margin="0,6,0,0" HorizontalAlignment="Right" Text="{Binding OdEsfera, StringFormat='{}{0:+0.00;-0.00;0.00}', TargetNullValue='—'}" />
+                          <TextBlock Grid.Row="1" Grid.Column="2" Classes="monto" Margin="0,6,0,0" HorizontalAlignment="Right" Text="{Binding OdCilindro, StringFormat='{}{0:+0.00;-0.00;0.00}', TargetNullValue='—'}" />
+                          <TextBlock Grid.Row="1" Grid.Column="3" Classes="monto" Margin="0,6,0,0" HorizontalAlignment="Right" Text="{Binding OdEje, StringFormat='{}{0}°', TargetNullValue='—'}" />
+                          <TextBlock Grid.Row="1" Grid.Column="4" Classes="monto" Margin="0,6,0,0" HorizontalAlignment="Right" Text="{Binding OdAdicion, StringFormat='{}{0:+0.00;-0.00;0.00}', TargetNullValue='—'}" />
+
+                          <TextBlock Grid.Row="2" Text="OI" FontWeight="SemiBold" Margin="0,4,0,0" ToolTip.Tip="Ojo izquierdo" />
+                          <TextBlock Grid.Row="2" Grid.Column="1" Classes="monto" Margin="0,4,0,0" HorizontalAlignment="Right" Text="{Binding OiEsfera, StringFormat='{}{0:+0.00;-0.00;0.00}', TargetNullValue='—'}" />
+                          <TextBlock Grid.Row="2" Grid.Column="2" Classes="monto" Margin="0,4,0,0" HorizontalAlignment="Right" Text="{Binding OiCilindro, StringFormat='{}{0:+0.00;-0.00;0.00}', TargetNullValue='—'}" />
+                          <TextBlock Grid.Row="2" Grid.Column="3" Classes="monto" Margin="0,4,0,0" HorizontalAlignment="Right" Text="{Binding OiEje, StringFormat='{}{0}°', TargetNullValue='—'}" />
+                          <TextBlock Grid.Row="2" Grid.Column="4" Classes="monto" Margin="0,4,0,0" HorizontalAlignment="Right" Text="{Binding OiAdicion, StringFormat='{}{0:+0.00;-0.00;0.00}', TargetNullValue='—'}" />
+                        </Grid>
                         <TextBlock Classes="etiqueta" Text="{Binding Observaciones}" TextWrapping="Wrap" />
                       </StackPanel>
                     </Border>

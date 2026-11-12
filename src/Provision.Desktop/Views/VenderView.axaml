@@ -9,7 +9,7 @@
     <KeyBinding Gesture="F9" Command="{Binding CobrarCommand}" />
     <KeyBinding Gesture="Ctrl+N" Command="{Binding NuevaVentaCommand}" />
   </UserControl.KeyBindings>
-  <Grid Margin="20" RowDefinitions="Auto,Auto,*" ColumnDefinitions="1.1*,20,*">
+  <Grid Margin="{StaticResource MargenPagina}" RowDefinitions="Auto,Auto,*" ColumnDefinitions="1.1*,20,*">
 
     <!-- Encabezado y mensajes -->
     <Grid Grid.ColumnSpan="3" ColumnDefinitions="*,Auto" Margin="0,0,0,16">
@@ -94,7 +94,7 @@
 
 
     <!-- 3. Cliente, pagos y cobro -->
-    <ScrollViewer Grid.Row="2" Grid.Column="2"><StackPanel Spacing="16"><Border MinHeight="260" Classes="superficie" IsEnabled="{Binding !CobrarCommand.IsRunning}">
+    <ScrollViewer Grid.Row="2" Grid.Column="2" Margin="0,0,-14,0"><StackPanel Spacing="16" Margin="0,0,14,0"><Border MinHeight="260" Classes="superficie" IsEnabled="{Binding !CobrarCommand.IsRunning}">
       <DockPanel>
         <TextBlock DockPanel.Dock="Top" Classes="subtitulo" Text="Carrito" Margin="0,0,0,8" />
 

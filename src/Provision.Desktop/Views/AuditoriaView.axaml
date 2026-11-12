@@ -6,7 +6,7 @@
              x:Class="Provision.Desktop.Views.AuditoriaView"
              x:DataType="vm:AuditoriaViewModel">
   <ScrollViewer>
-    <StackPanel Margin="24" Spacing="16">
+    <StackPanel Margin="{StaticResource MargenPagina}" Spacing="16">
 
       <!-- Encabezado y filtros -->
       <Grid ColumnDefinitions="*,Auto">
@@ -139,7 +139,7 @@
             <Button Grid.Row="2" Grid.Column="4" Content="Buscar" Command="{Binding CargarCommand}" />
           </Grid>
 
-          <Grid ColumnDefinitions="112,130,140,90,*,110" Margin="8,4,8,0">
+          <Grid ColumnDefinitions="112,130,160,90,*,110" Margin="8,4,8,0">
             <TextBlock Classes="etiqueta" Text="Fecha y hora" />
             <TextBlock Grid.Column="1" Classes="etiqueta" Text="Usuario" />
             <TextBlock Grid.Column="2" Classes="etiqueta" Text="Rol" />
@@ -151,7 +151,7 @@
             <ItemsControl.ItemTemplate>
               <DataTemplate x:DataType="vm:FilaEvento">
                 <Border BorderBrush="{StaticResource Borde}" BorderThickness="0,0,0,1" Padding="8,6">
-                  <Grid ColumnDefinitions="112,130,140,90,*,110">
+                  <Grid ColumnDefinitions="112,130,160,90,*,110">
                     <TextBlock Classes="etiqueta" Text="{Binding Hora}" VerticalAlignment="Center" />
                     <TextBlock Grid.Column="1" Text="{Binding Usuario}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
                     <TextBlock Grid.Column="2" Text="{Binding Rol}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />

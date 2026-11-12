@@ -6,7 +6,7 @@
              x:Class="Provision.Desktop.Views.InicioView"
              x:DataType="vm:InicioViewModel">
   <ScrollViewer>
-    <StackPanel Margin="32" Spacing="20">
+    <StackPanel Margin="{StaticResource MargenPagina}" Spacing="16">
 
       <Grid ColumnDefinitions="*,Auto">
         <StackPanel Spacing="2">

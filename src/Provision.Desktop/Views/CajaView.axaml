@@ -6,7 +6,7 @@
              x:Class="Provision.Desktop.Views.CajaView"
              x:DataType="vm:CajaViewModel">
   <ScrollViewer>
-    <StackPanel Margin="24" Spacing="16">
+    <StackPanel Margin="{StaticResource MargenPagina}" Spacing="16">
 
       <Grid ColumnDefinitions="*,Auto">
         <TextBlock Classes="titulo" Text="Caja" />
