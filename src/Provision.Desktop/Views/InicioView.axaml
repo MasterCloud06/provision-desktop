@@ -34,25 +34,27 @@
         <TextBlock Classes="error" Text="{Binding Error}" />
       </Border>
 
-      <!-- Indicadores -->
-      <ItemsControl ItemsSource="{Binding Indicadores}">
-        <ItemsControl.ItemsPanel>
-          <ItemsPanelTemplate>
-            <UniformGrid Columns="3" />
-          </ItemsPanelTemplate>
-        </ItemsControl.ItemsPanel>
-        <ItemsControl.ItemTemplate>
-          <DataTemplate x:DataType="vm:Indicador">
-            <Border Classes="superficie" Margin="0,0,12,12">
-              <StackPanel Spacing="6">
-                <TextBlock Classes="etiqueta" Text="{Binding Titulo}" TextWrapping="Wrap" />
-                <TextBlock Classes="cifra" Text="{Binding Valor}" />
-                <TextBlock Classes="etiqueta" Text="{Binding Detalle}" TextWrapping="Wrap" />
-              </StackPanel>
-            </Border>
-          </DataTemplate>
-        </ItemsControl.ItemTemplate>
-      </ItemsControl>
+      <!-- Indicadores: una franja, una línea fina entre cifras -->
+      <Border Classes="franja-cifras" IsVisible="{Binding Indicadores.Count}">
+        <ItemsControl ItemsSource="{Binding Indicadores}" Margin="-1,0,0,0">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <UniformGrid Rows="1" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:Indicador">
+              <Border Classes="celda-cifra">
+                <StackPanel Spacing="3">
+                  <TextBlock Classes="etiqueta" Text="{Binding Titulo}" />
+                  <TextBlock Classes="cifra" Text="{Binding Valor}" TextTrimming="CharacterEllipsis" />
+                  <TextBlock Classes="etiqueta" FontSize="12" Text="{Binding Detalle}" />
+                </StackPanel>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </Border>
 
       <Border Classes="superficie" IsVisible="{Binding VerTendencia}"><StackPanel Spacing="12"><Grid ColumnDefinitions="*,Auto"><TextBlock Text="Ventas · últimos 7 días" Classes="subtitulo"/><TextBlock Grid.Column="1" Text="Bolivianos (Bs)" Classes="etiqueta"/></Grid><ui:GraficoBarras Height="220" Datos="{Binding Evolucion}"/><TextBlock Text="{Binding Comparacion}" Classes="etiqueta"/></StackPanel></Border>
       <Grid ColumnDefinitions="2*,16,*">

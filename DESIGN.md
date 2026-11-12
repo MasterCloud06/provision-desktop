@@ -56,10 +56,7 @@ components:
     padding: 20px
   sidebar:
     backgroundColor: "{colors.ink}"
-    width: 226px
-  topbar:
-    backgroundColor: "{colors.surface}"
-    height: 72px
+    width: 232px
 ---
 # Design System: Provisión Desktop
 
@@ -69,7 +66,8 @@ La aplicación combina un marco de navegación estable con áreas de trabajo dis
 
 **Key Characteristics:**
 - Navegación agrupada por función y perfil persistente.
-- Contexto de sección, sucursal y usuario en la barra superior.
+- Sucursal y entorno visibles en el menú lateral; cada pantalla trae su propio título (sin barra superior repetida).
+- Cifras clave en una sola franja dividida por líneas finas, nunca una tarjeta por número.
 - Composiciones diferenciadas para análisis, venta, expediente, calendario y catálogo.
 - Importes legibles y estados expresados con texto además de color.
 
@@ -84,9 +82,9 @@ Inter es la fuente del entorno nativo. Los títulos y cifras usan la escala efec
 **The Lectura Rule.** Un cliente o producto largo debe envolver o tener elipsis con información recuperable; no desplaza los importes fuera de su columna.
 
 ## Layout
-La estructura mantiene lateral de 226 y barra superior de 72 unidades lógicas. El menú organiza Visión del negocio, Operación comercial, Atención óptica y Administración. Los grupos se filtran según los permisos existentes. El perfil se sitúa al pie y la navegación puede desplazarse en ventanas bajas.
+La estructura usa un lateral de 232 en verde petróleo (fondo, hover y activo de la misma familia) y no tiene barra superior: el título vive en cada pantalla y la sucursal, el entorno y la actualización (F5) en el lateral. El menú organiza Visión del negocio, Operación comercial, Atención óptica y Administración. Los grupos se filtran según los permisos existentes. El perfil se sitúa al pie y la navegación puede desplazarse en ventanas bajas.
 
-Mi panel usa composición asimétrica para actividad, prioridades y citas. Indicadores separa KPI, tendencia y comparación. Auditoría prioriza registros y filtros, dejando el análisis secundario plegable. Vender reúne catálogo en una columna y carrito, cliente y pagos en otra. Ventas, Pedidos y Laboratorio separan registro de inspector. Caja distingue apertura y operación. Agenda incorpora calendario; Clientes organiza datos, recetas e historial en pestañas. Inventario mantiene filtros laterales y catálogo o lista. Usuarios combina directorio e inspector. Finanzas reúne resumen, balance, movimientos y cuentas.
+Mi panel usa composición asimétrica para actividad, prioridades (filas, no tarjetas anidadas) y citas. Indicadores, Auditoría, Caja y Finanzas abren con la franja de cifras. Auditoría prioriza registros y filtros, dejando el análisis secundario plegable. Vender reúne una lista densa de mostrador (miniatura, nombre, código, precio y agregar) y carrito, cliente y pagos en otra columna. Laboratorio y Pedidos muestran su proceso como etapas numeradas; Ventas, Pedidos y Laboratorio separan registro de inspector. Caja distingue apertura y operación. Agenda incorpora un calendario sin grilla gris (hoy con contorno, elegido en esmeralda); Clientes abre con la cabecera del expediente (identidad y saldo) y organiza datos rotulados, recetas e historial en pestañas. Inventario mantiene filtros laterales y catálogo o lista. Usuarios combina directorio e inspector. Finanzas reúne resumen, balance, movimientos y cuentas.
 
 **The Densidad Rule.** Las tarjetas de inventario dependen del ancho disponible, no del alto de la ventana. A 1100 de ancho se conservan dos tarjetas, con fotografía acotada entre 130 y 260 unidades; los filtros tienen etiquetas independientes y la ayuda inferior ocupa su propia fila.
 
@@ -121,3 +119,5 @@ Campos y botones tienen esquinas suaves; las superficies principales tienen un r
 - Don't volver a usar ayudas activas semitransparentes, filtros recortados o franjas de urgencia.
 
 Fuente: Estilos/Recursos.axaml, Estilos/Controles.axaml, las trece vistas y capturas del renderizador Avalonia con ENAI local. Las unidades documentadas como px corresponden a unidades lógicas a escala 1. Los ejemplos HTML del sidecar son representaciones documentales, no tecnología incorporada a la aplicación.
+
+**The Movimiento Rule.** Los botones ceden a 0,97 al presionar (160 ms, ease-out fuerte) y los colores cambian en 150 ms. El menú lateral y las acciones de teclado no se animan.

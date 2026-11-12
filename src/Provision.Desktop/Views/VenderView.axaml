@@ -62,17 +62,23 @@
             <ui:Icono Data="{x:Static ui:Iconos.Buscar}" />
             <TextBlock Text="Escribe el nombre, el código o escanea el código de barras y presiona Enter." />
           </StackPanel>
-          <ListBox Classes="tabla" ItemsSource="{Binding Resultados}"><ListBox.ItemsPanel><ItemsPanelTemplate><UniformGrid Columns="2"/></ItemsPanelTemplate></ListBox.ItemsPanel>
+          <!-- Lista densa de mostrador: miniatura, nombre y código, precio y agregar; se lee de un vistazo -->
+          <ListBox Classes="tabla" ItemsSource="{Binding Resultados}">
             <ListBox.ItemTemplate>
               <DataTemplate x:DataType="api:Producto">
-                <Grid ColumnDefinitions="*,36" RowDefinitions="100,Auto,Auto,Auto">
-                  <Border Grid.ColumnSpan="2" Background="{StaticResource Superficie}" CornerRadius="6" Height="90" VerticalAlignment="Top">
-                    <ui:ImagenRemota Url="{Binding ImagenUrl}" Stretch="Uniform" AnchoDecodificado="96" />
+                <Grid ColumnDefinitions="44,*,Auto,Auto">
+                  <Border Width="44" Height="44" CornerRadius="8" Background="{StaticResource Superficie}" ClipToBounds="True" VerticalAlignment="Center">
+                    <Panel>
+                      <ui:Icono Data="{x:Static ui:Iconos.Inventario}" Width="18" Height="18" Foreground="{StaticResource TextoDeshabilitado}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                      <ui:ImagenRemota Url="{Binding ImagenUrl}" Stretch="UniformToFill" AnchoDecodificado="96" />
+                    </Panel>
                   </Border>
-                  <TextBlock Grid.Row="1" Grid.ColumnSpan="2" Text="{Binding Nombre}" FontWeight="SemiBold" TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis" />
-                  <TextBlock Grid.ColumnSpan="2" Grid.Row="2" Classes="etiqueta" Text="{Binding Sku}" TextTrimming="CharacterEllipsis" Margin="0,3" />
-                  <TextBlock Grid.Column="0" Grid.Row="3" Classes="monto" Text="{Binding PrecioVenta, Converter={StaticResource Bs}}" VerticalAlignment="Center" FontWeight="SemiBold" />
-                  <Button Grid.Column="1" Grid.Row="3" Classes="icono" ToolTip.Tip="Agregar al carrito" AutomationProperties.Name="Agregar al carrito"
+                  <StackPanel Grid.Column="1" Margin="12,0" VerticalAlignment="Center" Spacing="2">
+                    <TextBlock Text="{Binding Nombre}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Nombre}" />
+                    <TextBlock Classes="etiqueta monto" FontSize="12" Text="{Binding Sku}" TextTrimming="CharacterEllipsis" />
+                  </StackPanel>
+                  <TextBlock Grid.Column="2" Classes="monto" Text="{Binding PrecioVenta, Converter={StaticResource Bs}}" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,0,12,0" />
+                  <Button Grid.Column="3" Classes="icono" ToolTip.Tip="Agregar al carrito" AutomationProperties.Name="Agregar al carrito" VerticalAlignment="Center"
                           Command="{Binding $parent[UserControl].((vm:VenderViewModel)DataContext).AgregarCommand}" CommandParameter="{Binding}">
                     <ui:Icono Data="{x:Static ui:Iconos.Mas}" Width="16" Height="16" />
                   </Button>

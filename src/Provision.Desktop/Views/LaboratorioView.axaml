@@ -32,13 +32,38 @@
       </Border>
     </StackPanel>
 
-    <Border Grid.Row="2" Grid.ColumnSpan="3" Classes="banda" Margin="0,0,0,16"><Grid ColumnDefinitions="*,20,*,20,*">
-      <Button Classes="fantasma" Command="{Binding FiltrarEtapaCommand}" CommandParameter="PENDIENTE" Content="Recepción"/>
-      <ui:Icono Grid.Column="1" Data="{x:Static ui:Iconos.Siguiente}" Width="14"/>
-      <Button Grid.Column="2" Classes="fantasma" Command="{Binding FiltrarEtapaCommand}" CommandParameter="EN_LABORATORIO" Content="En laboratorio"/>
-      <ui:Icono Grid.Column="3" Data="{x:Static ui:Iconos.Siguiente}" Width="14"/>
-      <Button Grid.Column="4" Classes="fantasma" Command="{Binding FiltrarEtapaCommand}" CommandParameter="LISTO" Content="Listo para entrega"/>
-    </Grid></Border>
+    <!-- Proceso de una orden: tres etapas en orden; tocar una filtra la lista y queda resaltada -->
+    <Border Grid.Row="2" Grid.ColumnSpan="3" Classes="franja-cifras" Margin="0,0,0,16" Padding="6">
+     <Grid ColumnDefinitions="*,*,*">
+      <Button Grid.Column="0" Classes="etapa" Classes.activa="{Binding EnRecepcion}" Command="{Binding FiltrarEtapaCommand}" CommandParameter="PENDIENTE" AutomationProperties.Name="Recepción">
+        <Grid ColumnDefinitions="Auto,*">
+          <Border Classes="numero-etapa"><TextBlock Text="1"/></Border>
+          <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
+            <TextBlock Text="Recepción" FontWeight="SemiBold"/>
+            <TextBlock Classes="etiqueta" FontSize="12" Text="Orden recibida, por enviar"/>
+          </StackPanel>
+        </Grid>
+      </Button>
+      <Button Grid.Column="1" Classes="etapa" Classes.activa="{Binding EnLaboratorio}" Command="{Binding FiltrarEtapaCommand}" CommandParameter="EN_LABORATORIO" AutomationProperties.Name="En laboratorio">
+        <Grid ColumnDefinitions="Auto,*">
+          <Border Classes="numero-etapa"><TextBlock Text="2"/></Border>
+          <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
+            <TextBlock Text="En laboratorio" FontWeight="SemiBold"/>
+            <TextBlock Classes="etiqueta" FontSize="12" Text="Lentes en fabricación"/>
+          </StackPanel>
+        </Grid>
+      </Button>
+      <Button Grid.Column="2" Classes="etapa" Classes.activa="{Binding EnEntrega}" Command="{Binding FiltrarEtapaCommand}" CommandParameter="LISTO" AutomationProperties.Name="Listo para entrega">
+        <Grid ColumnDefinitions="Auto,*">
+          <Border Classes="numero-etapa"><TextBlock Text="3"/></Border>
+          <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
+            <TextBlock Text="Listo para entrega" FontWeight="SemiBold"/>
+            <TextBlock Classes="etiqueta" FontSize="12" Text="Avisar y entregar"/>
+          </StackPanel>
+        </Grid>
+      </Button>
+     </Grid>
+    </Border>
     <!-- Lista -->
     <Border Grid.Row="3" Classes="superficie" Padding="8">
       <DockPanel>

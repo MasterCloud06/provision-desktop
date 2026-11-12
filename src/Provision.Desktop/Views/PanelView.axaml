@@ -1,4 +1,4 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui"
+<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Provision.Desktop.ViewModels"
              xmlns:api="using:Provision.Core.Api"
@@ -7,25 +7,46 @@
              x:Class="Provision.Desktop.Views.PanelView"
              x:DataType="vm:PanelViewModel">
   <ScrollViewer><StackPanel Margin="24" Spacing="20">
-    <Grid ColumnDefinitions="*,Auto"><StackPanel Spacing="5"><TextBlock Classes="titulo" Text="{Binding Saludo}"/><TextBlock Classes="etiqueta" Text="{Binding Fecha}"/></StackPanel><Button Grid.Column="1" Content="Actualizar panel" Command="{Binding ActualizarCommand}"/></Grid>
+    <!-- Saludo y momento del día; la actualización es secundaria y discreta -->
+    <Grid ColumnDefinitions="*,Auto">
+     <StackPanel Spacing="4"><TextBlock Classes="titulo" Text="{Binding Saludo}"/><TextBlock Classes="etiqueta" FontSize="14" Text="{Binding Fecha}"/></StackPanel>
+     <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+      <TextBlock Classes="etiqueta" FontSize="12" Text="{Binding Actualizado}" VerticalAlignment="Center"/>
+      <Button Classes="icono" Command="{Binding ActualizarCommand}" ToolTip.Tip="Actualizar panel" AutomationProperties.Name="Actualizar panel"><ui:Icono Data="{x:Static ui:Iconos.Recargar}" Width="16" Height="16"/></Button>
+     </StackPanel>
+    </Grid>
     <ProgressBar IsIndeterminate="True" IsVisible="{Binding Ocupado}"/>
     <TextBlock Classes="error" Text="{Binding Error}" IsVisible="{Binding Error, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
-    <Border Classes="superficie"><ItemsControl ItemsSource="{Binding Indicadores}"><ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Columns="3"/></ItemsPanelTemplate></ItemsControl.ItemsPanel><ItemsControl.ItemTemplate><DataTemplate x:DataType="api:IndicadorPanel"><StackPanel Margin="12,4" Spacing="5"><TextBlock Classes="etiqueta" Text="{Binding Titulo}" TextWrapping="Wrap"/><TextBlock Classes="cifra" Text="{Binding Valor}"/><TextBlock Classes="etiqueta" Text="{Binding Detalle}" TextWrapping="Wrap"/></StackPanel></DataTemplate></ItemsControl.ItemTemplate></ItemsControl></Border>
+    <!-- Cifras del día en una sola franja, separadas por líneas finas (sin una tarjeta por número) -->
+    <Border Classes="franja-cifras" IsVisible="{Binding Indicadores.Count}">
+     <ItemsControl ItemsSource="{Binding Indicadores}" Margin="-1,0,0,0">
+      <ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Rows="1"/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+      <ItemsControl.ItemTemplate><DataTemplate x:DataType="api:IndicadorPanel">
+       <Border Classes="celda-cifra">
+        <StackPanel Spacing="3">
+         <TextBlock Classes="etiqueta" Text="{Binding Titulo}"/>
+         <TextBlock Classes="cifra" FontSize="24" Text="{Binding Valor}" TextTrimming="CharacterEllipsis"/>
+         <TextBlock Classes="etiqueta" FontSize="12" Text="{Binding Detalle}"/>
+        </StackPanel>
+       </Border>
+      </DataTemplate></ItemsControl.ItemTemplate>
+     </ItemsControl>
+    </Border>
     <Grid ColumnDefinitions="1.6*,20,*">
      <StackPanel Spacing="20">
       <Border Classes="superficie" IsVisible="{Binding VerVentas}"><StackPanel Spacing="8"><Grid ColumnDefinitions="*,Auto"><TextBlock Classes="subtitulo" Text="Actividad comercial"/><TextBlock Grid.Column="1" Classes="etiqueta" Text="7 días · Bs"/></Grid><ui:GraficoBarras Datos="{Binding Evolucion}" Height="190" AutomationProperties.Name="Importes de ventas de los últimos siete días"/></StackPanel></Border>
       <Border Classes="superficie" IsVisible="{Binding VerVentas}"><StackPanel Spacing="12"><TextBlock Classes="subtitulo" Text="Ventas recientes"/><ItemsControl ItemsSource="{Binding VentasRecientes}"><ItemsControl.ItemTemplate><DataTemplate x:DataType="api:VentaResumen"><Grid ColumnDefinitions="*,105" Margin="0,8"><StackPanel><TextBlock Text="{Binding Numero}" FontWeight="SemiBold"/><TextBlock Classes="etiqueta" Text="{Binding Cliente}" TextTrimming="CharacterEllipsis"/></StackPanel><TextBlock Grid.Column="1" Text="{Binding Total, Converter={StaticResource Bs}}" HorizontalAlignment="Right" FontWeight="Medium"/></Grid></DataTemplate></ItemsControl.ItemTemplate></ItemsControl><TextBlock Classes="etiqueta" Text="Sin ventas en el período." IsVisible="{Binding !VentasRecientes.Count}"/></StackPanel></Border>
      </StackPanel>
      <StackPanel Grid.Column="2" Spacing="20">
-      <Border Classes="banda"><StackPanel Spacing="12"><TextBlock Classes="subtitulo" Text="Prioridades de hoy"/>        <ItemsControl ItemsSource="{Binding Tareas}">
+      <Border Classes="superficie"><StackPanel Spacing="6"><TextBlock Classes="subtitulo" Text="Prioridades de hoy"/>        <ItemsControl ItemsSource="{Binding Tareas}">
           <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>
-              <StackPanel Spacing="8" />
+              <StackPanel />
             </ItemsPanelTemplate>
           </ItemsControl.ItemsPanel>
           <ItemsControl.ItemTemplate>
             <DataTemplate x:DataType="vm:TareaItem">
-              <Border Classes="tarea" Classes.alta="{Binding EsAlta}" Classes.media="{Binding EsMedia}"
+              <Border Classes="tarea fila" Classes.alta="{Binding EsAlta}" Classes.media="{Binding EsMedia}"
                       Classes.info="{Binding EsInfo}" Classes.ok="{Binding EsOk}">
                 <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto">
                   <!-- Cantidad grande -->
@@ -40,7 +61,7 @@
                     <TextBlock Classes="etiqueta" Text="{Binding Detalle}" FontSize="13" TextWrapping="Wrap" />
                   </StackPanel>
                   <Button Grid.Row="1" Grid.Column="1" Classes="fantasma" Content="{Binding TextoBoton}" Command="{Binding Ir}"
-                          IsVisible="{Binding TieneBoton}" VerticalAlignment="Center" Margin="16,0,0,0" />
+                          IsVisible="{Binding TieneBoton}" HorizontalAlignment="Left" Margin="-14,2,0,0" />
                 </Grid>
               </Border>
             </DataTemplate>
@@ -51,6 +72,5 @@
      </StackPanel>
     </Grid>
     <Expander Header="Mi rol y responsabilidades" HorizontalAlignment="Stretch"><StackPanel Spacing="8"><TextBlock Text="{Binding NombreRol}" Classes="subtitulo"/><TextBlock Text="{Binding Proposito}" TextWrapping="Wrap"/><ItemsControl ItemsSource="{Binding Responsabilidades}"/></StackPanel></Expander>
-    <TextBlock Text="{Binding Actualizado}" Classes="etiqueta"/>
    </StackPanel></ScrollViewer>
 </UserControl>

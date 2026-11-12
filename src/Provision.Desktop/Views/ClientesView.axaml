@@ -82,27 +82,45 @@
         <Border Classes="superficie" IsVisible="{Binding !HayFicha}" Padding="32"><StackPanel Spacing="16"><ui:Icono Data="{x:Static ui:Iconos.Clientes}" Width="40" Height="40" Foreground="{StaticResource Primario}" HorizontalAlignment="Left"/><TextBlock Text="Una ficha, toda su historia" FontSize="24" FontWeight="SemiBold"/><TextBlock Classes="etiqueta" Text="Selecciona un cliente del directorio para consultar sus datos, recetas y compras." TextWrapping="Wrap"/><Border Classes="banda"><TextBlock Text="Datos personales     ·     Recetas ópticas     ·     Historial comercial" TextWrapping="Wrap"/></Border></StackPanel></Border>
 
         <StackPanel Spacing="16" IsVisible="{Binding HayFicha}">
-          <TextBlock Text="{Binding Ficha.Nombre}" FontSize="24" FontWeight="SemiBold" TextWrapping="Wrap"/>
-          <TabControl><TabControl.Styles><Style Selector="TabItem"><Setter Property="FontSize" Value="14"/><Setter Property="Padding" Value="12,8"/></Style></TabControl.Styles><TabItem Header="Datos personales">
-          <Grid ColumnDefinitions="*,16,150">
-            <Border Classes="superficie">
-              <StackPanel Spacing="8">
-                <TextBlock Classes="subtitulo" Text="Datos" />
-                <TextBox Text="{Binding EditNombre}" Watermark="Nombre" IsReadOnly="{Binding !PuedeGestionar}" />
-                <Grid ColumnDefinitions="*,8,*">
-                  <TextBox Text="{Binding EditCi}" Watermark="CI" IsReadOnly="{Binding !PuedeGestionar}" />
-                  <TextBox Grid.Column="2" Text="{Binding EditTelefono}" Watermark="Teléfono" IsReadOnly="{Binding !PuedeGestionar}" />
-                </Grid>
-                <Button Content="Guardar datos" Command="{Binding GuardarClienteCommand}" IsVisible="{Binding PuedeGestionar}" />
-              </StackPanel>
+          <!-- Cabecera del expediente: quién es y cuánto debe, a la vista en las tres pestañas -->
+          <Grid ColumnDefinitions="Auto,*,Auto">
+            <Border Width="48" Height="48" CornerRadius="24" Background="{StaticResource PrimarioSuave}" VerticalAlignment="Center">
+              <ui:Icono Data="{x:Static ui:Iconos.Clientes}" Width="22" Height="22" Foreground="{StaticResource Primario}" HorizontalAlignment="Center"/>
             </Border>
-            <Border Grid.Column="2" Classes="superficie">
-              <StackPanel Spacing="4">
-                <TextBlock Classes="etiqueta" Text="Saldo pendiente" />
-                <TextBlock Classes="cifra" Text="{Binding Ficha.SaldoPendiente, Converter={StaticResource Bs}}" />
-              </StackPanel>
-            </Border>
+            <StackPanel Grid.Column="1" Margin="14,0,16,0" VerticalAlignment="Center" Spacing="2">
+              <TextBlock Text="{Binding Ficha.Nombre}" FontSize="22" FontWeight="SemiBold" TextWrapping="Wrap"/>
+              <TextBlock Classes="etiqueta">
+                <Run Text="{Binding Ficha.Ci, Mode=OneWay, TargetNullValue='sin CI', StringFormat='CI {0}'}"/>
+                <Run Text="  ·  "/>
+                <Run Text="{Binding Ficha.Telefono, Mode=OneWay, TargetNullValue='sin teléfono'}"/>
+              </TextBlock>
+            </StackPanel>
+            <StackPanel Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Right">
+              <TextBlock Classes="etiqueta" FontSize="12" Text="Saldo pendiente" HorizontalAlignment="Right"/>
+              <TextBlock Classes="cifra" FontSize="22" Text="{Binding Ficha.SaldoPendiente, Converter={StaticResource Bs}}" HorizontalAlignment="Right"/>
+            </StackPanel>
           </Grid>
+          <TabControl><TabControl.Styles><Style Selector="TabItem"><Setter Property="FontSize" Value="14"/><Setter Property="Padding" Value="12,8"/></Style></TabControl.Styles><TabItem Header="Datos personales">
+          <Border Classes="superficie">
+            <StackPanel Spacing="14">
+              <TextBlock Classes="subtitulo" Text="Datos personales" />
+              <StackPanel>
+                <TextBlock Classes="campo" Text="Nombre completo" />
+                <TextBox Text="{Binding EditNombre}" Watermark="Nombre y apellidos" IsReadOnly="{Binding !PuedeGestionar}" />
+              </StackPanel>
+              <Grid ColumnDefinitions="*,12,*">
+                <StackPanel>
+                  <TextBlock Classes="campo" Text="CI / NIT" />
+                  <TextBox Text="{Binding EditCi}" Watermark="Documento" IsReadOnly="{Binding !PuedeGestionar}" />
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                  <TextBlock Classes="campo" Text="Teléfono" />
+                  <TextBox Text="{Binding EditTelefono}" Watermark="Celular o fijo" IsReadOnly="{Binding !PuedeGestionar}" />
+                </StackPanel>
+              </Grid>
+              <Button Classes="primario" Content="Guardar datos" HorizontalAlignment="Left" Command="{Binding GuardarClienteCommand}" IsVisible="{Binding PuedeGestionar}" />
+            </StackPanel>
+          </Border>
 
           </TabItem><TabItem Header="Recetas ópticas">
           <!-- Recetas -->
@@ -122,9 +140,15 @@
               <!-- Formulario de receta -->
               <Border Background="{StaticResource PrimarioSuave}" CornerRadius="8" Padding="12" IsVisible="{Binding CreandoReceta}">
                 <StackPanel Spacing="8">
-                  <Grid ColumnDefinitions="*,8,*">
-                    <CalendarDatePicker SelectedDate="{Binding RecetaFecha}" HorizontalAlignment="Stretch" />
-                    <TextBox Grid.Column="2" Text="{Binding RecetaProfesional}" Watermark="Profesional" />
+                  <Grid ColumnDefinitions="*,12,*">
+                    <StackPanel>
+                      <TextBlock Classes="campo" Text="Fecha del examen" />
+                      <CalendarDatePicker SelectedDate="{Binding RecetaFecha}" HorizontalAlignment="Stretch" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                      <TextBlock Classes="campo" Text="Profesional" />
+                      <TextBox Text="{Binding RecetaProfesional}" Watermark="Nombre de quien examinó" />
+                    </StackPanel>
                   </Grid>
                   <Grid ColumnDefinitions="40,*,6,*,6,70,6,*" RowDefinitions="Auto,Auto,Auto">
                     <TextBlock Grid.Column="1" Classes="etiqueta" Text="Esfera" />
@@ -181,16 +205,22 @@
           <Border Classes="superficie">
             <StackPanel Spacing="8">
               <TextBlock Classes="subtitulo" Text="Compras" />
+              <TextBlock Classes="etiqueta" Text="Este cliente todavía no tiene compras." IsVisible="{Binding !Ficha.Compras.Count}" />
               <ItemsControl ItemsSource="{Binding Ficha.Compras}">
                 <ItemsControl.ItemTemplate>
                   <DataTemplate x:DataType="api:CompraCliente">
-                    <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" Margin="0,8">
-                      <TextBlock Text="{Binding Numero}" FontWeight="SemiBold" />
-                      <TextBlock Grid.Column="1" Classes="etiqueta" Text="{Binding CreadoLocal, StringFormat='{}{0:dd/MM/yyyy}'}" />
-                      <TextBlock Grid.Row="1" Text="{Binding Total, Converter={StaticResource Bs}}" TextAlignment="Right" />
-                      <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Saldo, Converter={StaticResource Bs}, StringFormat='saldo {0}'}"
-                                 TextAlignment="Right" Classes="etiqueta" />
-                    </Grid>
+                    <Border BorderBrush="{StaticResource Borde}" BorderThickness="0,0,0,1" Padding="0,10">
+                      <Grid ColumnDefinitions="*,Auto">
+                        <StackPanel>
+                          <TextBlock Text="{Binding Numero}" FontWeight="SemiBold" />
+                          <TextBlock Classes="etiqueta monto" Text="{Binding CreadoLocal, StringFormat='{}{0:dd/MM/yyyy}'}" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" HorizontalAlignment="Right">
+                          <TextBlock Classes="monto" FontWeight="SemiBold" Text="{Binding Total, Converter={StaticResource Bs}}" HorizontalAlignment="Right" />
+                          <TextBlock Classes="etiqueta monto" Text="{Binding Saldo, Converter={StaticResource Bs}, StringFormat='saldo {0}'}" HorizontalAlignment="Right" />
+                        </StackPanel>
+                      </Grid>
+                    </Border>
                   </DataTemplate>
                 </ItemsControl.ItemTemplate>
               </ItemsControl>

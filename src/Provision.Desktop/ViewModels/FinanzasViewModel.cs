@@ -41,7 +41,12 @@ public sealed partial class FinanzasViewModel : ViewModelBase, ISeccion
     /* Datos */
 
     [ObservableProperty] private ResumenFinanzas? _resumen;
-    [ObservableProperty] private IReadOnlyList<PuntoSerie> _balanceVisual = [];
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HayBalance))]
+    private IReadOnlyList<PuntoSerie> _balanceVisual = [];
+
+    /// <summary>Sin ingresos ni gastos el gráfico no dice nada: la vista muestra un mensaje breve en su lugar.</summary>
+    public bool HayBalance => BalanceVisual.Any(p => p.Valor > 0);
     [ObservableProperty] private IReadOnlyList<CuentaPersonal> _cuentas = [];
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(SinMovimientos))]

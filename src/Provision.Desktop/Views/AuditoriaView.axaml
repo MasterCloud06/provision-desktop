@@ -32,33 +32,33 @@
       </Border>
 
       <!-- Indicadores -->
-      <Grid ColumnDefinitions="*,12,*,12,*,12,*">
-        <Border Classes="superficie">
+      <Border Classes="franja-cifras"><Grid ColumnDefinitions="*,*,*,*" Margin="-1,0,0,0">
+        <Border Classes="celda-cifra">
           <StackPanel Spacing="4">
             <TextBlock Classes="etiqueta" Text="Eventos" />
             <TextBlock Classes="cifra" Text="{Binding TotalEventos}" />
             <TextBlock Classes="etiqueta" Text="{Binding TasaExito}" />
           </StackPanel>
         </Border>
-        <Border Grid.Column="2" Classes="superficie">
+        <Border Grid.Column="1" Classes="celda-cifra">
           <StackPanel Spacing="4">
             <TextBlock Classes="etiqueta" Text="Usuarios con actividad" />
             <TextBlock Classes="cifra" Text="{Binding UsuariosActivos}" />
           </StackPanel>
         </Border>
-        <Border Grid.Column="4" Classes="superficie">
+        <Border Grid.Column="2" Classes="celda-cifra">
           <StackPanel Spacing="4">
             <TextBlock Classes="etiqueta" Text="Negados (sin permiso o ingreso fallido)" TextWrapping="Wrap" />
             <TextBlock Classes="cifra" Foreground="{StaticResource Peligro}" Text="{Binding Negados}" />
           </StackPanel>
         </Border>
-        <Border Grid.Column="6" Classes="superficie">
+        <Border Grid.Column="3" Classes="celda-cifra">
           <StackPanel Spacing="4">
             <TextBlock Classes="etiqueta" Text="Rechazados por reglas del negocio" TextWrapping="Wrap" />
             <TextBlock Classes="cifra" Foreground="{StaticResource Aviso}" Text="{Binding Rechazados}" />
           </StackPanel>
         </Border>
-      </Grid>
+      </Grid></Border>
 
 
 
@@ -70,13 +70,16 @@
             <ItemsControl ItemsSource="{Binding PorUsuario}">
               <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="vm:FilaBarra">
-                  <Grid ColumnDefinitions="180,*,Auto,Auto" Margin="0,3">
+                  <Grid ColumnDefinitions="150,*,Auto,Auto" Margin="0,3">
                     <StackPanel>
                       <TextBlock Text="{Binding Titulo}" TextTrimming="CharacterEllipsis" />
                       <TextBlock Classes="etiqueta" FontSize="12" Text="{Binding Detalle}" />
                     </StackPanel>
-                    <Border Grid.Column="1" Background="{StaticResource Primario}" Opacity="0.7" Height="10"
-                            CornerRadius="3" Width="{Binding Ancho}" HorizontalAlignment="Left" VerticalAlignment="Center" />
+                    <!-- La barra se recorta a su columna: nunca tapa la cifra en ventanas angostas -->
+                    <Panel Grid.Column="1" ClipToBounds="True" VerticalAlignment="Center">
+                      <Border Background="{StaticResource Primario}" Opacity="0.7" Height="10"
+                              CornerRadius="3" Width="{Binding Ancho}" HorizontalAlignment="Left" />
+                    </Panel>
                     <TextBlock Grid.Column="2" Text="{Binding Valor}" FontWeight="SemiBold" Margin="8,0" VerticalAlignment="Center" />
                     <TextBlock Grid.Column="3" Classes="error" FontSize="12" VerticalAlignment="Center"
                                IsVisible="{Binding TieneNegados}" Text="{Binding Negados, StringFormat='{}{0} negados'}" />
@@ -136,7 +139,7 @@
             <Button Grid.Row="2" Grid.Column="4" Content="Buscar" Command="{Binding CargarCommand}" />
           </Grid>
 
-          <Grid ColumnDefinitions="120,150,150,100,*,120" Margin="8,4,8,0">
+          <Grid ColumnDefinitions="112,130,140,90,*,110" Margin="8,4,8,0">
             <TextBlock Classes="etiqueta" Text="Fecha y hora" />
             <TextBlock Grid.Column="1" Classes="etiqueta" Text="Usuario" />
             <TextBlock Grid.Column="2" Classes="etiqueta" Text="Rol" />
@@ -148,7 +151,7 @@
             <ItemsControl.ItemTemplate>
               <DataTemplate x:DataType="vm:FilaEvento">
                 <Border BorderBrush="{StaticResource Borde}" BorderThickness="0,0,0,1" Padding="8,6">
-                  <Grid ColumnDefinitions="120,150,150,100,*,120">
+                  <Grid ColumnDefinitions="112,130,140,90,*,110">
                     <TextBlock Classes="etiqueta" Text="{Binding Hora}" VerticalAlignment="Center" />
                     <TextBlock Grid.Column="1" Text="{Binding Usuario}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
                     <TextBlock Grid.Column="2" Text="{Binding Rol}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />

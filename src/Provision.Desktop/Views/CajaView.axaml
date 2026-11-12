@@ -43,15 +43,15 @@
       <!-- Caja abierta -->
       <StackPanel Spacing="16" IsVisible="{Binding Abierta}">
 
-        <Grid ColumnDefinitions="*,16,*,16,*">
-          <Border Classes="superficie">
+        <Border Classes="franja-cifras"><Grid ColumnDefinitions="*,*,*" Margin="-1,0,0,0">
+          <Border Classes="celda-cifra">
             <StackPanel Spacing="4">
               <TextBlock Classes="etiqueta" Text="Fondo de apertura" />
               <TextBlock Classes="cifra" Text="{Binding Resumen.Sesion.MontoApertura, Converter={StaticResource Bs}}" />
               <TextBlock Classes="etiqueta" Text="{Binding Resumen.Sesion.AbiertaLocal, StringFormat='Abierta {0:dd/MM/yyyy HH:mm}'}" />
             </StackPanel>
           </Border>
-          <Border Grid.Column="2" Classes="superficie">
+          <Border Grid.Column="1" Classes="celda-cifra">
             <StackPanel Spacing="4">
               <TextBlock Classes="etiqueta" Text="Efectivo que debería haber" />
               <TextBlock Classes="cifra" Foreground="{StaticResource Primario}"
@@ -59,14 +59,14 @@
               <TextBlock Classes="etiqueta" Text="apertura + entradas − salidas en efectivo" />
             </StackPanel>
           </Border>
-          <Border Grid.Column="4" Classes="superficie">
+          <Border Grid.Column="2" Classes="celda-cifra">
             <StackPanel Spacing="4">
               <TextBlock Classes="etiqueta" Text="Ingresos / egresos del turno" />
               <TextBlock Classes="cifra" Text="{Binding Resumen.TotalIngresos, Converter={StaticResource Bs}}" />
               <TextBlock Classes="etiqueta" Text="{Binding Resumen.TotalEgresos, Converter={StaticResource Bs}, StringFormat='egresos {0}'}" />
             </StackPanel>
           </Border>
-        </Grid>
+        </Grid></Border>
 
         <Grid ColumnDefinitions="*,20,300">
           <StackPanel Spacing="16">

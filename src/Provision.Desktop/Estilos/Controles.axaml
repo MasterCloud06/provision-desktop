@@ -1,4 +1,4 @@
-﻿<!--
+<!--
   Estilos de controles de Provisión escritorio. Minimalismo funcional y denso (herramienta de trabajo diario):
   jerarquía tipográfica clara, una sola acción primaria por zona, foco siempre visible, transiciones de 150 ms.
 -->
@@ -124,8 +124,13 @@
     <Setter Property="Transitions">
       <Transitions>
         <BrushTransition Property="Background" Duration="0:0:0.15" />
+        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.16" Easing="0.23,1,0.32,1" />
       </Transitions>
     </Setter>
+  </Style>
+  <!-- Al presionar, el botón cede apenas (0.97): confirma que la app escuchó. El menú lateral queda fuera: se usa todo el día. -->
+  <Style Selector="Button:pressed:not(.nav)">
+    <Setter Property="RenderTransform" Value="scale(0.97)" />
   </Style>
   <Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="Background" Value="{StaticResource SuperficieHover}" />
@@ -226,6 +231,34 @@
   </Style>
   <Style Selector="Button.nav.activo:pointerover /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="Background" Value="{StaticResource BarraActivo}" />
+  </Style>
+  <Style Selector="Button.nav:focus-visible /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="BorderBrush" Value="{StaticResource Cristal}" />
+    <Setter Property="BorderThickness" Value="1" />
+  </Style>
+  <!-- Contexto de la barra (sucursal y entorno) -->
+  <Style Selector="Border.contexto-barra">
+    <Setter Property="Background" Value="{StaticResource BarraHover}" />
+    <Setter Property="CornerRadius" Value="10" />
+    <Setter Property="Padding" Value="12,8,6,8" />
+  </Style>
+  <!-- Acción rápida sobre fondo oscuro: contorno cristal, para no competir con el botón principal de cada pantalla -->
+  <Style Selector="Button.accion-barra">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderBrush" Value="{StaticResource Cristal}" />
+    <Setter Property="Foreground" Value="{StaticResource Cristal}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="MinHeight" Value="38" />
+  </Style>
+  <Style Selector="Button.accion-barra:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource Cristal}" />
+    <Setter Property="BorderBrush" Value="{StaticResource Cristal}" />
+    <Setter Property="Foreground" Value="{StaticResource Barra}" />
+  </Style>
+  <Style Selector="Button.accion-barra:pressed /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="#6BC0B2" />
   </Style>
   <!-- Marca de la opción activa: barra cristal a la izquierda -->
   <Style Selector="Button.nav Border.marca-activo">
@@ -692,7 +725,143 @@
   <Style Selector="Border.superficie"><Setter Property="Background" Value="{StaticResource Tarjeta}"/><Setter Property="CornerRadius" Value="14"/><Setter Property="Padding" Value="20"/><Setter Property="BoxShadow" Value="0 3 16 -6 #2012343B"/></Style>
   <Style Selector="Border.banda"><Setter Property="Background" Value="{StaticResource PrimarioSuave}"/><Setter Property="CornerRadius" Value="12"/><Setter Property="Padding" Value="18,14"/></Style>
   <Style Selector="Border.cabecera-tabla"><Setter Property="Background" Value="{StaticResource Superficie}"/><Setter Property="Padding" Value="14,12"/><Setter Property="CornerRadius" Value="8"/></Style>
-  <Style Selector="Button.nav.activo"><Setter Property="Background" Value="{StaticResource Primario}"/><Setter Property="Foreground" Value="White"/></Style>
   <Style Selector="Button.nav"><Setter Property="MinHeight" Value="38"/><Setter Property="Padding" Value="12,8"/></Style>
   <Style Selector="TextBlock.titulo"><Setter Property="FontSize" Value="26"/><Setter Property="FontWeight" Value="SemiBold"/></Style>
+
+  <!-- ───────────── Sistema 2026: franja de cifras y filas de prioridad ───────────── -->
+  <!-- Cifras clave de una pantalla en una sola franja blanca, separadas por líneas de 1 px -->
+  <Style Selector="Border.franja-cifras">
+    <Setter Property="Background" Value="{StaticResource Tarjeta}" />
+    <Setter Property="BorderBrush" Value="{StaticResource Borde}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="{StaticResource RadioTarjeta}" />
+    <Setter Property="ClipToBounds" Value="True" />
+  </Style>
+  <Style Selector="Border.celda-cifra">
+    <Setter Property="BorderBrush" Value="{StaticResource Borde}" />
+    <Setter Property="BorderThickness" Value="1,0,0,0" />
+    <Setter Property="Margin" Value="0,14" />
+    <Setter Property="Padding" Value="20,2" />
+  </Style>
+  <!-- En ventanas angostas el rótulo pasa a dos líneas: nunca queda cortado -->
+  <Style Selector="Border.franja-cifras TextBlock.etiqueta">
+    <Setter Property="TextWrapping" Value="Wrap" />
+    <Setter Property="MaxLines" Value="2" />
+    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+  </Style>
+  <Style Selector="Border.franja-cifras TextBlock.cifra">
+    <Setter Property="FontSize" Value="24" />
+  </Style>
+  <!-- Prioridad como fila de una lista (no tarjeta dentro de tarjeta): el color queda en la cifra -->
+  <Style Selector="Border.tarea.fila, Border.tarea.fila.alta, Border.tarea.fila.media, Border.tarea.fila.info, Border.tarea.fila.ok">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderBrush" Value="{StaticResource Borde}" />
+    <Setter Property="BorderThickness" Value="0,0,0,1" />
+    <Setter Property="CornerRadius" Value="0" />
+    <Setter Property="Padding" Value="0,12" />
+  </Style>
+
+  <!-- Calendario (Agenda y selectores de fecha): días sobre fondo limpio, hoy con contorno, elegido en esmeralda.
+       El tema pinta el gris en las partes Border#Root (día) y Border#BackgroundLayer (grilla). -->
+  <!-- La grilla gris del tema sale del BorderBrush del calendario (lo usa Border#BackgroundLayer): se apaga -->
+  <Style Selector="Calendar, CalendarItem">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+  </Style>
+  <Style Selector="CalendarDayButton">
+    <Setter Property="Foreground" Value="{StaticResource Texto}" />
+    <Setter Property="FontSize" Value="13" />
+  </Style>
+  <Style Selector="CalendarDayButton /template/ Border#Root, CalendarDayButton /template/ Border#Border">
+    <Setter Property="CornerRadius" Value="8" />
+  </Style>
+  <Style Selector="CalendarDayButton /template/ Border#Root">
+    <Setter Property="Background" Value="Transparent" />
+  </Style>
+  <Style Selector="CalendarDayButton:inactive">
+    <Setter Property="Foreground" Value="{StaticResource TextoDeshabilitado}" />
+  </Style>
+  <!-- Con pseudoclase para ganarle al estilo :inactive del tema (los disparadores pesan más que un estilo simple) -->
+  <Style Selector="CalendarDayButton:inactive /template/ Border#Root">
+    <Setter Property="Background" Value="Transparent" />
+  </Style>
+  <Style Selector="CalendarDayButton:pointerover /template/ Border#Root">
+    <Setter Property="Background" Value="{StaticResource PrimarioSuave}" />
+  </Style>
+  <Style Selector="CalendarDayButton:today">
+    <Setter Property="Foreground" Value="{StaticResource Primario}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+  <Style Selector="CalendarDayButton:today /template/ Border#Root">
+    <Setter Property="Background" Value="Transparent" />
+  </Style>
+  <Style Selector="CalendarDayButton:today /template/ Border#Border">
+    <Setter Property="BorderBrush" Value="{StaticResource Primario}" />
+    <Setter Property="BorderThickness" Value="1.5" />
+  </Style>
+  <Style Selector="CalendarDayButton:selected">
+    <Setter Property="Foreground" Value="White" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+  <Style Selector="CalendarDayButton:selected /template/ Border#Root">
+    <Setter Property="Background" Value="{StaticResource Primario}" />
+  </Style>
+  <!-- El texto del día lo colorea el tema dentro de la plantilla: se fija ahí, estado por estado -->
+  <Style Selector="CalendarDayButton /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Foreground" Value="{StaticResource Texto}" />
+  </Style>
+  <Style Selector="CalendarDayButton:inactive /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Foreground" Value="{StaticResource TextoDeshabilitado}" />
+  </Style>
+  <Style Selector="CalendarDayButton:today /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Foreground" Value="{StaticResource Primario}" />
+  </Style>
+  <Style Selector="CalendarDayButton:selected /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Foreground" Value="White" />
+  </Style>
+  <Style Selector="CalendarDayButton:selected /template/ Border#Border">
+    <Setter Property="BorderBrush" Value="{StaticResource Primario}" />
+  </Style>
+  <!-- Etapas de un proceso (Laboratorio): número, título y detalle; la activa en tinte esmeralda -->
+  <Style Selector="Button.etapa">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="HorizontalContentAlignment" Value="Left" />
+    <Setter Property="Padding" Value="12,8" />
+    <Setter Property="FontWeight" Value="Normal" />
+  </Style>
+  <Style Selector="Button.etapa:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource SuperficieHover}" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+  </Style>
+  <Style Selector="Button.etapa.activa">
+    <Setter Property="Background" Value="{StaticResource PrimarioSuave}" />
+  </Style>
+  <Style Selector="Button.etapa.activa:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource PrimarioSuave}" />
+  </Style>
+  <Style Selector="Border.numero-etapa">
+    <Setter Property="Width" Value="28" />
+    <Setter Property="Height" Value="28" />
+    <Setter Property="CornerRadius" Value="14" />
+    <Setter Property="BorderBrush" Value="{StaticResource BordeFuerte}" />
+    <Setter Property="BorderThickness" Value="1.5" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Border.numero-etapa TextBlock">
+    <Setter Property="HorizontalAlignment" Value="Center" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="FontSize" Value="13" />
+    <Setter Property="Foreground" Value="{StaticResource TextoSuave}" />
+  </Style>
+  <Style Selector="Button.etapa.activa Border.numero-etapa">
+    <Setter Property="Background" Value="{StaticResource Primario}" />
+    <Setter Property="BorderBrush" Value="{StaticResource Primario}" />
+  </Style>
+  <Style Selector="Button.etapa.activa Border.numero-etapa TextBlock">
+    <Setter Property="Foreground" Value="White" />
+  </Style>
 </Styles>

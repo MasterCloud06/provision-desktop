@@ -34,7 +34,7 @@
     <!-- Lista -->
     <Border Grid.Row="2" Classes="superficie" Padding="8">
       <DockPanel>
-        <Grid DockPanel.Dock="Top" ColumnDefinitions="*,100,60" Margin="8,4,8,8">
+        <Grid DockPanel.Dock="Top" ColumnDefinitions="*,150,64" Margin="8,4,8,8">
           <TextBlock Classes="etiqueta" Text="Usuario / rol" />
 
           <TextBlock Grid.Column="1" Classes="etiqueta" Text="Sucursal" />
@@ -43,8 +43,8 @@
         <ListBox Classes="tabla" ItemsSource="{Binding Usuarios}" SelectedItem="{Binding Seleccionado}">
           <ListBox.ItemTemplate>
             <DataTemplate x:DataType="vm:FilaUsuario">
-              <Grid ColumnDefinitions="40,*,100,60">
-                <Border Width="30" Height="34" CornerRadius="10" Background="{StaticResource PrimarioSuave}" VerticalAlignment="Top"><ui:Icono Data="{x:Static ui:Iconos.Usuarios}" Width="17" Foreground="{StaticResource Primario}"/></Border><StackPanel Grid.Column="1" Spacing="4" Margin="0,0,8,0">
+              <Grid ColumnDefinitions="44,*,150,64">
+                <Border Width="32" Height="32" CornerRadius="16" Background="{StaticResource PrimarioSuave}" VerticalAlignment="Top"><ui:Icono Data="{x:Static ui:Iconos.Persona}" Width="16" Height="16" Foreground="{StaticResource Primario}" HorizontalAlignment="Center"/></Border><StackPanel Grid.Column="1" Spacing="4" Margin="0,0,8,0">
                   <TextBlock Text="{Binding Nombre}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
                   <TextBlock Classes="etiqueta" Text="{Binding Email}" TextTrimming="CharacterEllipsis" />
                   <TextBlock Text="{Binding Rol}" TextWrapping="Wrap" />

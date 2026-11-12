@@ -34,7 +34,14 @@ public sealed partial class LaboratorioViewModel : ViewModelBase, ISeccion
         new("ENTREGADO", "Entregadas"),
     ];
 
-    [ObservableProperty] private Opcion<string> _filtro;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(EnRecepcion), nameof(EnLaboratorio), nameof(EnEntrega))]
+    private Opcion<string> _filtro;
+
+    /* Etapa resaltada en el indicador de proceso (solo lectura del filtro actual). */
+    public bool EnRecepcion => Filtro.Valor == "PENDIENTE";
+    public bool EnLaboratorio => Filtro.Valor == "EN_LABORATORIO";
+    public bool EnEntrega => Filtro.Valor == "LISTO";
     [ObservableProperty] private IReadOnlyList<OrdenTrabajoFila> _ordenes = [];
 
     [ObservableProperty]
