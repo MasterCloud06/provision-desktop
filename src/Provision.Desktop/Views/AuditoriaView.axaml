@@ -11,7 +11,7 @@
       <!-- Encabezado y filtros -->
       <Grid ColumnDefinitions="*,Auto">
         <StackPanel>
-          <TextBlock Classes="titulo" Text="Registro de actividad" />
+          <StackPanel Orientation="Horizontal" Spacing="12"><Border Classes="icono-modulo"><ui:Icono Data="{x:Static ui:Iconos.Auditoria}" /></Border><TextBlock Classes="titulo" Text="Registro de actividad" VerticalAlignment="Center" /></StackPanel>
           <TextBlock Classes="etiqueta" FontSize="14"
                      Text="Qué hizo cada rol y cada usuario. Solo lo ve el super administrador." />
         </StackPanel>

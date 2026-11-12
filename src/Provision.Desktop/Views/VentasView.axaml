@@ -9,7 +9,7 @@
 
     <Grid Grid.ColumnSpan="3" ColumnDefinitions="*,Auto,Auto,Auto" Margin="0,0,0,12">
       <StackPanel>
-        <TextBlock Classes="titulo" Text="Ventas" />
+        <StackPanel Orientation="Horizontal" Spacing="12"><Border Classes="icono-modulo"><ui:Icono Data="{x:Static ui:Iconos.Ventas}" /></Border><TextBlock Classes="titulo" Text="Ventas" VerticalAlignment="Center" /></StackPanel>
         <TextBlock Classes="etiqueta" Text="{Binding Resumen}" FontSize="14" />
       </StackPanel>
       <TextBox Grid.Column="1" Width="260" Text="{Binding Busqueda}" Watermark="Buscar venta o cliente"

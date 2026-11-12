@@ -9,7 +9,7 @@
 
     <Grid Grid.ColumnSpan="3" ColumnDefinitions="*,Auto,Auto" Margin="0,0,0,12">
       <StackPanel>
-        <TextBlock Classes="titulo" Text="Laboratorio" />
+        <StackPanel Orientation="Horizontal" Spacing="12"><Border Classes="icono-modulo"><ui:Icono Data="{x:Static ui:Iconos.Laboratorio}" /></Border><TextBlock Classes="titulo" Text="Laboratorio" VerticalAlignment="Center" /></StackPanel>
         <TextBlock Classes="etiqueta" FontSize="14" Text="Órdenes, graduaciones y entregas." />
       </StackPanel>
       <ComboBox Grid.Column="1" Width="300" ItemsSource="{Binding Filtros}" SelectedItem="{Binding Filtro}"

@@ -10,7 +10,7 @@
 
       <Grid ColumnDefinitions="*,Auto">
         <StackPanel>
-          <TextBlock Classes="titulo" Text="Mis finanzas" />
+          <StackPanel Orientation="Horizontal" Spacing="12"><Border Classes="icono-modulo"><ui:Icono Data="{x:Static ui:Iconos.Finanzas}" /></Border><TextBlock Classes="titulo" Text="Mis finanzas" VerticalAlignment="Center" /></StackPanel>
           <TextBlock Classes="etiqueta" FontSize="14" Text="Tu dinero personal, separado del negocio. Solo tú lo ves." />
         </StackPanel>
         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">

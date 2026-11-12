@@ -67,7 +67,8 @@ La aplicación combina un marco de navegación estable con áreas de trabajo dis
 **Key Characteristics:**
 - Navegación agrupada por función y perfil persistente.
 - Sucursal y entorno visibles en el menú lateral; cada pantalla trae su propio título (sin barra superior repetida).
-- Cifras clave en una sola franja dividida por líneas finas, nunca una tarjeta por número.
+- Cifras clave en una sola franja dividida por líneas finas. Excepción: Mi panel abre con la banda de jornada en petróleo, con el saludo, las cifras del día y los anteojos de la marca al fondo.
+- Cada pantalla lleva el icono de su módulo junto al título; los productos sin foto muestran los anteojos de la marca.
 - Composiciones diferenciadas para análisis, venta, expediente, calendario y catálogo.
 - Importes legibles y estados expresados con texto además de color.
 
@@ -84,7 +85,7 @@ Inter es la fuente del entorno nativo. Los títulos y cifras usan la escala efec
 ## Layout
 La estructura usa un lateral de 232 en verde petróleo (fondo, hover y activo de la misma familia) y no tiene barra superior: el título vive en cada pantalla y la sucursal, el entorno y la actualización (F5) en el lateral. El menú organiza Visión del negocio, Operación comercial, Atención óptica y Administración. Los grupos se filtran según los permisos existentes. El perfil se sitúa al pie y la navegación puede desplazarse en ventanas bajas.
 
-Mi panel usa composición asimétrica para actividad, prioridades (filas, no tarjetas anidadas) y citas. Indicadores, Auditoría, Caja y Finanzas abren con la franja de cifras. Auditoría prioriza registros y filtros, dejando el análisis secundario plegable. Vender reúne una lista densa de mostrador (miniatura, nombre, código, precio y agregar) y carrito, cliente y pagos en otra columna. Laboratorio y Pedidos muestran su proceso como etapas numeradas; Ventas, Pedidos y Laboratorio separan registro de inspector. Caja distingue apertura y operación. Agenda incorpora un calendario sin grilla gris (hoy con contorno, elegido en esmeralda); Clientes abre con la cabecera del expediente (identidad y saldo) y organiza datos rotulados, recetas e historial en pestañas. Inventario mantiene filtros laterales y catálogo o lista. Usuarios combina directorio e inspector. Finanzas reúne resumen, balance, movimientos y cuentas.
+Mi panel abre con la banda de jornada y usa composición asimétrica para actividad, prioridades (filas, no tarjetas anidadas) y citas. Indicadores, Auditoría, Caja y Finanzas abren con la franja de cifras. Auditoría prioriza registros y filtros, dejando el análisis secundario plegable. Vender reúne una lista densa de mostrador (miniatura, nombre, código, precio y agregar) y carrito, cliente y pagos en otra columna. Laboratorio y Pedidos muestran su proceso como etapas numeradas; Ventas, Pedidos y Laboratorio separan registro de inspector. Caja distingue apertura y operación. Agenda incorpora un calendario sin grilla gris (hoy con contorno, elegido en esmeralda); Clientes abre con la cabecera del expediente (identidad y saldo) y organiza datos rotulados, recetas e historial en pestañas. Inventario mantiene filtros laterales y catálogo o lista. Usuarios combina directorio e inspector. Finanzas reúne resumen, balance, movimientos y cuentas.
 
 **The Densidad Rule.** Las tarjetas de inventario dependen del ancho disponible, no del alto de la ventana. A 1100 de ancho se conservan dos tarjetas, con fotografía acotada entre 130 y 260 unidades; los filtros tienen etiquetas independientes y la ayuda inferior ocupa su propia fila.
 

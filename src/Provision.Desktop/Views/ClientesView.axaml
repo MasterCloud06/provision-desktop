@@ -8,7 +8,7 @@
   <Grid Margin="{StaticResource MargenPagina}" RowDefinitions="Auto,Auto,*" ColumnDefinitions="280,20,*">
 
     <Grid Grid.ColumnSpan="3" ColumnDefinitions="*,Auto" Margin="0,0,0,12">
-      <TextBlock Classes="titulo" Text="Clientes y salud visual" />
+      <StackPanel Orientation="Horizontal" Spacing="12"><Border Classes="icono-modulo"><ui:Icono Data="{x:Static ui:Iconos.Clientes}" /></Border><TextBlock Classes="titulo" Text="Clientes y salud visual" VerticalAlignment="Center" /></StackPanel>
       <Button Grid.Column="1" Classes="primario" VerticalAlignment="Center"
               IsVisible="{Binding PuedeGestionar}" Command="{Binding AlternarNuevoCommand}">
         <StackPanel Orientation="Horizontal" Spacing="8">

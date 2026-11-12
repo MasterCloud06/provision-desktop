@@ -722,7 +722,8 @@
     <Setter Property="Foreground" Value="{StaticResource Peligro}" />
   </Style>
 
-  <Style Selector="Border.superficie"><Setter Property="Background" Value="{StaticResource Tarjeta}"/><Setter Property="CornerRadius" Value="14"/><Setter Property="Padding" Value="20"/><Setter Property="BoxShadow" Value="0 3 16 -6 #2012343B"/></Style>
+  <!-- Superficie: borde fino que define el canto y una sombra corta (antes solo sombra difusa) -->
+  <Style Selector="Border.superficie"><Setter Property="Background" Value="{StaticResource Tarjeta}"/><Setter Property="BorderBrush" Value="{StaticResource Borde}"/><Setter Property="BorderThickness" Value="1"/><Setter Property="CornerRadius" Value="14"/><Setter Property="Padding" Value="20"/><Setter Property="BoxShadow" Value="0 1 2 0 #0F12343B"/></Style>
   <Style Selector="Border.banda"><Setter Property="Background" Value="{StaticResource PrimarioSuave}"/><Setter Property="CornerRadius" Value="12"/><Setter Property="Padding" Value="18,14"/></Style>
   <Style Selector="Border.cabecera-tabla"><Setter Property="Background" Value="{StaticResource Superficie}"/><Setter Property="Padding" Value="14,12"/><Setter Property="CornerRadius" Value="8"/></Style>
   <Style Selector="Button.nav"><Setter Property="MinHeight" Value="38"/><Setter Property="Padding" Value="12,8"/></Style>
@@ -863,5 +864,60 @@
   </Style>
   <Style Selector="Button.etapa.activa Border.numero-etapa TextBlock">
     <Setter Property="Foreground" Value="White" />
+  </Style>
+
+  <!-- ───────────── Identidad 2026 ───────────── -->
+  <!-- Icono del módulo junto al título de cada pantalla -->
+  <Style Selector="Border.icono-modulo">
+    <Setter Property="Width" Value="40" />
+    <Setter Property="Height" Value="40" />
+    <Setter Property="CornerRadius" Value="12" />
+    <Setter Property="Background" Value="{StaticResource PrimarioSuaveFuerte}" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Border.icono-modulo ui|Icono">
+    <Setter Property="Width" Value="20" />
+    <Setter Property="Height" Value="20" />
+    <Setter Property="Foreground" Value="{StaticResource PrimarioOscuro}" />
+    <Setter Property="HorizontalAlignment" Value="Center" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <!-- Banda de jornada (Mi panel): petróleo con texto claro -->
+  <Style Selector="Border.jornada">
+    <Setter Property="Background" Value="{StaticResource Barra}" />
+    <Setter Property="CornerRadius" Value="16" />
+    <Setter Property="Padding" Value="28,24" />
+    <Setter Property="ClipToBounds" Value="True" />
+  </Style>
+  <Style Selector="Border.jornada TextBlock.titulo, Border.jornada TextBlock.cifra">
+    <Setter Property="Foreground" Value="White" />
+  </Style>
+  <Style Selector="Border.jornada TextBlock.etiqueta">
+    <Setter Property="Foreground" Value="{StaticResource BarraTexto}" />
+  </Style>
+  <Style Selector="Border.celda-jornada">
+    <Setter Property="Background" Value="{StaticResource BarraHover}" />
+    <Setter Property="BorderBrush" Value="{StaticResource BarraBorde}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="12" />
+    <Setter Property="Padding" Value="16,12" />
+    <Setter Property="Margin" Value="0,0,12,0" />
+  </Style>
+  <Style Selector="Border.celda-jornada TextBlock.cifra">
+    <Setter Property="FontSize" Value="24" />
+  </Style>
+  <!-- Total de la venta: bloque tipo ticket, lo más visible del mostrador -->
+  <Style Selector="Border.total-venta">
+    <Setter Property="Background" Value="{StaticResource Barra}" />
+    <Setter Property="CornerRadius" Value="12" />
+    <Setter Property="Padding" Value="16,12" />
+  </Style>
+  <Style Selector="Border.total-venta TextBlock">
+    <Setter Property="Foreground" Value="{StaticResource BarraTexto}" />
+    <Setter Property="FontWeight" Value="Medium" />
+  </Style>
+  <Style Selector="Border.total-venta TextBlock.cifra">
+    <Setter Property="Foreground" Value="White" />
+    <Setter Property="FontSize" Value="28" />
   </Style>
 </Styles>

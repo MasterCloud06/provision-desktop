@@ -10,7 +10,7 @@
 
       <Grid ColumnDefinitions="*,Auto">
         <StackPanel Spacing="2">
-          <TextBlock Classes="titulo" Text="Indicadores del negocio" />
+          <StackPanel Orientation="Horizontal" Spacing="12"><Border Classes="icono-modulo"><ui:Icono Data="{x:Static ui:Iconos.Indicadores}" /></Border><TextBlock Classes="titulo" Text="Indicadores del negocio" VerticalAlignment="Center" /></StackPanel>
           <TextBlock Classes="etiqueta" Text="{Binding Fecha}" FontSize="14" />
         </StackPanel>
         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
@@ -56,7 +56,7 @@
         </ItemsControl>
       </Border>
 
-      <Border Classes="superficie" IsVisible="{Binding VerTendencia}"><StackPanel Spacing="12"><Grid ColumnDefinitions="*,Auto"><TextBlock Text="Ventas · últimos 7 días" Classes="subtitulo"/><TextBlock Grid.Column="1" Text="Bolivianos (Bs)" Classes="etiqueta"/></Grid><ui:GraficoBarras Height="220" Datos="{Binding Evolucion}"/><TextBlock Text="{Binding Comparacion}" Classes="etiqueta"/></StackPanel></Border>
+      <Border Classes="superficie" IsVisible="{Binding VerTendencia}"><StackPanel Spacing="12"><Grid ColumnDefinitions="*,Auto"><TextBlock Text="Ventas · últimos 7 días" Classes="subtitulo"/><TextBlock Grid.Column="1" Text="Bolivianos (Bs)" Classes="etiqueta"/></Grid><ui:GraficoBarras Height="220" Datos="{Binding Evolucion}" ResaltarUltimo="True"/><TextBlock Text="{Binding Comparacion}" Classes="etiqueta"/></StackPanel></Border>
       <Grid ColumnDefinitions="2*,16,*">
         <!-- Más vendidos -->
         <Border Classes="superficie">

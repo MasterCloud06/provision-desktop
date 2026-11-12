@@ -62,7 +62,7 @@
        <TextBlock Text="{Binding Titulo}" Foreground="{StaticResource BarraTextoSuave}" FontSize="11" FontWeight="Medium" Margin="12,0,0,4"/>
        <ItemsControl ItemsSource="{Binding Opciones}"><ItemsControl.ItemTemplate><DataTemplate x:DataType="vm:OpcionMenu">
         <Button Classes="nav" Classes.activo="{Binding Activo}" Command="{Binding Seleccionar}" AutomationProperties.Name="{Binding Titulo}">
-         <Grid ColumnDefinitions="28,*"><ui:Icono Data="{Binding Icono}" Width="17" Height="17"/><TextBlock Grid.Column="1" Text="{Binding Titulo}" VerticalAlignment="Center" FontSize="13"/></Grid>
+         <Grid ColumnDefinitions="28,*"><Border Classes="marca-activo" Width="3" Height="18" CornerRadius="2" Background="{StaticResource Cristal}" HorizontalAlignment="Left" Margin="-12,0,0,0"/><ui:Icono Data="{Binding Icono}" Width="17" Height="17"/><TextBlock Grid.Column="1" Text="{Binding Titulo}" VerticalAlignment="Center" FontSize="13"/></Grid>
         </Button>
        </DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
       </StackPanel>

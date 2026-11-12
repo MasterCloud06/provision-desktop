@@ -9,7 +9,7 @@
 
     <Grid Grid.ColumnSpan="3" ColumnDefinitions="*,Auto" Margin="0,0,0,12">
       <StackPanel>
-        <TextBlock Classes="titulo" Text="Equipo y accesos" />
+        <StackPanel Orientation="Horizontal" Spacing="12"><Border Classes="icono-modulo"><ui:Icono Data="{x:Static ui:Iconos.Usuarios}" /></Border><TextBlock Classes="titulo" Text="Equipo y accesos" VerticalAlignment="Center" /></StackPanel>
         <TextBlock Classes="etiqueta" FontSize="14" Text="Quién entra al sistema y qué puede hacer cada uno." />
       </StackPanel>
       <Button Grid.Column="1" Classes="primario" VerticalAlignment="Center"

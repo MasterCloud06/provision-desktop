@@ -15,7 +15,7 @@
       <Grid Grid.ColumnSpan="3" ColumnDefinitions="*,Auto" Margin="0,0,0,16">
         <StackPanel Spacing="4">
           <StackPanel Orientation="Horizontal" Spacing="12">
-            <TextBlock Classes="titulo" Text="Inventario" />
+            <StackPanel Orientation="Horizontal" Spacing="12"><Border Classes="icono-modulo"><ui:Icono Data="{x:Static ui:Iconos.Inventario}" /></Border><TextBlock Classes="titulo" Text="Inventario" VerticalAlignment="Center" /></StackPanel>
             <TextBlock Classes="etiqueta" Text="{Binding Resumen}" VerticalAlignment="Bottom" Margin="0,0,0,5" />
           </StackPanel>
           <TextBlock Classes="etiqueta" FontSize="14"
@@ -171,7 +171,7 @@
                         <!-- Foto protagonista: proporción respetada, sin recortar la montura -->
                         <Panel Height="{Binding $parent[views:InventarioView].AltoFoto}" Background="{StaticResource Superficie}">
                           <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="8" IsVisible="{Binding !TieneFoto}">
-                            <ui:Icono Data="{x:Static ui:Iconos.Foto}" Width="30" Height="30" HorizontalAlignment="Center"
+                            <ui:Icono Data="{x:Static ui:Iconos.Marca}" Width="56" Height="56" HorizontalAlignment="Center"
                                       Foreground="{StaticResource BordeFuerte}" Grosor="1.5" />
                             <TextBlock Text="Sin fotografía" FontSize="12" Foreground="{StaticResource TextoDeshabilitado}"
                                        HorizontalAlignment="Center" />
@@ -306,7 +306,7 @@
                           <Border Width="36" Height="36" CornerRadius="6" Background="{StaticResource Superficie}" ClipToBounds="True"
                                   VerticalAlignment="Center">
                             <Panel>
-                              <ui:Icono Data="{x:Static ui:Iconos.Foto}" Width="16" Height="16"
+                              <ui:Icono Data="{x:Static ui:Iconos.Marca}" Width="22" Height="22"
                                         Foreground="{StaticResource TextoDeshabilitado}" HorizontalAlignment="Center" />
                               <ui:ImagenRemota Url="{Binding Miniatura}" Stretch="UniformToFill" />
                             </Panel>
@@ -388,7 +388,7 @@
             <Panel Background="{StaticResource Superficie}" MinHeight="300">
               <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="10" Margin="24"
                           IsVisible="{Binding !TieneFotoSeleccionado}">
-                <ui:Icono Data="{x:Static ui:Iconos.Foto}" Width="40" Height="40" HorizontalAlignment="Center"
+                <ui:Icono Data="{x:Static ui:Iconos.Marca}" Width="72" Height="72" HorizontalAlignment="Center"
                           Foreground="{StaticResource BordeFuerte}" Grosor="1.5" />
                 <TextBlock Text="Este producto no tiene fotografía" Foreground="{StaticResource TextoSuave}" HorizontalAlignment="Center" />
                 <TextBlock Classes="etiqueta" FontSize="12" HorizontalAlignment="Center" IsVisible="{Binding PuedeGestionar}"

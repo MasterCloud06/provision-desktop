@@ -8,7 +8,7 @@
 
     <Grid Grid.ColumnSpan="3" ColumnDefinitions="*,Auto,Auto,Auto,Auto,Auto" Margin="0,0,0,12">
       <StackPanel>
-        <TextBlock Classes="titulo" Text="Agenda" />
+        <StackPanel Orientation="Horizontal" Spacing="12"><Border Classes="icono-modulo"><ui:Icono Data="{x:Static ui:Iconos.Agenda}" /></Border><TextBlock Classes="titulo" Text="Agenda" VerticalAlignment="Center" /></StackPanel>
         <TextBlock Classes="etiqueta" Text="{Binding Resumen}" FontSize="14" />
       </StackPanel>
       <Button Grid.Column="1" Classes="icono" Command="{Binding DiaAnteriorCommand}" VerticalAlignment="Center"

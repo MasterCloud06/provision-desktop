@@ -14,7 +14,7 @@
     <!-- Encabezado y mensajes -->
     <Grid Grid.ColumnSpan="3" ColumnDefinitions="*,Auto" Margin="0,0,0,16">
       <StackPanel Spacing="2">
-        <TextBlock Classes="titulo" Text="Punto de venta" />
+        <StackPanel Orientation="Horizontal" Spacing="12"><Border Classes="icono-modulo"><ui:Icono Data="{x:Static ui:Iconos.Vender}" /></Border><TextBlock Classes="titulo" Text="Punto de venta" VerticalAlignment="Center" /></StackPanel>
         <TextBlock Classes="etiqueta" Text="F2 Buscar · F9 Registrar venta · Ctrl+N Nueva venta" />
       </StackPanel>
       <Button Grid.Column="1" Classes="fantasma" Command="{Binding NuevaVentaCommand}" IsEnabled="{Binding !CobrarCommand.IsRunning}" VerticalAlignment="Center">
@@ -69,7 +69,7 @@
                 <Grid ColumnDefinitions="44,*,Auto,Auto">
                   <Border Width="44" Height="44" CornerRadius="8" Background="{StaticResource Superficie}" ClipToBounds="True" VerticalAlignment="Center">
                     <Panel>
-                      <ui:Icono Data="{x:Static ui:Iconos.Inventario}" Width="18" Height="18" Foreground="{StaticResource TextoDeshabilitado}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                      <ui:Icono Data="{x:Static ui:Iconos.Marca}" Width="24" Height="24" Foreground="{StaticResource TextoDeshabilitado}" HorizontalAlignment="Center" VerticalAlignment="Center" />
                       <ui:ImagenRemota Url="{Binding ImagenUrl}" Stretch="UniformToFill" AnchoDecodificado="96" />
                     </Panel>
                   </Border>
@@ -107,9 +107,9 @@
             <TextBlock Classes="etiqueta" Text="Subtotal" />
             <TextBlock Grid.Column="1" Classes="monto" Text="{Binding Subtotal, Converter={StaticResource Bs}}" />
           </Grid>
-          <Border BorderBrush="{StaticResource Borde}" BorderThickness="0,1,0,0" Padding="0,10,0,0">
+          <Border Classes="total-venta">
             <Grid ColumnDefinitions="*,Auto">
-              <TextBlock Classes="subtitulo" Text="Total" VerticalAlignment="Center" />
+              <TextBlock Text="Total a cobrar" VerticalAlignment="Center" />
               <TextBlock Grid.Column="1" Classes="cifra" Text="{Binding Total, Converter={StaticResource Bs}}" />
             </Grid>
           </Border>
